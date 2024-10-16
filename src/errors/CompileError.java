@@ -7,7 +7,7 @@ import errors.ErrorType;
  * @Description:
  * @date 2024/9/25 22:47
  */
-public class CompileError {
+public class CompileError implements Comparable<CompileError> {
     private int lineNum;
     private ErrorType errorType;
 
@@ -22,5 +22,15 @@ public class CompileError {
 
     public ErrorType getErrorType() {
         return errorType;
+    }
+
+    @Override
+    public String toString() {
+        return Integer.toString(lineNum) + ' ' + errorType.getErrorTypeCode().toString() + '\n';
+    }
+
+    @Override
+    public int compareTo(CompileError other) {
+        return Integer.compare(this.lineNum, other.lineNum);
     }
 }

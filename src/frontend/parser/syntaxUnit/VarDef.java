@@ -1,0 +1,125 @@
+package frontend.parser.syntaxUnit;
+
+import errors.CompileError;
+import errors.ErrorType;
+import frontend.lexer.LexType;
+import frontend.lexer.Token;
+import frontend.parser.Parser;
+import utils.IOUtils;
+
+import static frontend.parser.Parser.lexIterator;
+
+/**
+ * @author 郑悦
+ * @Description: 变量定义-包含普通常量、一维数组定义
+ * VarDef → Ident [ '[' ConstExp ']' ] | Ident [ '[' ConstExp ']' ] '=' InitVal
+ */
+public class VarDef extends SyntaxNode {
+    private Token ident_token; // 标识符
+    private Token left_bracket_token;
+    private ConstExp constExp;
+    private Token right_bracket_token;
+    private Token assign_token;
+    private InitVal initVal;
+    private Boolean isArray;
+    private Boolean isAssigned;
+
+    public VarDef() {
+        super("VarDef");
+        isArray = Boolean.FALSE;
+        isAssigned = Boolean.FALSE;
+    }
+
+    @Override
+    public void unitParser() {
+        Token token;
+        if (lexIterator.iterator().hasNext()) {
+            token = lexIterator.iterator().next();
+            lineNum_begin = token.getLineNum();
+            if (token.getTokenType() == LexType.IDENFR) {
+                ident_token = token;
+            } else {
+                throw new RuntimeException("VarDef解析出错：Ident标识符无法解析\n此token实际为："+token);
+            }
+        }
+        if (isArray()) {
+            // 注意是不是[]中括号只会在数组中出现
+            isArray = Boolean.TRUE;
+            if (lexIterator.iterator().hasNext()) {
+                token = lexIterator.iterator().next();
+                if (token.getTokenType() == LexType.LBRACK) {
+                    left_bracket_token = token;
+                } else {
+                    throw new RuntimeException("VarDef解析出错：[无法解析\n此token实际为："+token);
+                }
+            }
+            // 数组为定长，下面解析ConstExp
+            constExp = new ConstExp();
+            constExp.unitParser();
+            if (lexIterator.iterator().hasNext()) {
+                token = lexIterator.iterator().next();
+                if (token.getTokenType() == LexType.RBRACK) {
+                    right_bracket_token = token;
+                } else {
+                    lexIterator.retract(); // 回退
+                    CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackRBRACK);
+                    IOUtils.compileErrors.add(error);
+                    Parser.isSyntaxCorrect = Boolean.FALSE;
+                }
+            } else {
+                lexIterator.retract(); // 回退
+                CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackRBRACK);
+                IOUtils.compileErrors.add(error);
+                Parser.isSyntaxCorrect = Boolean.FALSE;
+            }
+        }
+        if (isAssign()) {
+            isAssigned = Boolean.TRUE;
+            // 注意赋值是否合法（数组和单变量赋值）应该在语义分析汇总判断
+            if (lexIterator.iterator().hasNext()) {
+                token = lexIterator.iterator().next();
+                if (token.getTokenType() == LexType.ASSIGN) {
+                    assign_token = token;
+                } else {
+                    throw new RuntimeException("VarDef解析出错：=无法解析\n此token实际为："+token);
+                }
+                initVal = new InitVal();
+                initVal.unitParser();
+            }
+        }
+    }
+
+    @Override
+    public void print() {
+        if (ident_token != null) {
+            IOUtils.writeCorrectLine(ident_token.toString());
+            if (isArray) {
+                if (left_bracket_token != null)
+                    IOUtils.writeCorrectLine(left_bracket_token.toString());
+                if (constExp != null)
+                    IOUtils.writeCorrectLine(constExp.toString());
+                if (right_bracket_token != null)
+                    IOUtils.writeCorrectLine(right_bracket_token.toString());
+            }
+            if (isAssigned) {
+                // 防止访问null，先在构造器里初始化了
+                if (assign_token != null)
+                    IOUtils.writeCorrectLine(assign_token.toString());
+                if (initVal != null)
+                    IOUtils.writeCorrectLine(initVal.toString());
+            }
+            IOUtils.writeCorrectLine(toString());
+        } else {
+            throw new RuntimeException("无VarDef成员变量，无法正确输出语法分析结果");
+        }
+    }
+
+//    boolean test;
+    public static void main(String[] args) {
+        VarDef varDef = new VarDef();
+        if (varDef.isArray == null) {
+            System.out.println("null boolean"); // Boolean类型就是引用，没初始化就是null
+        }
+//        if (varDef.test == null) // 不是引用类型，会报错
+    }
+}

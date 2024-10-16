@@ -28,6 +28,8 @@ public enum ErrorType {
     ErrorType(char errorTypeCode) {
         this.errorTypeCode = errorTypeCode;
     }
+    // 这边只记录了错误码，是不是把错误原因也保留下来会更好，便于后面的语义分析？
+    // TODO: 2024/10/11 或者说是在CompileError类中添加具体的错误原因 
 
     public void setLineNum(Integer lineNum) {
         this.lineNum = lineNum;
@@ -39,5 +41,10 @@ public enum ErrorType {
 
     public Integer getLineNum() {
         return lineNum;
+    }
+
+    public static void main(String[] args) {
+//        ErrorType e = new ErrorType('a');
+        // Enum Type枚举类不能被重新初始化，new出新的对象，只能用enum类定义时的那些
     }
 }
