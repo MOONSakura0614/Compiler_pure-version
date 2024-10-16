@@ -93,21 +93,24 @@ public class VarDef extends SyntaxNode {
     public void print() {
         if (ident_token != null) {
             IOUtils.writeCorrectLine(ident_token.toString());
+
             if (isArray) {
                 if (left_bracket_token != null)
                     IOUtils.writeCorrectLine(left_bracket_token.toString());
                 if (constExp != null)
-                    IOUtils.writeCorrectLine(constExp.toString());
+                    constExp.print();
                 if (right_bracket_token != null)
                     IOUtils.writeCorrectLine(right_bracket_token.toString());
             }
+
             if (isAssigned) {
                 // 防止访问null，先在构造器里初始化了
                 if (assign_token != null)
                     IOUtils.writeCorrectLine(assign_token.toString());
                 if (initVal != null)
-                    IOUtils.writeCorrectLine(initVal.toString());
+                    initVal.print();
             }
+
             IOUtils.writeCorrectLine(toString());
         } else {
             throw new RuntimeException("无VarDef成员变量，无法正确输出语法分析结果");

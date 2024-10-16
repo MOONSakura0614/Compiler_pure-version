@@ -106,6 +106,8 @@ public class InitVal extends SyntaxNode {
                     comma_exp.print();
                 }
             }
+            if (right_brace_token != null)
+                IOUtils.writeCorrectLine(right_brace_token.toString());
         } else { // 普通的只有一个Exp
             if (exp != null) {
                 exp.print();

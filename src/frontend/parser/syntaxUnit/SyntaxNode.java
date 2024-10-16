@@ -19,68 +19,21 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
     private String syntaxName;
     ArrayList<SyntaxNode> children; // 大概只用于记录直接子节点
     ArrayList<Token> tokenList;
-    protected int lineNum_begin, lineNum_end; // 要开放给子类，不能private
-//    private static LexIterator lexIterator;
-    // 防止重复遍历，用一个类变量static比较好，然后所有子节点都是在此基础上curPos++的
-    // 或者说放到Parser类中的静态变量会不会比较好
-//    protected static LexIterator lexIterator = LexIterator.getInstance();
+    protected int lineNum_begin, lineNum_end;
 
     protected SyntaxNode(String name) {
         children = new ArrayList<>();
         tokenList = new ArrayList<>();
         syntaxName = name;
-//        lexIterator = Parser.lexIterator;
     }
 
     SyntaxNode() {}
 
-//    abstract void setSyntaxName(); /*(String name);*/
     public String getSyntaxName() {
         return syntaxName;
     }
 
     abstract public void unitParser();
-
-//    public static boolean isFuncDef(Iterator<Token> iterator, SyntaxNode fatherNode) { // 需要传入父节点-如果函数内有新的子节点
-    /*public static boolean isFuncDef(Iterator<Token> iterator) {
-        // 用于区分int / char 开头 + 标识符的时候，是函数还是变量定义
-        // FuncDef || VarDef
-        if (!iterator.hasNext()) {
-            Parser.isSyntaxCorrect = false;
-            return false;
-        }
-        // 注意进入函数之前，这两个非终结符已经和int main区分开了，main同等位置的token读进去的是标识符
-//        Token newToken = iterator.next(); // 先读走一个名字
-        Token newToken = Parser.lexIterator.nowToken(); // 在调用这个函数的时候已经读过了
-        if (newToken.getTokenType() != LexType.IDENFR) {
-            Parser.isSyntaxCorrect = false;
-            return false;
-        }
-//        IOUtils.writeCorrectLine(newToken.toString());
-        if (!iterator.hasNext()) {
-            Parser.isSyntaxCorrect = false;
-            // 不可能没有下一个token，就算VarDef没有ASSIGN，也会有分号结尾
-            return false;
-        }
-        newToken = iterator.next();
-        // 有个问题，就是这些新token无法直接加入这个父节点（非终结符）的tokens中，要不要把list也传进来！
-        if (newToken.getTokenType() == LexType.LPARENT) {
-            // 目前遍历到的token要不要设为全局变量？（比如设给Parser的public static类变量
-//            FuncDef funcDefNode = new FuncDef();
-//            children.add(funcDefNode);
-            *//*FuncType funcType = new FuncType();
-            fatherNode.children.add(funcType); // 此处涉及token究竟如何存储的问题
-//            funcType.tokenList.add(newToken); // 不是在这个时候，是在判断前是不是函数前来着，因为是要在Ident之前输出type
-            funcType.unitParser();
-            IOUtils.writeCorrectLine(funcType.toString());
-            IOUtils.writeCorrectLine(newToken.toString());*//*
-//            funcDefNode.unitParser();
-            return true; // 遍历要不要交给原来的程序就行（非终结符的parse method
-        } else {
-            // VarDef的情况有多种， = 或者 ；在其内部parse中讨论
-            return false;
-        }
-    }*/
 
     @Override
     public int compareTo(SyntaxNode o) {
@@ -431,7 +384,7 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
 
     public static boolean isBlock() { // 和判断ArrayInit一致，都是找{}
         if (lexIterator.curPos < lexIterator.tokenCount)
-            return lexIterator.tokenList.get(lexIterator.curPos).getTokenType() == LexType.LPARENT;
+            return lexIterator.tokenList.get(lexIterator.curPos).getTokenType() == LexType.LBRACE;
         return false; // {
     }
 
@@ -479,11 +432,7 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
 
     // 函数相关
     public static boolean isRParams() {
-        return isRParam();
-    }
-
-    public static boolean isRParam() {
-        return isIdent();
+        return isExp();
     }
 
     public static boolean isIdent() {
@@ -494,6 +443,7 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
     }
 
     public static boolean isInputFunc() {
+        // 判断是不是读取输入（get）
         if (lexIterator.curPos < lexIterator.tokenCount) {
             return lexIterator.tokenList.get(lexIterator.curPos).getTokenType() == LexType.GETCHARTK
                     || lexIterator.tokenList.get(lexIterator.curPos).getTokenType() == LexType.GETINTTK;
@@ -511,10 +461,7 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
 
     // TODO: 2024/10/16 用于区分Stmt中的 Exp 和 LVal （是否后面紧跟着=
     public static boolean isLValAssign() {
-        /*if (isLVal()) {
             // Ident ['[' + Exp + ']']
-
-        }*/
 
         if (lexIterator.curPos < lexIterator.tokenCount - 1) {
             if (lexIterator.tokenList.get(lexIterator.curPos).getTokenType() == LexType.IDENFR) {
@@ -532,8 +479,9 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
                     } else {
                         // 分析Assign:怎么确定目前的位置？
                         // 暂时解析一下Exp罢，用一个临时变量exp_tmp，之后引用销毁
-                        Exp exp_tmp = new Exp();
-                        exp_tmp.unitParser(); // 从现在的curPos开始解析
+                        /*Exp exp_tmp = new Exp();
+                        exp_tmp.unitParser(); // 从现在的curPos开始解析*/
+                        new Exp().unitParser();
                         // curPos被顺利移动到Exp后，即]= 、 =  // [] 可能存在缺少右中括号
                         if (lexIterator.iterator().hasNext()) {
                             if (lexIterator.tokenList.get(lexIterator.curPos).getTokenType() == LexType.ASSIGN) {
@@ -551,14 +499,6 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
                         }
                     }
                     lexIterator.curPos = curPos0;
-                    /*if (lexIterator.curPos < lexIterator.tokenCount - 4) { // Exp需要检验吗
-                        return lexIterator.tokenList.get(lexIterator.curPos + 4).getTokenType() == LexType.ASSIGN;
-                    } else if (lexIterator.curPos < lexIterator.tokenCount - 3) {
-                        return lexIterator.tokenList.get(lexIterator.curPos + 3).getTokenType() == LexType.ASSIGN;
-                    }*/
-                    // else顺延向下执行，默认返回false
-                } else {
-                    return false;
                 }
             }
         }

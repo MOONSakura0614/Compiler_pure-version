@@ -77,5 +77,7 @@ public class MainFuncDef extends SyntaxNode {
             IOUtils.writeCorrectLine(rightParent_token.toString());
         if (block != null)
             block.print();
+
+        IOUtils.writeCorrectLine(toString());
     }
 }

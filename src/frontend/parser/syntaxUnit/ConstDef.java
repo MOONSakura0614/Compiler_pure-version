@@ -103,7 +103,7 @@ public class ConstDef extends SyntaxNode {
             }
         }
         if (assign_token != null)
-            IOUtils.writeCorrectLine(ident_token.toString());
+            IOUtils.writeCorrectLine(assign_token.toString());
         if (constInitVal != null)
             constInitVal.print(); // 如果是null要不要抛RE异常？
         IOUtils.writeCorrectLine(toString());

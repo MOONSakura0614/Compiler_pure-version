@@ -44,6 +44,7 @@ public class Block extends SyntaxNode {
                     if (token.getTokenType() == LexType.RBRACE) {
                         rBrace_token = lexIterator.iterator().next();
                     } else {
+                        System.out.println(lexIterator.nowToken().getLineNum() + ":" + lexIterator.nowToken().getTokenType() + lexIterator.nowToken().getTokenValue());
                         throw new RuntimeException("Block解析失败：没有}");
                     }
                 }

@@ -204,51 +204,6 @@ public class Stmt extends SyntaxNode {
                             stmt = new Stmt();
                             stmt.unitParser();
                         }
-
-                        /*if (lexIterator.iterator().hasNext()) {
-                            token = lexIterator.tokenList.get(lexIterator.curPos);
-                            if (token.getTokenType() == LexType.SEMICN) {
-                                semicn1 = lexIterator.iterator().next();
-
-                                if (isCond()) {
-//                                            hasCond // 直接用null判断，懒得赋值变量了
-                                    cond = new Cond();
-                                    cond.unitParser();
-                                }
-
-                                if (lexIterator.iterator().hasNext()) {
-                                    token = lexIterator.tokenList.get(lexIterator.curPos);
-                                    if (token.getTokenType() == LexType.SEMICN) {
-                                        semicn2 = lexIterator.iterator().next();
-
-                                        if (isForStmt()) {
-                                            forStmt2 = new ForStmt();
-                                            forStmt2.unitParser();
-                                        }
-                                    }
-
-                                    if (lexIterator.iterator().hasNext()) {
-                                        token = lexIterator.tokenList.get(lexIterator.curPos);
-                                        if (token.getTokenType() == LexType.RPARENT) {
-                                            rParent_token = lexIterator.iterator().next();
-
-                                            if (isStmt()) {
-                                                stmt = new Stmt();
-                                                stmt.unitParser();
-                                            }
-                                        } else {
-                                            Parser.isSyntaxCorrect = Boolean.FALSE;
-                                            CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackRPARENT);
-                                            IOUtils.compileErrors.add(error);
-                                        }
-                                    } else {
-                                        Parser.isSyntaxCorrect = Boolean.FALSE;
-                                        CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackRPARENT);
-                                        IOUtils.compileErrors.add(error);
-                                    }
-                                }
-                            }
-                        }*/
                     }
                 }
             } else if (token.getTokenType() == LexType.LBRACE) {
@@ -275,7 +230,7 @@ public class Stmt extends SyntaxNode {
                                 while (isComma()) {
                                     hasPrintExp = Boolean.TRUE;
 
-                                    token = lexIterator.tokenList.get(lexIterator.curPos);
+                                    token = lexIterator.iterator().next();
                                     if (isExp()) {
                                         exp1 = new Exp();
                                         exp1.unitParser();
@@ -288,7 +243,7 @@ public class Stmt extends SyntaxNode {
                                 if (lexIterator.iterator().hasNext()) {
                                     token = lexIterator.tokenList.get(lexIterator.curPos);
                                     if (token.getTokenType() == LexType.RPARENT) {
-                                        lParent_token = lexIterator.iterator().next();
+                                        rParent_token = lexIterator.iterator().next();
 
                                     } else {
                                         Parser.isSyntaxCorrect = Boolean.FALSE;
@@ -362,63 +317,69 @@ public class Stmt extends SyntaxNode {
                     CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackSemiCN);
                     IOUtils.compileErrors.add(error);
                 }
-            }
-        } else { // 注意由于Exp也能判断出LVal，所以先公共把LVal拿出来
-            // 只有单个等式也算是Exp？
-            // 剩余的情况仅需判断当前需要解析的Stmt是LVal和Exp：LVal开头的推导右式后面都跟着=！
-            if (isLValAssign()) {
-                // 说明先遇到=
-                lVal = new LVal();
-                lVal.unitParser();
+            } else { // 注意由于Exp也能判断出LVal，所以先公共把LVal拿出来
+                // 只有单个等式也算是Exp？
+                // 剩余的情况仅需判断当前需要解析的Stmt是LVal和Exp：LVal开头的推导右式后面都跟着=！
+                if (isLValAssign()) {
+                    // 说明先遇到=
+                    lVal = new LVal();
+                    lVal.unitParser();
 
-                assign_token = lexIterator.iterator().next(); // 在isLValAssign中分析了，存在=
+                    assign_token = lexIterator.iterator().next(); // 在isLValAssign中分析了，存在=
 
-                if (isExp()) {
-                    chosen_plan = 1;
+                    if (isExp()) {
+                        chosen_plan = 1;
 
-                    exp = new Exp();
-                    exp.unitParser();
+                        exp = new Exp();
+                        exp.unitParser();
 
-                    if (lexIterator.iterator().hasNext()) {
-                        token = lexIterator.tokenList.get(lexIterator.curPos);
-                        if (token.getTokenType() == LexType.SEMICN) {
-                            semicn_token = lexIterator.iterator().next();
+                        /*if (lexIterator.iterator().hasNext()) {
+                            token = lexIterator.tokenList.get(lexIterator.curPos);
+                            if (token.getTokenType() == LexType.SEMICN) {
+                                semicn_token = lexIterator.iterator().next();
+                            } else {
+                                Parser.isSyntaxCorrect = Boolean.FALSE;
+                                CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackSemiCN);
+                                IOUtils.compileErrors.add(error);
+                            }
                         } else {
                             Parser.isSyntaxCorrect = Boolean.FALSE;
                             CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackSemiCN);
                             IOUtils.compileErrors.add(error);
-                        }
-                    } else {
-                        Parser.isSyntaxCorrect = Boolean.FALSE;
-                        CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackSemiCN);
-                        IOUtils.compileErrors.add(error);
-                    }
-                } else if (isInputFunc()) {
-                    chosen_plan = 8; // 8和9一样的打印思路
-                    inputFunc_token = lexIterator.iterator().next();
+                        }*/
+                    } else if (isInputFunc()) {
+                        chosen_plan = 8; // 8和9一样的打印思路
+                        inputFunc_token = lexIterator.iterator().next();
 
-                    if (lexIterator.iterator().hasNext()) {
-                        token = lexIterator.tokenList.get(lexIterator.curPos);
-                        if (token.getTokenType() == LexType.LPARENT) {
-                            lParent_token = lexIterator.iterator().next();
+                        if (lexIterator.iterator().hasNext()) {
+                            token = lexIterator.tokenList.get(lexIterator.curPos);
+                            if (token.getTokenType() == LexType.LPARENT) {
+                                lParent_token = lexIterator.iterator().next();
 
-                            if (lexIterator.iterator().hasNext()) {
-                                token = lexIterator.tokenList.get(lexIterator.curPos);
-                                if (token.getTokenType() == LexType.RPARENT) {
-                                    rParent_token = lexIterator.iterator().next();
+                                if (lexIterator.iterator().hasNext()) {
+                                    token = lexIterator.tokenList.get(lexIterator.curPos);
+                                    if (token.getTokenType() == LexType.RPARENT) {
+                                        rParent_token = lexIterator.iterator().next();
 
-                                    if (lexIterator.iterator().hasNext()) {
-                                        token = lexIterator.tokenList.get(lexIterator.curPos);
-                                        if (token.getTokenType() == LexType.SEMICN) {
-                                            semicn_token = lexIterator.iterator().next();
+                                        if (lexIterator.iterator().hasNext()) {
+                                            token = lexIterator.tokenList.get(lexIterator.curPos);
+                                            if (token.getTokenType() == LexType.SEMICN) {
+                                                semicn_token = lexIterator.iterator().next();
+                                            } else {
+                                                Parser.isSyntaxCorrect = Boolean.FALSE;
+                                                CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackSemiCN);
+                                                IOUtils.compileErrors.add(error);
+                                            }
                                         } else {
                                             Parser.isSyntaxCorrect = Boolean.FALSE;
                                             CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackSemiCN);
                                             IOUtils.compileErrors.add(error);
                                         }
+
+                                        return; // 有右括号就得单独分析';'再直接return
                                     } else {
                                         Parser.isSyntaxCorrect = Boolean.FALSE;
-                                        CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackSemiCN);
+                                        CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackRPARENT);
                                         IOUtils.compileErrors.add(error);
                                     }
                                 } else {
@@ -426,22 +387,19 @@ public class Stmt extends SyntaxNode {
                                     CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackRPARENT);
                                     IOUtils.compileErrors.add(error);
                                 }
-                            } else {
-                                Parser.isSyntaxCorrect = Boolean.FALSE;
-                                CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackRPARENT);
-                                IOUtils.compileErrors.add(error);
                             }
                         }
                     }
-                }
-            } else {
-                chosen_plan = 2;
-                // 即为[ Exp ] ; 情况
-                if (isExp()) {
-                    exp = new Exp();
-                    exp.unitParser();
+                } else {
+                    chosen_plan = 2;
+                    // 即为[ Exp ] ; 情况
+                    if (isExp()) {
+                        exp = new Exp();
+                        exp.unitParser();
+                    }
                 }
 
+                // 感觉stmt最后的分号可以统一分析
                 if (lexIterator.iterator().hasNext()) {
                     token = lexIterator.tokenList.get(lexIterator.curPos);
                     if (token.getTokenType() == LexType.SEMICN) {
@@ -452,6 +410,8 @@ public class Stmt extends SyntaxNode {
                         IOUtils.compileErrors.add(error);
                     }
                 } else {
+                    // 不可能是空白吧））下一个token就是}了？如果没有Exp是不是没有；也不用报错
+                    // 但是为什么能进Stmt分析
                     Parser.isSyntaxCorrect = Boolean.FALSE;
                     CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackSemiCN);
                     IOUtils.compileErrors.add(error);
@@ -532,10 +492,10 @@ public class Stmt extends SyntaxNode {
                     IOUtils.writeCorrectLine(semicn2.toString());
                 }
                 if (forStmt2 != null) {
-                    forStmt1.print();
+                    forStmt2.print();
                 }
-                if (lParent_token != null) {
-                    IOUtils.writeCorrectLine(lParent_token.toString());
+                if (rParent_token != null) {
+                    IOUtils.writeCorrectLine(rParent_token.toString());
                 }
                 if (stmt != null) {
                     stmt.print();

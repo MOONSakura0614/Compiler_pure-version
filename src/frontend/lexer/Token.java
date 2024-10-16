@@ -88,4 +88,10 @@ public class Token {
     public static boolean isReversedContained(String word) {
         return reserveWords.containsKey(word);
     }
+
+    @Override
+    public String toString() {
+//        return getTokenType().toString() + ' ' + getTokenValue()+'\n';
+        return lexType.toString() + ' ' + tokenValue + '\n';
+    }
 }

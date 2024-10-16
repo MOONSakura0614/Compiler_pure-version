@@ -72,7 +72,7 @@ public class Lexer {
         }
         // 下面暂时不用输出，在语法分析中输出
 //        if (CompilerConfig.isLexer)
-            printLexicalResult();
+//            printLexicalResult();
     }
 
     public void printLexicalResult() {
@@ -272,17 +272,16 @@ public class Lexer {
                     CompileError error = new CompileError(lineNum, ErrorType.IllegalSymbol);
                     errorList.add(error);
                     IOUtils.compileErrors.add(error);
-                    return false;
+//                    return false;
                 }
             } else {
                 isLexicalCorrect = false;
 //                retract();
                 CompileError error = new CompileError(lineNum, ErrorType.IllegalSymbol);
                 errorList.add(error);
-                IOUtils.compileErrors.add(error);
-                return false;
+//                return false;
             }
-            lexType = LexType.AND;
+            lexType = LexType.OR;
         } else if (currentSym == '!') {
             catToken();
             if (curPos < codeLength) {
@@ -406,9 +405,9 @@ public class Lexer {
 
     public ArrayList<Token> getTokenList() {
 
-        for (Token token1: tokenList) {
+        /*for (Token token1: tokenList) {
             System.out.println(token1.getLineNum() + ": " + token1.getTokenType() + " " + token1.getTokenValue());
-        }
+        }*/
         return tokenList;
     }
 
@@ -486,7 +485,6 @@ public class Lexer {
     }
 
     public static void main(String[] args) {
-        //
         Lexer lexer1 = Lexer.getInstance();
         lexer1.lexicalAnalysis();
         // 出现错误：有空行时会导致Token重复？

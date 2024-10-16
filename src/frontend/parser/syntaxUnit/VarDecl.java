@@ -23,6 +23,8 @@ public class VarDecl extends SyntaxNode {
 
     public VarDecl() {
         super("VarDecl");
+
+        comma_varDefList = new ArrayList<>();
     }
 
     @Override
@@ -86,8 +88,12 @@ public class VarDecl extends SyntaxNode {
             // 先打印逗号，再打印VarDef语法成分
             for (Comma_VarDef comma_varDef: comma_varDefList) {
                 // 逐个打印
+                comma_varDef.print();
             }
         }
+        if (semicn_token != null)
+            IOUtils.writeCorrectLine(semicn_token.toString());
+
         IOUtils.writeCorrectLine(this.toString()); // 打印<VarDecl>
     }
 

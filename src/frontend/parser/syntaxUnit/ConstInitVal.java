@@ -43,14 +43,16 @@ public class ConstInitVal extends SyntaxNode {
             if (lexIterator.iterator().hasNext()) { // 肯定有左大括号
                 left_brace_token = lexIterator.iterator().next();
             }
-            // 至少有一个Exp
+            // 注意不一定要有Exp，可以是空数组初始化[Exp {, Exp}]
             if (isExp()) {
                 constExp = new ConstExp();
                 constExp.unitParser();
-            } else {
+            }/* else {
+                System.out.println(lexIterator.nowToken().getLineNum() + ":" + lexIterator.nowToken().getTokenType() + lexIterator.nowToken().getTokenValue());
                 lexIterator.retract();
+                System.out.println(lexIterator.nowToken().getLineNum() + ":" + lexIterator.nowToken().getTokenType() + lexIterator.nowToken().getTokenValue());
                 throw new RuntimeException("InitVal解析错误: ConstExp不能识别");
-            }
+            }*/
             Token token;
             ConstExp constExp1;
             Comma_ConstExp comma_constExp;

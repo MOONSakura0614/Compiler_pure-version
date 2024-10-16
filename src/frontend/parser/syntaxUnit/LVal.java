@@ -68,5 +68,6 @@ public class LVal extends SyntaxNode {
                 IOUtils.writeCorrectLine(rBracket_token.toString());
             }
         }
+        IOUtils.writeCorrectLine(toString());
     }
 }
