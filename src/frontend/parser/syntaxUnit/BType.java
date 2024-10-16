@@ -31,8 +31,10 @@ public class BType extends SyntaxNode {
             token = lexIterator.iterator().next();
             if (token.getTokenType() == LexType.INTTK) {
                 isInt = Boolean.TRUE;
+                basic_type_token = token;
             } else if (token.getTokenType() == LexType.CHARTK) {
                 isInt = Boolean.FALSE;
+                basic_type_token = token;
             } else {
                 throw new RuntimeException("解析BType出错: 此Token不是BType\n" + "Error Token: " + token.toString());
             }

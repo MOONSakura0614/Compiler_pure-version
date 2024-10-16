@@ -75,10 +75,11 @@ public class ConstDecl extends SyntaxNode{
             // 这里注意，进入是逗号才可以，是分号就退出
         }*/
         if (isSemicn()) {
-            if (lexIterator.iterator().hasNext()) {
+            /*if (lexIterator.iterator().hasNext()) {
                 // 解析分号
                 semicn_token = lexIterator.iterator().next();
-            }
+            }*/
+            semicn_token = lexIterator.iterator().next();
         } else {
             // errorHandle:发生缺失分号错误-i
 //            Parser.isSyntaxCorrect = Boolean.FALSE;
@@ -109,6 +110,8 @@ public class ConstDecl extends SyntaxNode{
                 comma_constDef.constDef.print();
             }
         }
+        if (semicn_token != null)
+            IOUtils.writeCorrectLine(semicn_token.toString());
         IOUtils.writeCorrectLine(this.toString());
     }
 

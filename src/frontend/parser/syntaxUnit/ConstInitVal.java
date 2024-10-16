@@ -38,9 +38,7 @@ public class ConstInitVal extends SyntaxNode {
             if (lexIterator.iterator().hasNext()) {
                 string_const_token = lexIterator.iterator().next();
             }
-            return;
-        }
-        if (isArrayInit()) {
+        } else if (isArrayInit()) { // 数组初始化
             isArrayInit = Boolean.TRUE;
             if (lexIterator.iterator().hasNext()) { // 肯定有左大括号
                 left_brace_token = lexIterator.iterator().next();
@@ -83,9 +81,7 @@ public class ConstInitVal extends SyntaxNode {
                     throw new RuntimeException("InitVal解析错误: }不能识别");
                 }
             }
-            return;
-        }
-        if (isConstExp()) {
+        } else if (isConstExp()) {
             constExp = new ConstExp();
             constExp.unitParser();
         }

@@ -71,11 +71,11 @@ public class Lexer {
             getChar();
         }
         // 下面暂时不用输出，在语法分析中输出
-        if (CompilerConfig.isLexer)
+//        if (CompilerConfig.isLexer)
             printLexicalResult();
     }
 
-    private void printLexicalResult() {
+    public void printLexicalResult() {
         if (isLexicalCorrect) {
             // 输出tokenList
             try {
@@ -425,6 +425,10 @@ public class Lexer {
     }
 
     public ArrayList<Token> getTokenList() {
+
+        for (Token token1: tokenList) {
+            System.out.println(token1.getLineNum() + ": " + token1.getTokenType() + " " + token1.getTokenValue());
+        }
         return tokenList;
     }
 
@@ -503,5 +507,14 @@ public class Lexer {
 
     public static void main(String[] args) {
         //
+        Lexer lexer1 = Lexer.getInstance();
+        lexer1.lexicalAnalysis();
+        // 出现错误：有空行时会导致Token重复？
+
+        for (Token token1: lexer1.tokenList) {
+            System.out.println(token1.getLineNum() + ": " + token1.getTokenType() + " " + token1.getTokenValue());
+        }
+
+        lexer1.printLexicalResult();
     }
 }

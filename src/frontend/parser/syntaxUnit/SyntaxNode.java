@@ -133,9 +133,10 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
 
     public static boolean isVarDecl() {
         // 左递归文法要求：规则右式first集不重合，那是要提前提取重复的token，还是？
-        if (!isBType())
+        /*if (!isBType())
             return false;
-        return !isMainFuncDef() && !isFuncDef();
+        return (!isMainFuncDef()) && (!isFuncDef());*/
+        return isBType() && !(isMainFuncDef() || isFuncDef());
         // BType开头，但不是int main也不是funcDef
     }
 
@@ -281,7 +282,7 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
         // 函数调用的判断
         if (lexIterator.curPos < lexIterator.tokenCount - 1) {
             return lexIterator.tokenList.get(lexIterator.curPos).getTokenType() == LexType.IDENFR
-                    && lexIterator.tokenList.get(lexIterator.curPos + 1).getTokenType() == LexType.LBRACK;
+                    && lexIterator.tokenList.get(lexIterator.curPos + 1).getTokenType() == LexType.LPARENT;
         }
         return false;
     }
@@ -302,9 +303,10 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
         // PrimaryExp的右式就是终结符→ '(' Exp ')' | LVal | Number | Character
         // 感觉 Exp → PrimaryExp; PrimaryExp → '(' Exp ')' 莫名有死循环风险，要不直接'('判断（只取第一个token算了？？——不然判断函数必然死循环了
         if (lexIterator.curPos < lexIterator.tokenCount) {
-            return lexIterator.tokenList.get(lexIterator.curPos).getTokenType() == LexType.LPARENT;
+            return isNumber() || isCharacter()
+                    ||lexIterator.tokenList.get(lexIterator.curPos).getTokenType() == LexType.LPARENT;
         }
-        return isNumber() || isCharacter();
+        return false;
     }
 
     /*ForStmt → LVal(可能是Ident或者Ident[Exp] '=' Exp*/

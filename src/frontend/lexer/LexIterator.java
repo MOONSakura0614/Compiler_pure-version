@@ -34,6 +34,9 @@ public class LexIterator implements Iterable<Token> {
             // init
             lexIterator = new LexIterator();
             lexIterator.lexer.lexicalAnalysis(); // 获取TokenList
+
+            lexIterator.lexer.printLexicalResult();
+
             lexIterator.tokenList = lexIterator.lexer.getTokenList();
             lexIterator.tokenCount = lexIterator.tokenList.size();
         }
@@ -84,9 +87,13 @@ public class LexIterator implements Iterable<Token> {
         // 测试单独把iterator<Token>拿出来会不会死循环
         System.out.println("test");
         Iterator<Token> tokenIterator = lexIterator.iterator();
-        while (lexIterator.tokenIterator.hasNext()) {
+        /*while (lexIterator.tokenIterator.hasNext()) {
             token = lexIterator.tokenIterator.next();
             System.out.println(token.getLineNum() + ": " + token.getTokenType() + " " + token.getTokenValue());
+        }*/
+
+        for (Token token1: lexIterator.tokenList) {
+            System.out.println(token1.getLineNum() + ": " + token1.getTokenType() + " " + token1.getTokenValue());
         }
         // 不会，还是会同时保留改变的curPos
     }
