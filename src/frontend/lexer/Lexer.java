@@ -120,7 +120,7 @@ public class Lexer {
             else
                 return true;
         }
-        if (isNewLine()) {
+        while (isNewLine()) {
             lineNum++;
             if (curPos < codeLength)
                 getChar();
@@ -137,9 +137,10 @@ public class Lexer {
                 if (curPos < codeLength)
                     getChar();
                 else
-                    break;
+                    break; // 也有可能遇到retract？
             }
-            retract();
+            if (!(isUnderline() || isLetter() || isDigit()))
+                retract();
             lexType = reserve(); // 查关键字表
 //            return true;
         } else if (isDigit()) {
@@ -151,9 +152,10 @@ public class Lexer {
                     break;
                 }
             }
-            retract(); // 跳出循环后要回退
+            if (!isDigit())
+                retract(); // 跳出循环后要回退
             lexType = LexType.INTCON;
-            number = Integer.parseInt(word);
+//            number = Integer.parseInt(word); // 最大的无符号正数int转换不了？
         } else if (isDivi()) { // == ‘/’
             catToken();
             if (curPos < codeLength) {
@@ -182,10 +184,15 @@ public class Lexer {
                         }
                         while (curPos < codeLength && currentSym == '*') {
                             getChar();
+                            // 这边如果是\n是不是打破循环之后没有newline++
                         }
-                        if (curPos < codeLength && currentSym == '/') {
+//                        if (curPos < codeLength && currentSym == '/') { // 是不是不用签名的条件
+                        if (currentSym == '/') {
                             // 结束注释
                             break;
+                        }
+                        if (currentSym == '\n') {
+                            lineNum++;
                         }
                     }
                     return true; // 注释部分不加tokenList，直接跳过
@@ -203,15 +210,32 @@ public class Lexer {
                     break;
                 }
             }
-            // 由于是按字符读取，应该不会遇到需要识别转义字符\的吧（string本身），而printf规定只会出现\n
             lexType = LexType.STRCON;
         } else if (isSingleQuote()) {
             catToken();
             while (curPos < codeLength) {
                 getChar();
                 catToken();
-                if (currentSym == '\'') {
-                    break;
+                if (currentSym == '\\') { // 转义符号引发的问题
+                    if (curPos >= codeLength)
+                        break;
+                    else {
+                        getChar();
+                        catToken();
+                        if (currentSym == '\'') { // 保证词法除了a错其他不错？
+//                            if (curPos )
+                            continue;
+                        }
+                    }
+                }
+                if (currentSym == '\'') { // 转义符号引发的问题
+//                    catToken();
+                    if (!word.isEmpty() && word.charAt(word.length() - 1) == '\\') {
+                        continue; // 这个‘是转义，还有下一个’
+                    }
+                    else {
+                        break;
+                    }
                 }
             }
             lexType = LexType.CHRCON;
@@ -230,7 +254,7 @@ public class Lexer {
                 }
             } else {
                 isLexicalCorrect = false;
-                retract();
+//                retract();
                 CompileError error = new CompileError(lineNum, ErrorType.IllegalSymbol);
                 errorList.add(error);
                 IOUtils.compileErrors.add(error);
@@ -252,7 +276,7 @@ public class Lexer {
                 }
             } else {
                 isLexicalCorrect = false;
-                retract();
+//                retract();
                 CompileError error = new CompileError(lineNum, ErrorType.IllegalSymbol);
                 errorList.add(error);
                 IOUtils.compileErrors.add(error);
@@ -336,53 +360,13 @@ public class Lexer {
         } else if (currentSym == '}') {
             catToken();
         }
-        /*else {
-            // 好像不能单个字符直接读入，防止空格之类的，还是得if判断，不能每个扔进去reverse
-        }*/
-
-
-        /*if (isLetter()) { // 字母开头，不可能是int常量——STR CONST和CHAR CONST是不是会有“”和‘’标志
-            while (isLetter() || isDigit()) {
-                catToken();
-                getChar();
-            }
-            retract();
-//            LexType resultValue = reserver();
-            // 查看是否为保留字
-            if (Token.isReversedContained(word)) {
-                lexType = reserver();
-            }
-            else
-                lexType = LexType.IDENFR;
-        } else if (isDigit()) { // 标识符不能以数字开头
-            while (isDigit()) {
-                catToken();
-                getChar();
-            } // 数字开头只能是INT CONST
-            retract();
-            number = Integer.parseInt(word);
-            lexType = LexType.INTCON;
-        } else if (isPlus()) {
-            catToken();
-            lexType = reserver();
-        } else if (isMinus()) {
-            catToken();
-            lexType = reserver();
-            // 整型常量好像需要无符号：0|其他无前导零的
-            // 由于错误只有&，|不做单目运算使用，所以不会出现其他词法错误
-        } else if (isStar()) {
-            catToken();
-            // 注释的进入不一样
-            lexType = reserver();
-        } else if (isDivi()) {
-            catToken();
-            lexType = reserver();
-        }*/
         if (Token.isReversedContained(word)) {
             lexType = reserve();
         }
-        Token token = new Token(word, lexType, lineNum);
-        tokenList.add(token);
+        if (!word.isEmpty()) {
+            Token token = new Token(word, lexType, lineNum);
+            tokenList.add(token);
+        }
 
         return true;
     }
@@ -396,10 +380,6 @@ public class Lexer {
         if (curPos != 0) {
             curPos--;
         }
-        /*else {
-            lineNum--;
-//            curPos = lines.get(lineNum).length();
-        }*/
     }
 
     public LexType reserve() {
