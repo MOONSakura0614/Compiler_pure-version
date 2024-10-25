@@ -206,9 +206,31 @@ public class Lexer {
             while (curPos < codeLength) {
                 getChar();
                 catToken();
-                if (currentSym == '"') {
-                    break;
+                // 注意"/""的情况，""之间和''之间一样可能转义
+                if (currentSym == '\\') { // 转义符号-可能是第一个转义
+                    if (curPos >= codeLength)
+                        break;
+                    else {
+                        getChar();
+                        catToken();
+                        if (currentSym == '\"') { // 保证词法除了a错其他不错？
+//                            if (curPos )
+                            continue;
+                        }
+                    }
                 }
+                if (currentSym == '\"') { // 转义符号引发的问题
+//                    catToken();
+                    if (!word.isEmpty() && word.charAt(word.length() - 1) == '\\') {
+                        continue; // 这个‘是转义，还有下一个’
+                    }
+                    else {
+                        break;
+                    }
+                }
+                /*if (currentSym == '"') {
+                    break;
+                }*/
             }
             lexType = LexType.STRCON;
         } else if (isSingleQuote()) {
