@@ -163,7 +163,7 @@ public class Stmt extends SyntaxNode {
                             semicn1 = lexIterator.iterator().next();
                         else {
                             Parser.isSyntaxCorrect = Boolean.FALSE;
-                            CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackRPARENT);
+                            CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackSemiCN);
                             IOUtils.compileErrors.add(error);
                         }
 
@@ -176,7 +176,7 @@ public class Stmt extends SyntaxNode {
                             semicn2 = lexIterator.iterator().next();
                         else {
                             Parser.isSyntaxCorrect = Boolean.FALSE;
-                            CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackRPARENT);
+                            CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackSemiCN);
                             IOUtils.compileErrors.add(error);
                         }
 

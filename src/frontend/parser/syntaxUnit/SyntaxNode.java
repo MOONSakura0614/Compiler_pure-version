@@ -135,7 +135,7 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
         return isAddExp();
     }
 
-    // TODO: 2024/10/14 输出顺序AddExp和MulExp
+    // 输出顺序AddExp和MulExp
     public static boolean isAddExp() {
         return isMulExp();
     }
@@ -150,7 +150,7 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
         return false;
     }
 
-    // TODO: 2024/10/14 输出顺序MulExp和UnaryExp
+    // 输出顺序MulExp和UnaryExp
     public static boolean isMulExp() {
         return isUnaryExp();
     }
@@ -171,7 +171,7 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
         return isPrimaryExp() || isUnaryOp() || isFuncCall();
     }
 
-    // TODO: 2024/10/15 输出顺序RelExp和AddExp
+    // 输出顺序RelExp和AddExp
     public static boolean isRelExp() {
         return isAddExp(); // 注意 RelExp → AddExp | RelExp ('<' | '>' | '<=' | '>=') AddExp 颠倒造成的语法成分输出顺序
     }
@@ -188,7 +188,7 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
         return false;
     }
 
-    // TODO: 2024/10/15 输出顺序EqExp和RelExp
+    // 输出顺序EqExp和RelExp
     public static boolean isEqExp() {
         return isRelExp();
     }
@@ -203,7 +203,7 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
         return false;
     }
 
-    // TODO: 2024/10/15 输出顺序LAndExp和EqExp
+    // 输出顺序LAndExp和EqExp
     public static boolean isLAndExp() {
         return isEqExp();
     }
@@ -212,7 +212,7 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
         return isLOrExp(); // 条件表达式
     }
 
-    // TODO: 2024/10/15 输出顺序LOrExp和LAndExp
+    // 出顺序LOrExp和LAndExp
     public static boolean isLOrExp() {
         return isLAndExp();
     }
@@ -459,7 +459,7 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
         return isVarDecl(); // BType开头，且不是func
     }
 
-    // TODO: 2024/10/16 用于区分Stmt中的 Exp 和 LVal （是否后面紧跟着=
+    // 用于区分Stmt中的 Exp 和 LVal （是否后面紧跟着=
     public static boolean isLValAssign() {
             // Ident ['[' + Exp + ']']
 
