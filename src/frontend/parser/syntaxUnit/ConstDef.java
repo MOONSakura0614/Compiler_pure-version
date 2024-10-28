@@ -27,8 +27,6 @@ public class ConstDef extends SyntaxNode {
     private Token assign_token;
     private ConstInitVal constInitVal;
     private Boolean isArray;
-    // const常量，必定被赋初值
-    /*private Boolean isAssigned;*/
 
     public ConstDef() {
         super("ConstDef");
@@ -72,7 +70,6 @@ public class ConstDef extends SyntaxNode {
                     CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackRBRACK);
                     IOUtils.compileErrors.add(error);
                     Parser.isSyntaxCorrect = Boolean.FALSE;
-//                    throw new RuntimeException("VarDef解析出错：]无法解析\n此token实际为："+token);
                 }
             }
         }
@@ -117,17 +114,9 @@ public class ConstDef extends SyntaxNode {
     public void insertSymbol(SymbolTable symbolTable) { // 默认插入int
         if (this.ident_token == null)
             return;
-        // 注意需要检查是否未曾存在才能插入
-        /*String ident_name = this.ident_token.getTokenValue();
-        if (symbolTable.isSymbolExist(ident_name)) {
-            // 重定义-错误处理
-            ErrorHandler.redefineErrorHandle(this.ident_token.getLineNum());
-            return;
-        }*/
         Symbol symbol = new ConstSymbol(this, ident_token, symbolTable.getScope());
         if (isArray) {
             symbol.setSymbolType(SymbolType.ConstIntArray);
-//            ((ConstSymbol) symbol).setConstExp(constExp);
             symbol.setIsArray();
         }
         else
@@ -142,16 +131,9 @@ public class ConstDef extends SyntaxNode {
     public void insertCharSymbol(SymbolTable symbolTable) {
         if (this.ident_token == null)
             return;
-        /*String ident_name = this.ident_token.getTokenValue();
-        if (symbolTable.isSymbolExist(ident_name)) {
-            // 重定义-错误处理:在符号表自身的插入函数中完成
-            ErrorHandler.redefineErrorHandle(this.ident_token.getLineNum());
-            return;
-        }*/
         Symbol symbol = new ConstSymbol(this, ident_token, symbolTable.getScope()); // 包括ConstInitVal
         if (isArray) {
             symbol.setSymbolType(SymbolType.ConstCharArray);
-//            ((ConstSymbol) symbol).setConstExp(constExp);
             symbol.setIsArray();
         }
         else
@@ -161,5 +143,5 @@ public class ConstDef extends SyntaxNode {
 
         if (constInitVal != null)
             constInitVal.visit();
-    } // 如果这个函数改成return新symbol，然后在调用这个函数的地方插入symbolTable是不是更好
+    }
 }

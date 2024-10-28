@@ -109,11 +109,7 @@ public class Block extends SyntaxNode {
                         if (!stmt.getHasReturnExp()) {
                             ErrorHandler.funcLackReturnValueErrorHandle(rBrace_token !=null ? rBrace_token.getLineNum() : 0);
                         }
-                    } /*else {
-                        if (stmt.getHasReturnExp()) { // 报错在return所在行号
-                            ErrorHandler.returnExpForVoidErrorHandle(stmt.getReturnExpLine());
-                        }
-                    }*/
+                    }
                 } else {
                     // 没有return语句
                     if (funcType != LexType.VOIDTK)
@@ -127,9 +123,6 @@ public class Block extends SyntaxNode {
         }
 
         Visitor.inVoidFunc = Boolean.FALSE;
-
-        // visit in func结束也需要退出一层作用域（回到fatherTable：这点和其他block一致）
-//        exitCurScope(); ————没有initSymTable所以不需要，会在外层调用本函数的FuncDef中退出
     }
 
     public void checkReturn0() {

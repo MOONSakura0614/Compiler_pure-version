@@ -16,7 +16,6 @@ public class Parser {
     public static Boolean isSyntaxCorrect;
     // 在每个syntaxUnit解析的错误处理的时候就给它赋值了？
     public static LexIterator lexIterator = LexIterator.getInstance();
-//    public static
     private static Parser parser;
 
     private Parser() {
@@ -60,9 +59,5 @@ public class Parser {
         }
 
         return compUnit;
-    }
-    public static void main(String[] args) {
-        Parser parser = Parser.getInstance();
-        // 测试输出语法树的各节点
     }
 }

@@ -18,12 +18,9 @@ import static frontend.parser.Parser.lexIterator;
  * ConstDecl → 'const' BType ConstDef { ',' ConstDef } ';'
  */
 public class ConstDecl extends SyntaxNode{
-    // 这边SyntaxNode要有成员变量不能只做interface，但是又单继承，继承Decl也不太对的感觉
-    // 好在BType和Decl，BlockItem不用输出-->但是是不是要在语法树中体现-->AST是不是node一对多
     private Token const_token;
     BType bType;
     ConstDef constDef; // 至少有一个Ident做常量定义后面
-//    ArrayList<ConstDef> constDefList;
     ArrayList<Comma_constDef> comma_constDef_list;
     private Token semicn_token;
 
@@ -72,19 +69,9 @@ public class ConstDecl extends SyntaxNode{
                 comma_constDef_list.add(comma_constDef);
             }
         }
-        /*while (isVarDef()) {
-            // 这里注意，进入是逗号才可以，是分号就退出
-        }*/
         if (isSemicn()) {
-            /*if (lexIterator.iterator().hasNext()) {
-                // 解析分号
-                semicn_token = lexIterator.iterator().next();
-            }*/
             semicn_token = lexIterator.iterator().next();
         } else {
-            // errorHandle:发生缺失分号错误-i
-//            Parser.isSyntaxCorrect = Boolean.FALSE;
-            // 注意这个报错
             token = lexIterator.nowToken(); // 最近一次解析的token
             CompileError error = new CompileError(token.getLineNum(), ErrorType.LackSemiCN);
             IOUtils.compileErrors.add(error);

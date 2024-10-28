@@ -117,18 +117,7 @@ public class FuncFParams extends SyntaxNode {
     public ArrayList<FuncFParam> getFParamsDetail() {
         if (funcFParams != null)
             return funcFParams;
-
-        // 上面return是为了防止添加过一次详情的形参表继续被添加
-        /*funcFParams = new ArrayList<>();
-        if (funcFParam != null)
-            funcFParams.add(funcFParam);
-        for (Comma_FParam comma_fParam: comma_fParam_list) {
-            if (comma_fParam.fParam != null)
-                funcFParams.add(comma_fParam.fParam);
-        }*/
-        // 上面的移动到FFPs赋值（set）函数里面去了
         setFuncFParams();
-        // 要不要把ParamCount也统一?
 
         return funcFParams;
     }

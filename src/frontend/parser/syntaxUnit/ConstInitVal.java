@@ -47,12 +47,7 @@ public class ConstInitVal extends SyntaxNode {
             if (isExp()) {
                 constExp = new ConstExp();
                 constExp.unitParser();
-            }/* else {
-                System.out.println(lexIterator.nowToken().getLineNum() + ":" + lexIterator.nowToken().getTokenType() + lexIterator.nowToken().getTokenValue());
-                lexIterator.retract();
-                System.out.println(lexIterator.nowToken().getLineNum() + ":" + lexIterator.nowToken().getTokenType() + lexIterator.nowToken().getTokenValue());
-                throw new RuntimeException("InitVal解析错误: ConstExp不能识别");
-            }*/
+            }
             Token token;
             ConstExp constExp1;
             Comma_ConstExp comma_constExp;
@@ -116,7 +111,6 @@ public class ConstInitVal extends SyntaxNode {
         }
         IOUtils.writeCorrectLine(toString());
     }
-    // 考虑要不要把各个部分的类型解析parse改成static的，方便调用
 
     @Override
     public void visit() {

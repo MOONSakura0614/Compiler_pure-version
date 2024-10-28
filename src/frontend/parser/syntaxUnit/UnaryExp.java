@@ -137,25 +137,8 @@ public class UnaryExp extends SyntaxNode {
                 if (funcRParams != null)
                     // 而且传入的实参是Exp形式，有可能是单独Ident也可能是其他
                     funcRParams.visit();
-                /*if (handleFuncCallParams(funcSym)) {
-                    if (funcRParams != null)
-                        // 而且传入的实参是Exp形式，有可能是单独Ident也可能是其他
-                        funcRParams.visit(); // 怎么判断实参内部是否出现未定义
-                }*/
             }
         }
-    }
-
-//    public Boolean handleFuncCallParams(Symbol funcSym) {}
-
-    public static void main(String[] args) {
-        UnaryExp unaryExp1 = new UnaryExp();
-        unaryExp1.isIdent = Boolean.TRUE;
-        unaryExp1.ident_token = new Token("test", LexType.IDENFR, 2);
-        unaryExp1.leftParent_token = new Token("(", LexType.LPARENT, 2);
-        unaryExp1.rightParent_token = new Token(")", LexType.RPARENT, 2);
-
-        unaryExp1.print();
     }
 
     public boolean isArrayElement() {

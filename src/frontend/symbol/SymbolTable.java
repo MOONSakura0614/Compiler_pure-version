@@ -23,28 +23,13 @@ public class SymbolTable {
         symbolMap = new LinkedHashMap<>();
         scope = 0; // 防止未初始化（但是非对象应该默认0了，也不会null
     }
-    /*public SymbolTable(int current_scope) { // 实际上curScope并没有增加
-        current_scope++;
-        scope = current_scope;
-        //关于作用域序号，即进入该作用域之前进入的作用域数量加1。
-        //进入全局作用域时进入的作用域数量为0，因此全局作用域序号为1。
-
-        symbolMap = new HashMap<>();
-    }*/
 
     public boolean insertSymbol(Symbol symbol) {
-//        System.out.println("insertSym");
-        // 检查符号重定义错误——这一步在遍历AST的时候就处理了，现在可以直接插入
         if (symbolMap == null)
             return false;
         if (symbolMap.containsKey(symbol.identName)) {
             if (symbol.identToken != null)
                 ErrorHandler.redefineErrorHandle(symbol.identToken.getLineNum());
-            /*if (symbolTable.isSymbolExist(ident_name)) {
-                // 重定义-错误处理
-                ErrorHandler.redefineErrorHandle(this.ident_token.getLineNum());
-                return;
-            }*/
             return false;
         }
         else
@@ -67,11 +52,8 @@ public class SymbolTable {
                         curTable = curTable.fatherTable;
                 }
             }
-//            return symbolMap.get(value); // 没找到键值对应该会返回null
         }
 
-        // return null基本就是符号未定义的错误
-        // error handle
         return null;
     }
 
@@ -103,34 +85,10 @@ public class SymbolTable {
 
     public void print() {
         if (symbolMap == null || symbolMap.isEmpty()) {
-//            System.out.println("null");
             return;
         }
         for (Map.Entry<String, Symbol> entry: symbolMap.entrySet()) {
-//            IOUtils.writeSymbol(String.valueOf(scope));
             IOUtils.writeSymbol(String.valueOf(scope) + ' ' + entry.getKey() + ' ' + entry.getValue().symbolType + '\n');
-//            System.out.println(String.valueOf(scope) + ' ' + entry.getKey() + ' ' + entry.getValue().symbolType + '\n');
-//            System.out.println(scope);
         }
-    }
-
-    public static void main(String[] args) {
-        Map<String, Integer> map = new HashMap<>();
-        map.put("smile", 1);
-        System.out.println(map.get("oop"));
-        System.out.println(map.get("smile"));
-
-        {
-            int a = 0;
-        }
-//        a =  --> 一个block一个作用域
-
-
-        SymbolTable table = new SymbolTable();
-        table.insertSymbol(new Symbol("09"));
-        System.out.println(table.symbolMap.containsKey(null)); // 不管是exist方法，还是containsKey对null都是false
-        // 除非在map中投入了key为null?
-        table.insertSymbol(new Symbol((String) null)); // 不行传入null（重载方法无法匹配参数,除非强转）
-        System.out.println(table.symbolMap.containsKey(null)); // 由于上面那一行，就变成true
     }
 }

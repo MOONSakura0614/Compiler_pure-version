@@ -91,7 +91,6 @@ public class Token {
 
     @Override
     public String toString() {
-//        return getTokenType().toString() + ' ' + getTokenValue()+'\n';
         return lexType.toString() + ' ' + tokenValue + '\n';
     }
 }

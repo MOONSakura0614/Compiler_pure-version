@@ -22,12 +22,6 @@ public class Visitor {
     private static Parser parser;
     // 作用域序号，与层次无关
     public static int scope; // 纯递增，用于给新建的符号表进行作用域序号赋值
-    private int father_scope; // 是否直接在pop的时候保留要pop的那个father就行？
-    // 用list实现栈式符号表（树状pre和next要维护好多指针/痴呆）
-//    private List<Triple<SymbolTable, Boolean, FuncType>> symbolTables;
-    // list是按照作用域序号存储的，有关函数调用，是否需要回填
-//    private List<S>
-    // 是否需要单独存储FuncList（SysY要求只能在main前定义全局变量以及可以调用的函数）
     public static SymbolTable curTable;
     public static int curScope;
     public static List<SymbolTable> symbolTableList;
@@ -66,8 +60,6 @@ public class Visitor {
     public void visitAst() {
         if (parser == null)
             parser = Parser.getInstance();
-
-//        parser.parse(); // Compiler.java主方法中已经调用过parse
         // 得到ast结果
         ast = parser.getAst();
 
@@ -78,7 +70,6 @@ public class Visitor {
     }
 
     public void printSymbolTables() {
-//        System.out.println("hhhh");
         if (isSemanticCorrect && Parser.isSyntaxCorrect && Lexer.getInstance().getIsLexicalCorrect()) {
             // 输出tokenList
             for (SymbolTable symbolTable: symbolTableList) {
@@ -87,21 +78,9 @@ public class Visitor {
                     continue;
                 }
                 symbolTable.print();
-//                    for (Map.Entry<String, Symbol> entry: symbolTable.get)
             }
-//            if (symbolTableList != null && !symbolTableList.isEmpty()) {}
         } else {
             IOUtils.writeError();
         }
-    }
-
-    public static void main(String[] args) {
-        if (Visitor.getInstance() != null) {
-            System.out.println("单例模式yyds");
-        }
-        SyntaxNode node = new CompUnit();
-        /*if (node instanceof CompUnit) {
-           always true
-        }*/
     }
 }

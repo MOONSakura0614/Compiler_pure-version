@@ -45,7 +45,6 @@ public class VarDecl extends SyntaxNode {
         VarDef varDef1;
         Comma_VarDef comma_varDef;
         while (isComma()) {
-//            comma_varDef = new Comma_VarDef();
             if (lexIterator.iterator().hasNext()) {
                 // 先把逗号解析出来
                 token = lexIterator.iterator().next();
@@ -98,8 +97,6 @@ public class VarDecl extends SyntaxNode {
     public class Comma_VarDef {
         Token comma_token;
         VarDef varDef;
-
-        public Comma_VarDef() {}
         public Comma_VarDef(Token comma, VarDef varDef) {
             comma_token = comma;
             this.varDef = varDef;

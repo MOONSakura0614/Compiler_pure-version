@@ -15,10 +15,6 @@ import java.util.Map;
  * CompUnit → {Decl} {FuncDef} MainFuncDef // 1.是否存在Decl 2.是否存在FuncDef
  */
 public class CompUnit extends SyntaxNode { // 根节点要不要implements SyntaxNode
-//    ArrayList<SyntaxNode> children; // 是不是每个节点都应该有？
-    // 是否需要把每个语法成分对应的token存起来？？
-    ArrayList<Token> tokens; // 关于此语法成分，不涉及递归向下的（向下的到时候按链表往下读取？
-
     ArrayList<Decl> declList;
     ArrayList<FuncDef> funcDefList;
     MainFuncDef mainFuncDef;
@@ -78,11 +74,6 @@ public class CompUnit extends SyntaxNode { // 根节点要不要implements Synta
     @Override
     public void visit() { // 深搜：后序遍历AST
         SymbolTable table = initSymbolTable(); // 函数中已经包括add to symbolTableList
-//        Visitor.symbolTableList.add(table); // 第一个table，scope=1（全局变量）
-
-        // 为了父节点嵌套
-        /*Visitor.curTable = table;
-        Visitor.curScope = Visitor.scope;*/ // 在上一步init的时候完成符号表迭代
 
         // 添加新符号
         // Decl
@@ -100,32 +91,5 @@ public class CompUnit extends SyntaxNode { // 根节点要不要implements Synta
         if (mainFuncDef != null) {
             mainFuncDef.visit();
         }
-    }
-
-    public static void main(String[] args) {
-        CompUnit compUnit = new CompUnit();
-        if (compUnit.children != null) {
-            System.out.println("new ArrayList so not null");
-//            System.out.println("new ArrayList but real null");
-            // 错误的，new了就不是null
-            // 如果ArrayList<SyntaxNode> children = new ArrayList<>()就不是null，就是实例化了，只有不赋值的最开始才是？
-        } else {
-            System.out.println("new ArrayList but real null");
-        }
-
-        Map<String, String> stuNumMap_unorder = new HashMap<>();
-        Map<String, String> stuNumMap_order = new LinkedHashMap<>();
-        stuNumMap_unorder.put("sxq", "22373640");
-        stuNumMap_order.put("sxq", "22373640");
-        stuNumMap_unorder.put("zy", "22373100");
-        stuNumMap_order.put("zy", "22373100");
-        stuNumMap_unorder.put("rwm", "22373140");
-        stuNumMap_order.put("rwm", "22373140");
-        stuNumMap_unorder.put("zyh", "22373089");
-        stuNumMap_order.put("zyh", "22373089");
-        // print
-        System.out.println(stuNumMap_order);
-        System.out.println(stuNumMap_unorder);
-        // result: linkedHashMap维护添加顺序
     }
 }

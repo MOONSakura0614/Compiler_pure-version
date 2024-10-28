@@ -350,21 +350,6 @@ public class Stmt extends SyntaxNode {
 
                         exp = new Exp();
                         exp.unitParser();
-
-                        /*if (lexIterator.iterator().hasNext()) {
-                            token = lexIterator.tokenList.get(lexIterator.curPos);
-                            if (token.getTokenType() == LexType.SEMICN) {
-                                semicn_token = lexIterator.iterator().next();
-                            } else {
-                                Parser.isSyntaxCorrect = Boolean.FALSE;
-                                CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackSemiCN);
-                                IOUtils.compileErrors.add(error);
-                            }
-                        } else {
-                            Parser.isSyntaxCorrect = Boolean.FALSE;
-                            CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackSemiCN);
-                            IOUtils.compileErrors.add(error);
-                        }*/
                     } else if (isInputFunc()) {
                         chosen_plan = 8; // 8和9一样的打印思路
                         inputFunc_token = lexIterator.iterator().next();
@@ -634,8 +619,6 @@ public class Stmt extends SyntaxNode {
                 if (Visitor.loopCount == 0)
                     ErrorHandler.nonLoopErrorHandle(break_continue_token != null ? break_continue_token.getLineNum() : 0);
             }
-                /*else
-                    Visitor.loopCount--;*/
             case 7 -> {
                 // TODO: 2024/10/26 错误处理：判断函数返回值相关错误 ————非函数内是否需要判断错误
                 if (hasReturnExp) {
@@ -674,11 +657,6 @@ public class Stmt extends SyntaxNode {
         }
     }
 
-    private int placeholderCount;
-    public int getPlaceholderCount() {
-        return placeholderCount;
-    }
-
     public int getFormatCount() {
         // 返回printf中格式串中出现的格式字符个数：%c,%d
         String patternC = "%c";
@@ -710,67 +688,6 @@ public class Stmt extends SyntaxNode {
 
     public Boolean getHasReturnExp() {
         return hasReturnExp;
-    }
-
-    public int getReturnExpLine() {
-        if (return_token != null)
-            return return_token.getLineNum();
-        return 0; // 错误行号（行号最小从1开始）
-    }
-
-    public static void main(String[] args) {
-//        Integer in = null;
-        Integer in = null;
-        if (in == null) {
-            System.out.println("POP");
-        }
-        in = 1;
-        if (in != null) {
-            System.out.println("NON");
-        }
-        switch (in) {
-            case 0:
-                System.out.println("0");
-            case 1:
-                System.out.println("1");
-            case 2:
-                System.out.println("2");
-                break;
-            case 3:
-                System.out.println("3");
-                break;
-        }
-
-        System.out.println("----Regex Test----");
-        String input = "This is a %C%1c%%Ctesct string with %c and %d and some more %c and %d values.";
-
-        // Define patterns for %c and %d
-        String patternC = "%c";
-        String patternD = "%d";
-
-        // Compile the patterns
-        Pattern compiledPatternC = Pattern.compile(patternC);
-        Pattern compiledPatternD = Pattern.compile(patternD);
-
-        // Create matcher objects
-        Matcher matcherC = compiledPatternC.matcher(input);
-        Matcher matcherD = compiledPatternD.matcher(input);
-
-        // Count occurrences
-        int countC = 0;
-        int countD = 0;
-
-        while (matcherC.find()) {
-            countC++;
-        }
-
-        while (matcherD.find()) {
-            countD++;
-        }
-
-        // Print the results
-        System.out.println("Occurrences of %c: " + countC);
-        System.out.println("Occurrences of %d: " + countD);
     }
 
     public Boolean isReturn0() {

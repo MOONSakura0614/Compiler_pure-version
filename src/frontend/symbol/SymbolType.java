@@ -9,9 +9,6 @@ import java.util.Map;
  * @date 2024/10/16 22:31
  */
 public enum SymbolType {
-    /*VAR,
-    FUNC,
-    ARRAY;*/
     ConstChar,
     ConstInt,
     ConstCharArray,
@@ -23,22 +20,4 @@ public enum SymbolType {
     VoidFunc,
     CharFunc,
     IntFunc;
-
-    private static Map<SymbolType, String> symbolTypeNameMap = new HashMap<>();
-
-    SymbolType() {
-
-    }
-
-    /*@Override
-    public String toString() {
-        if (symbolTypeNameMap.containsKey(this))
-            return symbolTypeNameMap.get(this);
-
-        return null;
-    }*/
-
-    public static void main(String[] args) {
-        System.out.println(SymbolType.Char);
-    }
 }

@@ -56,7 +56,4 @@ public class Exp extends SyntaxNode {
             return addExp.getIdentSymbol();
         return null;
     }
-
-   /* public void isZero() {
-    }*/
 }

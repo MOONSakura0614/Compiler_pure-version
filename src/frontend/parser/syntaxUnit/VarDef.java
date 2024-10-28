@@ -125,7 +125,6 @@ public class VarDef extends SyntaxNode {
     public void insertSymbol(SymbolTable symbolTable) { // 默认插入int
         if (this.ident_token == null)
             return;
-//        String ident_name = this.ident_token.getTokenValue();
         Symbol symbol = new VarSymbol(this, ident_token, symbolTable.getScope());
         if (isArray) {
             symbol.setSymbolType(SymbolType.IntArray);
@@ -143,16 +142,9 @@ public class VarDef extends SyntaxNode {
     public void insertCharSymbol(SymbolTable symbolTable) {
         if (this.ident_token == null)
             return;
-        /*String ident_name = this.ident_token.getTokenValue();
-        if (symbolTable.isSymbolExist(ident_name)) {
-            // 重定义-错误处理
-            ErrorHandler.redefineErrorHandle(this.ident_token.getLineNum());
-            return;
-        }*/
         Symbol symbol = new VarSymbol(this, ident_token, symbolTable.getScope()); // 包括ConstInitVal
         if (isArray) {
             symbol.setSymbolType(SymbolType.CharArray);
-//            ((ConstSymbol) symbol).setConstExp(constExp);
             symbol.setIsArray();
         }
         else
@@ -162,13 +154,5 @@ public class VarDef extends SyntaxNode {
 
         if (initVal != null)
             initVal.visit();
-    }
-
-    public static void main(String[] args) {
-        VarDef varDef = new VarDef();
-        if (varDef.isArray == null) {
-            System.out.println("null boolean"); // Boolean类型就是引用，没初始化就是null
-        }
-//        if (varDef.test == null) // 不是引用类型，会报错
     }
 }

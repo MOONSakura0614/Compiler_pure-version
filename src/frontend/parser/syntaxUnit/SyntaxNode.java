@@ -88,9 +88,6 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
 
     public static boolean isVarDecl() {
         // 左递归文法要求：规则右式first集不重合，那是要提前提取重复的token，还是？
-        /*if (!isBType())
-            return false;
-        return (!isMainFuncDef()) && (!isFuncDef());*/
         return isBType() && !(isMainFuncDef() || isFuncDef());
         // BType开头，但不是int main也不是funcDef
     }
@@ -152,7 +149,6 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
         return false;
     }
 
-    // TODO: 2024/10/14 输出顺序MulExp和UnaryExp
     public static boolean isMulExp() {
         return isUnaryExp();
     }
@@ -173,7 +169,6 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
         return isPrimaryExp() || isUnaryOp() || isFuncCall();
     }
 
-    // TODO: 2024/10/15 输出顺序RelExp和AddExp
     public static boolean isRelExp() {
         return isAddExp(); // 注意 RelExp → AddExp | RelExp ('<' | '>' | '<=' | '>=') AddExp 颠倒造成的语法成分输出顺序
     }
@@ -190,7 +185,6 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
         return false;
     }
 
-    // TODO: 2024/10/15 输出顺序EqExp和RelExp
     public static boolean isEqExp() {
         return isRelExp();
     }
@@ -205,7 +199,6 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
         return false;
     }
 
-    // TODO: 2024/10/15 输出顺序LAndExp和EqExp
     public static boolean isLAndExp() {
         return isEqExp();
     }
@@ -461,7 +454,6 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
         return isVarDecl(); // BType开头，且不是func
     }
 
-    // TODO: 2024/10/16 用于区分Stmt中的 Exp 和 LVal （是否后面紧跟着=
     public static boolean isLValAssign() {
             // Ident ['[' + Exp + ']']
 
@@ -479,10 +471,6 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
                         lexIterator.curPos = curPos0;
                         return false;
                     } else {
-                        // 分析Assign:怎么确定目前的位置？
-                        // 暂时解析一下Exp罢，用一个临时变量exp_tmp，之后引用销毁
-                        /*Exp exp_tmp = new Exp();
-                        exp_tmp.unitParser(); // 从现在的curPos开始解析*/
                         new Exp().unitParser();
                         // curPos被顺利移动到Exp后，即]= 、 =  // [] 可能存在缺少右中括号
                         if (lexIterator.iterator().hasNext()) {
@@ -523,21 +511,13 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
         Visitor.curTable = newTable;
         Visitor.curScope = Visitor.scope;
         Visitor.symbolTableList.add(newTable);
-//        System.out.println("table++");
         return newTable;
     }
 
     // 插入符号
-    public void insertSymbol(SymbolTable symbolTable) {
-        // 注意在父类创建非abstract的方法是为了
-        // 方便无关的非终结符类，从而无需全体重写实现方法
-    }
+    public void insertSymbol(SymbolTable symbolTable) {}
 
-    public void visit() {
-        // visit在定义部分初始化符号表，其他结点处理语义分析的错误
-//        initSymbolTable();
-        // 分析完退出来是否要进行一个退栈（index退的假装操作符号表嵌套）
-    }
+    public void visit() {}
 
     public void exitCurScope() {
         if (Visitor.curTable == null)

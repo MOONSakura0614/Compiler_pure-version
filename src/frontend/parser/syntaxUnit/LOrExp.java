@@ -14,7 +14,6 @@ import static frontend.parser.Parser.lexIterator;
  */
 public class LOrExp extends SyntaxNode {
     private LAndExp lAndExp;
-//    private Token or_token;
     // 注意这里也是颠倒顺序防止左递归
     private ArrayList<Or_LAndExp> or_lAndExp_list;
 

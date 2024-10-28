@@ -21,11 +21,6 @@ public class VarSymbol extends Symbol {
         this.varDef = varDef;
     }
 
-    public VarSymbol(String ident_name) {
-        // 服务于函数形参表的插表构造符号：FParam ——> bType + ident
-        super(ident_name);
-    }
-
     public VarSymbol(Token ident_token, int id) {
         // 服务于函数形参表的插表构造符号：FParam ——> bType + ident
         super(ident_token, id);

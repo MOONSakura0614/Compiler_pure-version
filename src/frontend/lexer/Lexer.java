@@ -76,7 +76,6 @@ public class Lexer {
     }
 
     public void printLexicalResult() {
-        System.out.println("WWW.WWW");
         if (isLexicalCorrect) {
             // 输出tokenList
             try {
@@ -94,8 +93,6 @@ public class Lexer {
                 FileWriter fileWriter = new FileWriter("error.txt");
                 for (CompileError error: errorList) {
                     fileWriter.write(Integer.toString(error.getLineNum()) + ' ' + error.getErrorType().getErrorTypeCode().toString() + '\n');
-//                    System.out.println(error.getLineNum() + ' ' + error.getErrorType().getErrorTypeCode().toString() + '\n');
-//                    System.out.println(error.getLineNum());
                 }
                 fileWriter.flush();
                 fileWriter.close();
@@ -115,7 +112,6 @@ public class Lexer {
         // 获取下一个字符
         clearToken();
         while (isSpace()) { // 换行单独判断
-//            getChar(); // 跳过空白符
             if (curPos < codeLength) // 进getchar之后还要curP++
                 getChar();
             else
@@ -131,8 +127,6 @@ public class Lexer {
 
         /* 字母或下划线 */
         if(isUnderline() || isLetter()) { // 标识符或保留字
-//            token += c;
-//            while ((isUnderline() || isLetter() || isDigit()) && curPos < codeLength) { // 这样是不是吞掉了一个curSym
             while (isUnderline() || isLetter() || isDigit()) {
                 catToken();
                 if (curPos < codeLength)
@@ -143,7 +137,6 @@ public class Lexer {
             if (!(isUnderline() || isLetter() || isDigit()))
                 retract();
             lexType = reserve(); // 查关键字表
-//            return true;
         } else if (isDigit()) {
             while (isDigit()) {
                 catToken();
@@ -187,7 +180,6 @@ public class Lexer {
                             getChar();
                             // 这边如果是\n是不是打破循环之后没有newline++
                         }
-//                        if (curPos < codeLength && currentSym == '/') { // 是不是不用签名的条件
                         if (currentSym == '/') {
                             // 结束注释
                             break;
@@ -215,13 +207,11 @@ public class Lexer {
                         getChar();
                         catToken();
                         if (currentSym == '\"') { // 保证词法除了a错其他不错？
-//                            if (curPos )
                             continue;
                         }
                     }
                 }
                 if (currentSym == '\"') { // 转义符号引发的问题
-//                    catToken();
                     if (!word.isEmpty() && word.charAt(word.length() - 1) == '\\') {
                         continue; // 这个‘是转义，还有下一个’
                     }
@@ -229,9 +219,6 @@ public class Lexer {
                         break;
                     }
                 }
-                /*if (currentSym == '"') {
-                    break;
-                }*/
             }
             lexType = LexType.STRCON;
         } else if (isSingleQuote()) {
@@ -246,13 +233,11 @@ public class Lexer {
                         getChar();
                         catToken();
                         if (currentSym == '\'') { // 保证词法除了a错其他不错？
-//                            if (curPos )
                             continue;
                         }
                     }
                 }
                 if (currentSym == '\'') { // 转义符号引发的问题
-//                    catToken();
                     if (!word.isEmpty() && word.charAt(word.length() - 1) == '\\') {
                         continue; // 这个‘是转义，还有下一个’
                     }
@@ -277,7 +262,6 @@ public class Lexer {
                 }
             } else {
                 isLexicalCorrect = false;
-//                retract();
                 CompileError error = new CompileError(lineNum, ErrorType.IllegalSymbol);
                 errorList.add(error);
                 IOUtils.compileErrors.add(error);
@@ -295,14 +279,11 @@ public class Lexer {
                     CompileError error = new CompileError(lineNum, ErrorType.IllegalSymbol);
                     errorList.add(error);
                     IOUtils.compileErrors.add(error);
-//                    return false;
                 }
             } else {
                 isLexicalCorrect = false;
-//                retract();
                 CompileError error = new CompileError(lineNum, ErrorType.IllegalSymbol);
                 errorList.add(error);
-//                return false;
             }
             lexType = LexType.OR;
         } else if (currentSym == '!') {
@@ -339,7 +320,6 @@ public class Lexer {
                 getChar();
                 if (isEqu()) {
                     catToken();
-//                    lexType = reserve();
                 } else {
                     retract();
                 }
@@ -351,7 +331,6 @@ public class Lexer {
                 getChar();
                 if (isEqu()) {
                     catToken();
-//                    lexType = reserve();
                 } else {
                     retract();
                 }
@@ -505,17 +484,5 @@ public class Lexer {
 
     public boolean getIsLexicalCorrect() {
         return isLexicalCorrect;
-    }
-
-    public static void main(String[] args) {
-        Lexer lexer1 = Lexer.getInstance();
-        lexer1.lexicalAnalysis();
-        // 出现错误：有空行时会导致Token重复？
-
-        for (Token token1: lexer1.tokenList) {
-            System.out.println(token1.getLineNum() + ": " + token1.getTokenType() + " " + token1.getTokenValue());
-        }
-
-        lexer1.printLexicalResult();
     }
 }

@@ -81,8 +81,6 @@ public class LVal extends SyntaxNode {
         if (ident_token == null)
             return;
 
-        // 重点在错误处理：常量赋值 | 未定义调用符号
-        // 注意一行应该不会出现两种错误
         Symbol symbol = null;
         symbol = Visitor.curTable.findInCurSymTable(ident_token.getTokenValue());
         if (symbol == null) {
@@ -90,8 +88,6 @@ public class LVal extends SyntaxNode {
         } else {
             ident_symbol = symbol;
         }
-        // 但是只出现LVal不一定会出现assign：另起一个函数判断常量？或者在不同plan的stmt中判断
-        // 这里遍历的时候把Symbol的属性给到LVal应该就行（
     }
 
     public void handleConstAssignError() {

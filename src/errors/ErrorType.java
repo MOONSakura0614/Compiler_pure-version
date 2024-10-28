@@ -42,9 +42,4 @@ public enum ErrorType {
     public Integer getLineNum() {
         return lineNum;
     }
-
-    public static void main(String[] args) {
-//        ErrorType e = new ErrorType('a');
-        // Enum Type枚举类不能被重新初始化，new出新的对象，只能用enum类定义时的那些
-    }
 }
