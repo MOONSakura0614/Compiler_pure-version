@@ -1,5 +1,7 @@
 package frontend.parser.syntaxUnit;
 
+import frontend.visitor.Visitor;
+
 /**
  * @author 郑悦
  * @Description: 语句块项
@@ -38,5 +40,35 @@ public class BlockItem extends SyntaxNode {
         }
 
         // <BlockItem>也不输出
+    }
+
+    @Override
+    public void visit() {
+        // 遇到Decl就用decl的添加符号
+        if (isDecl) {
+            if (decl != null)
+                decl.insertSymbol(Visitor.curTable);
+        } else {
+            if (stmt != null)
+                stmt.visit();
+        }
+    }
+
+    public Boolean getIsDecl() {
+        return isDecl;
+    }
+
+    public Stmt getStmt() {
+        return stmt;
+    }
+
+    public Boolean isReturn0() {
+        if (isDecl) {
+            return Boolean.FALSE;
+        }
+        // 如果是Stmt
+        if (stmt == null)
+            return Boolean.FALSE;
+        return stmt.isReturn0();
     }
 }

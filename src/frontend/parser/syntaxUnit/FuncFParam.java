@@ -5,6 +5,10 @@ import errors.ErrorType;
 import frontend.lexer.LexType;
 import frontend.lexer.Token;
 import frontend.parser.Parser;
+import frontend.symbol.SymbolTable;
+import frontend.symbol.SymbolType;
+import frontend.symbol.VarSymbol;
+import frontend.visitor.Visitor;
 import utils.IOUtils;
 
 import static frontend.parser.Parser.lexIterator;
@@ -71,5 +75,39 @@ public class FuncFParam extends SyntaxNode {
         }
 
         IOUtils.writeCorrectLine(toString());
+    }
+
+    @Override
+    public void insertSymbol(SymbolTable symbolTable) {
+        VarSymbol symbol = new VarSymbol(ident_token, Visitor.curScope);
+
+        // 设置符号类型
+        if (bType.getIsInt()) {
+            if (isArray) {
+                symbol.setIsArray();
+                symbol.setSymbolType(SymbolType.IntArray);
+            }
+            else
+                symbol.setSymbolType(SymbolType.Int);
+        } else {
+            if (isArray) {
+                symbol.setIsArray();
+                symbol.setSymbolType(SymbolType.CharArray);
+            }
+            else
+                symbol.setSymbolType(SymbolType.Char);
+        } // Symbol有了符号名和类型，感觉不需要加入VarDef了
+
+        symbolTable.insertSymbol(symbol); // 注意FFPs中的每个形参也是要判断是否重定义的
+    }
+
+    public Boolean getIsArray() {
+        return isArray;
+    }
+
+    public boolean isInt() {
+        if (bType == null)
+            return false;
+        return bType.getIsInt();
     }
 }

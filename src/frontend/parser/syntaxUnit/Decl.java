@@ -1,5 +1,7 @@
 package frontend.parser.syntaxUnit;
 
+import frontend.symbol.SymbolTable;
+
 /**
  * @author 郑悦
  * @Description: 声明，有两种推导规则
@@ -7,7 +9,6 @@ package frontend.parser.syntaxUnit;
  */
 public class Decl extends SyntaxNode {
     /*Decl declNode;*/
-
     ConstDecl constDecl;
     VarDecl varDecl;
     Boolean isConst;
@@ -48,12 +49,16 @@ public class Decl extends SyntaxNode {
         }
     }
 
-    /*public Decl getDeclNode() {
-        return declNode;
-    }*/
-
-    /*@Override
-    void setSyntaxName() {
-        syntaxName = "Decl";
-    }*/
+    @Override
+    public void insertSymbol(SymbolTable symbolTable) {
+        if (isConst != null) {
+            if (isConst) {
+                if (constDecl != null)
+                    constDecl.insertSymbol(symbolTable);
+            } else {
+                if (varDecl != null)
+                    varDecl.insertSymbol(symbolTable);
+            }
+        }
+    }
 }

@@ -85,4 +85,14 @@ public class LOrExp extends SyntaxNode {
             }
         }
     }
+
+    @Override
+    public void visit() {
+        if (lAndExp != null)
+            lAndExp.visit();
+        for (Or_LAndExp or_lAndExp: or_lAndExp_list) {
+            if (or_lAndExp.lAndExp != null)
+                or_lAndExp.lAndExp.visit();
+        }
+    }
 }

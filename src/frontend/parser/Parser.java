@@ -2,6 +2,7 @@ package frontend.parser;
 
 import errors.CompileError;
 import frontend.lexer.LexIterator;
+import frontend.lexer.Lexer;
 import frontend.parser.syntaxUnit.CompUnit;
 import utils.IOUtils;
 
@@ -39,7 +40,7 @@ public class Parser {
     }
 
     public void printSyntaxResult() {
-        if (isSyntaxCorrect) {
+        if (isSyntaxCorrect && Lexer.getInstance().getIsLexicalCorrect()) {
             // 输出tokenList
             if (compUnit != null)
                 compUnit.print();
@@ -53,6 +54,13 @@ public class Parser {
         isSyntaxCorrect = Boolean.FALSE;
     }
 
+    public CompUnit getAst() {
+        if (compUnit == null) {
+            throw new RuntimeException("Parser 语法分析无结果：CompUnit[AST]为null");
+        }
+
+        return compUnit;
+    }
     public static void main(String[] args) {
         Parser parser = Parser.getInstance();
         // 测试输出语法树的各节点

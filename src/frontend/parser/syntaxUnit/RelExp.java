@@ -77,4 +77,14 @@ public class RelExp extends SyntaxNode {
                 addExp.print();
         }
     }
+
+    @Override
+    public void visit() {
+        if (addExp != null)
+            addExp.visit();
+        for (RelOp_AddExp relOp_addExp: relOp_addExp_list) {
+            if (relOp_addExp.addExp != null)
+                relOp_addExp.addExp.visit();
+        }
+    }
 }

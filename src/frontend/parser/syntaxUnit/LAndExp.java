@@ -82,4 +82,14 @@ public class LAndExp extends SyntaxNode {
             }
         }
     }
+
+    @Override
+    public void visit() {
+        if (eqExp != null)
+            eqExp.visit();
+        for (And_EqExp and_eqExp: and_eqExp_list) {
+            if (and_eqExp.eqExp != null)
+                and_eqExp.eqExp.visit();
+        }
+    }
 }

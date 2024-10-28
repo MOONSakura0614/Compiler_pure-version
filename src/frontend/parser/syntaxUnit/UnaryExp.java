@@ -1,10 +1,14 @@
 package frontend.parser.syntaxUnit;
 
 import errors.CompileError;
+import errors.ErrorHandler;
 import errors.ErrorType;
 import frontend.lexer.LexType;
 import frontend.lexer.Token;
 import frontend.parser.Parser;
+import frontend.symbol.FuncSymbol;
+import frontend.symbol.Symbol;
+import frontend.visitor.Visitor;
 import utils.IOUtils;
 
 import static frontend.parser.Parser.lexIterator;
@@ -108,74 +112,41 @@ public class UnaryExp extends SyntaxNode {
         IOUtils.writeCorrectLine(toString());
     }
 
-    /*// UnaryExp → PrimaryExp | Ident '(' [FuncRParams] ')' | UnaryOp UnaryExp
-    public class UnaryOp_FuncCall {
-        static UnaryExp unaryExp; // 主要目的是用于输出toString的name
-        UnaryOp unaryOp;
-        FuncCallHelp funcCallHelp;
-
-        public UnaryOp_FuncCall(UnaryOp unaryOp, FuncCallHelp funcCallHelp) {
-            this.unaryOp = unaryOp;
-            this.funcCallHelp = funcCallHelp;
-        }
-
-        public void print() {
-            IOUtils.writeCorrectLine(unaryExp.toString());
-            if (unaryOp != null) {
-                unaryOp.print();
-            }
-            if (funcCallHelp != null) {
-                funcCallHelp.print();
+    @Override
+    public void visit() {
+        if (isPrimaryExp) {
+            if (primaryExp != null)
+                primaryExp.visit();
+        } else if (isIdent) {
+            if (ident_token == null)
+                return;
+            Symbol funcSym = Visitor.curTable.findInCurSymTable(ident_token.getTokenValue());
+            // isIdent就代表调用函数，下面可能出现形参表和未定义的情况
+            if (funcSym == null) {
+                ErrorHandler.undefineErrorHandle(ident_token.getLineNum());
+            } else {
+                if (!funcSym.isFunc()) { // 会出现不是func的情况吗（之前重定义的时候不同类型的symbol？？
+                    // TODO: 2024/10/26 如果遇到调用符号，结果符号类型不是函数
+                    return;
+                }
+                if (funcSym instanceof FuncSymbol) {
+                    ((FuncSymbol) funcSym).paramsMatch(funcRParams, ident_token.getLineNum());
+                }
+                // 判断实参与形参的对应
+                /*上面在FuncSym内部判断参数对应关系，下面单独判断符号未定义*/
+                if (funcRParams != null)
+                    // 而且传入的实参是Exp形式，有可能是单独Ident也可能是其他
+                    funcRParams.visit();
+                /*if (handleFuncCallParams(funcSym)) {
+                    if (funcRParams != null)
+                        // 而且传入的实参是Exp形式，有可能是单独Ident也可能是其他
+                        funcRParams.visit(); // 怎么判断实参内部是否出现未定义
+                }*/
             }
         }
     }
 
-    public class UnaryOp_PrimaryExp {
-        static UnaryExp unaryExp;
-        UnaryOp unaryOp;
-        PrimaryExp primaryExp;
-    }
-
-    public class UnaryOp_UnaryExp {
-        private static UnaryExp unaryExp;
-        private UnaryOp unaryOp;
-        private PrimaryExp primaryExp;
-        private FuncCallHelp funcCallHelp;
-        private Boolean isFuncCall;
-
-        public UnaryOp_UnaryExp(UnaryOp unaryOp, Boolean isFuncCall, SyntaxNode syntaxNode) {
-            this.unaryOp = unaryOp;
-            this.isFuncCall = isFuncCall;
-            if (isFuncCall) {
-                if (syntaxNode instanceof FuncCallHelp)
-                    this.funcCallHelp = (FuncCallHelp) syntaxNode;
-                else
-                    throw new RuntimeException("UnaryOp_UnaryExp构造异常");
-            } else {
-                this.primaryExp = (PrimaryExp) syntaxNode;
-            }
-        }
-
-        public void print() {
-            // 这个是循环时的数组存在
-//            IOUtils.writeCorrectLine(unaryExp.toString());
-            if (unaryOp != null) {
-                unaryOp.print();
-            }
-            if (isFuncCall) {
-                if (funcCallHelp != null) {
-                    funcCallHelp.print();
-                }
-            } else {
-                if (primaryExp != null) {
-                    primaryExp.print();
-                }
-            }
-            // 这个不是左递归，顺序没反？?
-            IOUtils.writeCorrectLine(unaryExp.toString());
-        }
-
-    }*/
+//    public Boolean handleFuncCallParams(Symbol funcSym) {}
 
     public static void main(String[] args) {
         UnaryExp unaryExp1 = new UnaryExp();
@@ -185,5 +156,33 @@ public class UnaryExp extends SyntaxNode {
         unaryExp1.rightParent_token = new Token(")", LexType.RPARENT, 2);
 
         unaryExp1.print();
+    }
+
+    public boolean isArrayElement() {
+        if (isIdent || isOp) { // ident开头就只有函数调用了，所以不是数组
+            return false;
+        }
+        if (isPrimaryExp) {
+            if (primaryExp != null)
+                return primaryExp.isArrayElement();
+        }
+        return false;
+    }
+
+    public Symbol getIdentSymbol() {
+        if (primaryExp != null)
+            return primaryExp.getIdentSymbol();
+        return null;
+    }
+
+    public boolean isIdentArray() {
+        if (isIdent || isOp) { // ident开头就只有函数调用了，所以不是数组
+            return false;
+        }
+        if (isPrimaryExp) {
+            if (primaryExp != null)
+                return primaryExp.isIdentArray();
+        }
+        return false;
     }
 }

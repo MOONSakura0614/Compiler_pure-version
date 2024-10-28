@@ -20,6 +20,7 @@ public class FuncRParams extends SyntaxNode {
     public FuncRParams() {
         super("FuncRParams");
         comma_exp_list = new ArrayList<>();
+        rParamCount = 0;
     }
 
     @Override
@@ -75,5 +76,50 @@ public class FuncRParams extends SyntaxNode {
             if (exp != null)
                 exp.print();
         }
+    }
+
+    @Override
+    public void visit() {
+        if (exp != null)
+            exp.visit();
+
+        for (Comma_Exp comma_exp: comma_exp_list) {
+            if (comma_exp.exp != null)
+                comma_exp.exp.visit();
+        }
+    }
+
+    private int rParamCount;
+
+    public int getRParamCount() {
+        if (rParamCount != 0)
+            return rParamCount;
+
+        if (exp != null)
+            rParamCount = 1;
+        /*for (Comma_Exp comma_exp: comma_exp_list) {
+            if (comma_exp.exp != null)
+                rParamCount++;
+        }*/
+        rParamCount += comma_exp_list.size();
+        return rParamCount;
+    }
+
+    private ArrayList<Exp> exps = null;
+    public void setExps() {
+        exps = new ArrayList<>();
+        if (exp != null)
+            exps.add(exp);
+        for (Comma_Exp comma_exp: comma_exp_list) {
+            if (comma_exp.exp != null)
+                exps.add(comma_exp.exp);
+        }
+    }
+
+    public ArrayList<Exp> getExps() {
+        if (exps == null)
+            setExps();
+
+        return exps;
     }
 }

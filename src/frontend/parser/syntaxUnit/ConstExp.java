@@ -31,4 +31,10 @@ public class ConstExp extends SyntaxNode {
         }
         IOUtils.writeCorrectLine(this.toString());
     }
+
+    @Override
+    public void visit() {
+        if (addExp != null)
+            addExp.visit();
+    }
 }

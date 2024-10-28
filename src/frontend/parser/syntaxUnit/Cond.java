@@ -29,4 +29,15 @@ public class Cond extends SyntaxNode {
         }
         IOUtils.writeCorrectLine(toString());
     }
+
+    @Override
+    public void visit() {
+        if (lOrExp != null)
+            lOrExp.visit();
+    }
+
+    public static void main(String[] args) {
+        int scope = 10;
+        System.out.println(scope); // 直接的int和数组都是正常打印
+    }
 }

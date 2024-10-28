@@ -18,7 +18,7 @@ public enum ErrorType {
     LackRPARENT('j'), /*lack)*/
     LackRBRACK('k'), /*lack]*/
     FormatMismatchInPrintf('l'),
-    MisuseBCInNonCircle('m');
+    MisuseBCInNonLoop('m');
 
     private Character errorTypeCode;
     private Integer lineNum;

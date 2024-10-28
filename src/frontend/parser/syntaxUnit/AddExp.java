@@ -2,6 +2,7 @@ package frontend.parser.syntaxUnit;
 
 
 import frontend.lexer.Token;
+import frontend.symbol.Symbol;
 import utils.IOUtils;
 
 import java.util.ArrayList;
@@ -62,6 +63,24 @@ public class AddExp extends SyntaxNode {
         IOUtils.writeCorrectLine(toString());
     }
 
+    public boolean isArrayElement() {
+        if (mulExp != null)
+            return mulExp.isArrayElement();
+        return false;
+    }
+
+    public Symbol getIdentSymbol() {
+        if (mulExp != null)
+            return mulExp.getIdentSymbol();
+        return null;
+    }
+
+    public boolean isIdentArray() {
+        if (mulExp != null)
+            return mulExp.isIdentArray();
+        return false;
+    }
+
     public class AddOp_MulExp {
         Token addOp_token;
         MulExp mulExp;
@@ -83,5 +102,16 @@ public class AddExp extends SyntaxNode {
             }
         }
 
+    }
+
+    @Override
+    public void visit() {
+        if (mulExp != null)
+            mulExp.visit();
+
+        for (AddOp_MulExp addOp_mulExp: addOp_mulExp_list) {
+            if (addOp_mulExp.mulExp != null)
+                addOp_mulExp.mulExp.visit();
+        }
     }
 }

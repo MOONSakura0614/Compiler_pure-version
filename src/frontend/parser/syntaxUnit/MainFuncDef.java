@@ -80,4 +80,12 @@ public class MainFuncDef extends SyntaxNode {
 
         IOUtils.writeCorrectLine(toString());
     }
+
+    @Override
+    public void visit() {
+        if (block != null) {
+            block.visit(); // 这个函数就会新建符号表了
+            block.checkReturn0();
+        }
+    }
 }

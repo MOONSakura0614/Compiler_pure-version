@@ -1,13 +1,17 @@
 package frontend.parser.syntaxUnit;
 
 import errors.CompileError;
+import errors.ErrorHandler;
 import errors.ErrorType;
 import frontend.lexer.LexType;
 import frontend.lexer.Token;
 import frontend.parser.Parser;
+import frontend.visitor.Visitor;
 import utils.IOUtils;
 
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static frontend.parser.Parser.lexIterator;
 
@@ -74,8 +78,6 @@ public class Stmt extends SyntaxNode {
     // 9. LVal '=' 'getchar''('')'';'
     private Token bType_token;
     private Token inputFunc_token;
-//    private LVal lVal; // lVal与1.LVal '=' Exp ';'共用
-    // assign_token也共用 // 左右括号也是方案共用
 
     // 10. 'printf''('StringConst {','Exp}')'';' // 1.有Exp 2.无Exp
     private Boolean hasPrintExp;
@@ -118,7 +120,7 @@ public class Stmt extends SyntaxNode {
                             if (token.getTokenType() == LexType.RPARENT) {
                                 rParent_token = lexIterator.iterator().next();
 
-                                ifStmt = new Stmt();
+                                /*ifStmt = new Stmt();
                                 ifStmt.unitParser();
 
                                 if (lexIterator.iterator().hasNext()) {
@@ -130,7 +132,7 @@ public class Stmt extends SyntaxNode {
                                         elseStmt = new Stmt();
                                         elseStmt.unitParser();
                                     }
-                                }
+                                }*/
                             } else {
                                 Parser.isSyntaxCorrect = Boolean.FALSE;
                                 CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackRPARENT);
@@ -140,6 +142,22 @@ public class Stmt extends SyntaxNode {
                             Parser.isSyntaxCorrect = Boolean.FALSE;
                             CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackRPARENT);
                             IOUtils.compileErrors.add(error);
+
+                            // 注意缺少右括号后下面还要照常分析！
+                        }
+
+                        ifStmt = new Stmt();
+                        ifStmt.unitParser();
+
+                        if (lexIterator.iterator().hasNext()) {
+                            token = lexIterator.tokenList.get(lexIterator.curPos);
+                            if (token.getTokenType() == LexType.ELSETK) {
+                                hasElse = Boolean.TRUE;
+                                else_token = lexIterator.iterator().next();
+
+                                elseStmt = new Stmt();
+                                elseStmt.unitParser();
+                            }
                         }
                     }
                 }
@@ -163,7 +181,7 @@ public class Stmt extends SyntaxNode {
                             semicn1 = lexIterator.iterator().next();
                         else {
                             Parser.isSyntaxCorrect = Boolean.FALSE;
-                            CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackSemiCN);
+                            CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackRPARENT);
                             IOUtils.compileErrors.add(error);
                         }
 
@@ -176,7 +194,7 @@ public class Stmt extends SyntaxNode {
                             semicn2 = lexIterator.iterator().next();
                         else {
                             Parser.isSyntaxCorrect = Boolean.FALSE;
-                            CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackSemiCN);
+                            CompileError error = new CompileError(lexIterator.nowToken().getLineNum(), ErrorType.LackRPARENT);
                             IOUtils.compileErrors.add(error);
                         }
 
@@ -556,6 +574,150 @@ public class Stmt extends SyntaxNode {
         IOUtils.writeCorrectLine(toString());
     }
 
+    @Override
+    public void visit() {
+        // 遇到block是新的作用域，其他需要检查符号调用
+        switch (chosen_plan) {
+            case 1 -> {
+                // 检查lVal——错误处理
+                if (lVal != null) {
+                    lVal.visit();
+                    // 有assign则需要判断是否为常量：visit中只检查是否未定义
+                    lVal.handleConstAssignError();
+                }
+                // 检查赋值的Exp
+                if (exp != null)
+                    exp.visit();
+            }
+            case 2 -> {
+                if (exp != null)
+                    exp.visit();
+            }
+            case 3 -> {
+                if (block != null) {
+                    block.visit();
+                }
+            }
+            case 4 -> {
+                // 检查cond
+                if (cond != null) {
+                    cond.visit();
+                }
+                // 检查相关的Stmt
+                if (ifStmt != null) {
+                    ifStmt.visit();
+                }
+                if (hasElse) {
+                    if (elseStmt != null) {
+                        elseStmt.visit();
+                    }
+                }
+            }
+            case 5 -> {
+                if (forStmt1 != null) {
+                    forStmt1.visit();
+                }
+                if (cond != null) {
+                    cond.visit();
+                }
+                if (forStmt2 != null) {
+                    forStmt2.visit();
+                }
+                Visitor.loopCount++;
+                if (stmt != null) {
+                    stmt.visit();
+                }
+                Visitor.loopCount--;
+            }
+            case 6 -> {
+                // 错误处理：判断当前是不是loop
+                if (Visitor.loopCount == 0)
+                    ErrorHandler.nonLoopErrorHandle(break_continue_token != null ? break_continue_token.getLineNum() : 0);
+            }
+                /*else
+                    Visitor.loopCount--;*/
+            case 7 -> {
+                // TODO: 2024/10/26 错误处理：判断函数返回值相关错误 ————非函数内是否需要判断错误
+                if (hasReturnExp) {
+                    if (Visitor.inVoidFunc)
+                        ErrorHandler.returnExpForVoidErrorHandle(return_token.getLineNum());
+                    if (exp != null)
+                        exp.visit();
+                }
+            }
+            case 8, 9 -> {
+                if (lVal != null) {
+                    lVal.visit();
+                    // 有assign则需要判断是否为常量
+                    lVal.handleConstAssignError();
+                }
+            }
+            case 10 -> {
+                // TODO: 2024/10/26 检查格式串中的占位符匹配问题（保证只出现\n），检查ident调用［即Ｅｘｐ检查］
+                int count = getFormatCount(), size = 0;
+                if (hasPrintExp) {
+                    size = comma_exp_list.size();
+                    if (size != count) {
+                        if (print_token != null)
+                            ErrorHandler.printfErrorHandle(print_token.getLineNum());
+                    }
+                    for (InitVal.Comma_Exp comma_exp: comma_exp_list) {
+                        if (comma_exp.exp != null)
+                            comma_exp.exp.visit();
+                    }
+                } else {
+                    // 格式串中有占位符，但是完全没有Exp
+                    if (count != 0)
+                        ErrorHandler.printfErrorHandle(print_token.getLineNum());
+                }
+            }
+        }
+    }
+
+    private int placeholderCount;
+    public int getPlaceholderCount() {
+        return placeholderCount;
+    }
+
+    public int getFormatCount() {
+        // 返回printf中格式串中出现的格式字符个数：%c,%d
+        String patternC = "%c";
+        String patternD = "%d";
+        int placeholderCount = 0;
+
+        Pattern compiledPatternC = Pattern.compile(patternC);
+        Pattern compiledPatternD = Pattern.compile(patternD);
+
+        if (string_token != null) {
+            Matcher matcherC = compiledPatternC.matcher(string_token.getTokenValue());
+            Matcher matcherD = compiledPatternD.matcher(string_token.getTokenValue());
+
+            while (matcherC.find()) {
+                placeholderCount++;
+            }
+
+            while (matcherD.find()) {
+                placeholderCount++;
+            }
+        }
+
+        return placeholderCount;
+    }
+
+    public Integer getChosen_plan() {
+        return chosen_plan;
+    }
+
+    public Boolean getHasReturnExp() {
+        return hasReturnExp;
+    }
+
+    public int getReturnExpLine() {
+        if (return_token != null)
+            return return_token.getLineNum();
+        return 0; // 错误行号（行号最小从1开始）
+    }
+
     public static void main(String[] args) {
 //        Integer in = null;
         Integer in = null;
@@ -578,5 +740,47 @@ public class Stmt extends SyntaxNode {
                 System.out.println("3");
                 break;
         }
+
+        System.out.println("----Regex Test----");
+        String input = "This is a %C%1c%%Ctesct string with %c and %d and some more %c and %d values.";
+
+        // Define patterns for %c and %d
+        String patternC = "%c";
+        String patternD = "%d";
+
+        // Compile the patterns
+        Pattern compiledPatternC = Pattern.compile(patternC);
+        Pattern compiledPatternD = Pattern.compile(patternD);
+
+        // Create matcher objects
+        Matcher matcherC = compiledPatternC.matcher(input);
+        Matcher matcherD = compiledPatternD.matcher(input);
+
+        // Count occurrences
+        int countC = 0;
+        int countD = 0;
+
+        while (matcherC.find()) {
+            countC++;
+        }
+
+        while (matcherD.find()) {
+            countD++;
+        }
+
+        // Print the results
+        System.out.println("Occurrences of %c: " + countC);
+        System.out.println("Occurrences of %d: " + countD);
+    }
+
+    public Boolean isReturn0() {
+        if (chosen_plan != 7) // 不是return语句
+            return Boolean.FALSE;
+
+        // TODO: 2024/10/27 检查Exp是不是0
+        if (exp == null)
+            return Boolean.FALSE;
+//        exp.isZero(); // 疑似没有要求检查这么认真，只要有return就好？（因为类型不匹配只强调了void的感觉）
+        return Boolean.TRUE;
     }
 }

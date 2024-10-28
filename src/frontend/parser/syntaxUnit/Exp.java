@@ -1,5 +1,6 @@
 package frontend.parser.syntaxUnit;
 
+import frontend.symbol.Symbol;
 import utils.IOUtils;
 
 /**
@@ -31,4 +32,31 @@ public class Exp extends SyntaxNode {
         }
         IOUtils.writeCorrectLine(this.toString());
     }
+
+    @Override
+    public void visit() {
+        if (addExp != null)
+            addExp.visit();
+    }
+
+    public boolean isArrayElement() {
+        if (addExp != null)
+            return addExp.isArrayElement();
+        return false;
+    }
+
+    public boolean isIdentArray() {
+        if (addExp != null)
+            return addExp.isIdentArray();
+        return false;
+    }
+
+    public Symbol getIdentSymbol() {
+        if (addExp != null)
+            return addExp.getIdentSymbol();
+        return null;
+    }
+
+   /* public void isZero() {
+    }*/
 }

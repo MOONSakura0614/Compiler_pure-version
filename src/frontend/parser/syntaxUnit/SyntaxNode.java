@@ -2,6 +2,8 @@ package frontend.parser.syntaxUnit;
 
 import frontend.lexer.LexType;
 import frontend.lexer.Token;
+import frontend.symbol.SymbolTable;
+import frontend.visitor.Visitor;
 
 import java.util.ArrayList;
 
@@ -135,7 +137,7 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
         return isAddExp();
     }
 
-    // 输出顺序AddExp和MulExp
+    // TODO: 2024/10/14 输出顺序AddExp和MulExp
     public static boolean isAddExp() {
         return isMulExp();
     }
@@ -150,7 +152,7 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
         return false;
     }
 
-    // 输出顺序MulExp和UnaryExp
+    // TODO: 2024/10/14 输出顺序MulExp和UnaryExp
     public static boolean isMulExp() {
         return isUnaryExp();
     }
@@ -171,7 +173,7 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
         return isPrimaryExp() || isUnaryOp() || isFuncCall();
     }
 
-    // 输出顺序RelExp和AddExp
+    // TODO: 2024/10/15 输出顺序RelExp和AddExp
     public static boolean isRelExp() {
         return isAddExp(); // 注意 RelExp → AddExp | RelExp ('<' | '>' | '<=' | '>=') AddExp 颠倒造成的语法成分输出顺序
     }
@@ -188,7 +190,7 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
         return false;
     }
 
-    // 输出顺序EqExp和RelExp
+    // TODO: 2024/10/15 输出顺序EqExp和RelExp
     public static boolean isEqExp() {
         return isRelExp();
     }
@@ -203,7 +205,7 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
         return false;
     }
 
-    // 输出顺序LAndExp和EqExp
+    // TODO: 2024/10/15 输出顺序LAndExp和EqExp
     public static boolean isLAndExp() {
         return isEqExp();
     }
@@ -212,7 +214,7 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
         return isLOrExp(); // 条件表达式
     }
 
-    // 出顺序LOrExp和LAndExp
+    // TODO: 2024/10/15 输出顺序LOrExp和LAndExp
     public static boolean isLOrExp() {
         return isLAndExp();
     }
@@ -459,7 +461,7 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
         return isVarDecl(); // BType开头，且不是func
     }
 
-    // 用于区分Stmt中的 Exp 和 LVal （是否后面紧跟着=
+    // TODO: 2024/10/16 用于区分Stmt中的 Exp 和 LVal （是否后面紧跟着=
     public static boolean isLValAssign() {
             // Ident ['[' + Exp + ']']
 
@@ -507,4 +509,40 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
 
     // 每个不同的语法成分输出方式不同（因为组成成分也不同），所以在每个里面单独打印，而不是直接后序遍历AST？
     public abstract void print();
+
+    // 建立符号表
+    public SymbolTable initSymbolTable() {
+        SymbolTable fatherTable = Visitor.curTable;
+        SymbolTable newTable = new SymbolTable();
+        if (fatherTable != null) { // 不管进不进if，是null就是null（父表
+            // 在CompUnit节点（根节点）被遍历之前，curTable为null
+            newTable.setFatherTable(fatherTable);
+        }
+        Visitor.scope ++;
+        newTable.setScope(Visitor.scope);
+        Visitor.curTable = newTable;
+        Visitor.curScope = Visitor.scope;
+        Visitor.symbolTableList.add(newTable);
+//        System.out.println("table++");
+        return newTable;
+    }
+
+    // 插入符号
+    public void insertSymbol(SymbolTable symbolTable) {
+        // 注意在父类创建非abstract的方法是为了
+        // 方便无关的非终结符类，从而无需全体重写实现方法
+    }
+
+    public void visit() {
+        // visit在定义部分初始化符号表，其他结点处理语义分析的错误
+//        initSymbolTable();
+        // 分析完退出来是否要进行一个退栈（index退的假装操作符号表嵌套）
+    }
+
+    public void exitCurScope() {
+        if (Visitor.curTable == null)
+            return;
+        Visitor.curTable = Visitor.curTable.getFatherTable();
+        Visitor.curScope = Visitor.curTable.getScope();
+    }
 }

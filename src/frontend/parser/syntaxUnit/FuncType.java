@@ -1,7 +1,7 @@
 package frontend.parser.syntaxUnit;
 
+import frontend.lexer.LexType;
 import frontend.lexer.Token;
-import frontend.parser.Parser;
 import utils.IOUtils;
 
 import static frontend.parser.Parser.lexIterator;
@@ -32,5 +32,11 @@ public class FuncType extends SyntaxNode {
         }
 
         IOUtils.writeCorrectLine(toString());
+    }
+
+    public LexType getFuncType() {
+        if (funcType_token == null)
+            return null;
+        return funcType_token.getTokenType();
     }
 }

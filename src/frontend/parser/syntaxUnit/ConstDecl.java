@@ -5,6 +5,7 @@ import errors.ErrorType;
 import frontend.lexer.LexType;
 import frontend.lexer.Token;
 import frontend.parser.Parser;
+import frontend.symbol.SymbolTable;
 import utils.IOUtils;
 
 import java.util.ArrayList;
@@ -122,6 +123,33 @@ public class ConstDecl extends SyntaxNode{
         Comma_constDef(Token comma, ConstDef constDef) {
             comma_token = comma;
             this.constDef = constDef;
+        }
+    }
+
+    public BType getbType() {
+        return bType;
+    }
+
+    @Override
+    public void insertSymbol(SymbolTable symbolTable) {
+        // 在decl中才有BType的类型
+        Boolean isInt = Boolean.TRUE;
+        if (bType != null) {
+            isInt = bType.getIsInt();
+        }
+        if (constDef != null) {
+            if (isInt)
+                constDef.insertSymbol(symbolTable);
+            else
+                constDef.insertCharSymbol(symbolTable);
+        }
+        for (Comma_constDef comma_constDef: comma_constDef_list) {
+            if (comma_constDef.constDef != null) {
+                if (isInt)
+                    comma_constDef.constDef.insertSymbol(symbolTable);
+                else
+                    comma_constDef.constDef.insertCharSymbol(symbolTable);
+            }
         }
     }
 }

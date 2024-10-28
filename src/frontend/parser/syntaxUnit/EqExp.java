@@ -79,4 +79,15 @@ public class EqExp extends SyntaxNode {
                 relExp.print();
         }
     }
+
+    @Override
+    public void visit() {
+        if (relExp != null) {
+            relExp.visit();
+        }
+        for (EqOp_RelExp eqOp_relExp: eqOp_relExp_list) {
+            if (eqOp_relExp.relExp != null)
+                eqOp_relExp.relExp.visit();
+        }
+    }
 }

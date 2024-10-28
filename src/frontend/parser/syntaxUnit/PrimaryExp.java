@@ -5,6 +5,7 @@ import errors.ErrorType;
 import frontend.lexer.LexType;
 import frontend.lexer.Token;
 import frontend.parser.Parser;
+import frontend.symbol.Symbol;
 import utils.IOUtils;
 
 import static frontend.parser.Parser.lexIterator;
@@ -96,5 +97,56 @@ public class PrimaryExp extends SyntaxNode {
         }
 
         IOUtils.writeCorrectLine(toString());
+    }
+
+    @Override
+    public void visit() {
+        if (isNumber || isCharacter)
+            return ;
+        else if (isParent && exp != null) {
+            exp.visit();
+        }
+        else if (isLVal && lVal != null) {
+            lVal.visit();
+        }
+    }
+
+    public boolean isArrayElement() {
+        if (isNumber || isCharacter)
+            return false;
+        if (isParent) {
+            return exp != null && exp.isArrayElement();
+        }
+        if (isLVal) {
+            return lVal != null && lVal.getIsArrayElement();
+        }
+
+        return false;
+    }
+
+    public Symbol getIdentSymbol() {
+        if (isParent) {
+            return exp == null ? null: exp.getIdentSymbol();
+        }
+        if (isLVal) {
+            return lVal == null ? null: lVal.getIdentSymbol();
+        }
+
+        return null;
+    }
+
+    public boolean isIdentArray() {
+        if (isNumber || isCharacter)
+            return false;
+        if (isParent) {
+            return exp != null && exp.isIdentArray();
+        }
+        if (isLVal) {
+            if (lVal != null && lVal.getIsArrayElement())
+                return false; // 是数组元素，不是数组
+            return lVal != null && lVal.isIdentArray();
+        }
+
+        return false;
     }
 }

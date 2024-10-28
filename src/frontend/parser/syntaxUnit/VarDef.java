@@ -5,6 +5,10 @@ import errors.ErrorType;
 import frontend.lexer.LexType;
 import frontend.lexer.Token;
 import frontend.parser.Parser;
+import frontend.symbol.Symbol;
+import frontend.symbol.SymbolTable;
+import frontend.symbol.SymbolType;
+import frontend.symbol.VarSymbol;
 import utils.IOUtils;
 
 import static frontend.parser.Parser.lexIterator;
@@ -117,7 +121,49 @@ public class VarDef extends SyntaxNode {
         }
     }
 
-//    boolean test;
+    @Override
+    public void insertSymbol(SymbolTable symbolTable) { // 默认插入int
+        if (this.ident_token == null)
+            return;
+//        String ident_name = this.ident_token.getTokenValue();
+        Symbol symbol = new VarSymbol(this, ident_token, symbolTable.getScope());
+        if (isArray) {
+            symbol.setSymbolType(SymbolType.IntArray);
+            symbol.setIsArray();
+        }
+        else
+            symbol.setSymbolType(SymbolType.Int);
+
+        symbolTable.insertSymbol(symbol);
+
+        if (initVal != null)
+            initVal.visit();
+    }
+
+    public void insertCharSymbol(SymbolTable symbolTable) {
+        if (this.ident_token == null)
+            return;
+        /*String ident_name = this.ident_token.getTokenValue();
+        if (symbolTable.isSymbolExist(ident_name)) {
+            // 重定义-错误处理
+            ErrorHandler.redefineErrorHandle(this.ident_token.getLineNum());
+            return;
+        }*/
+        Symbol symbol = new VarSymbol(this, ident_token, symbolTable.getScope()); // 包括ConstInitVal
+        if (isArray) {
+            symbol.setSymbolType(SymbolType.CharArray);
+//            ((ConstSymbol) symbol).setConstExp(constExp);
+            symbol.setIsArray();
+        }
+        else
+            symbol.setSymbolType(SymbolType.Char);
+
+        symbolTable.insertSymbol(symbol);
+
+        if (initVal != null)
+            initVal.visit();
+    }
+
     public static void main(String[] args) {
         VarDef varDef = new VarDef();
         if (varDef.isArray == null) {

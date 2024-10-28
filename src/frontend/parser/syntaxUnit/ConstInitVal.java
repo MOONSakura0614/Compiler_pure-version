@@ -118,6 +118,21 @@ public class ConstInitVal extends SyntaxNode {
     }
     // 考虑要不要把各个部分的类型解析parse改成static的，方便调用
 
+    @Override
+    public void visit() {
+        // 检查Exp中的变量引用
+        if (isArrayInit) {
+            for (Comma_ConstExp comma_constExp: comma_constExp_list) {
+                if (comma_constExp.constExp != null)
+                    comma_constExp.constExp.visit();
+            }
+        } else if (!isStringInit) {
+            if (constExp != null) {
+                constExp.visit();
+            }
+        }
+    }
+
     public class Comma_ConstExp {
         Token comma_token;
         ConstExp constExp;

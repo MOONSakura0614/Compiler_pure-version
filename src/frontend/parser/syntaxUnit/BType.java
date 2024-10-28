@@ -20,7 +20,7 @@ public class BType extends SyntaxNode {
 
     public BType() {
         super("BType");
-//        isInt = Boolean.TRUE; // 非BType就是null
+        isInt = Boolean.TRUE; // 非BType就是null
     }
 
     @Override
@@ -47,5 +47,9 @@ public class BType extends SyntaxNode {
     public void print() {
         // BType无需输出——>只需输出Token信息
         IOUtils.writeCorrectLine(basic_type_token.toString());
+    }
+
+    public Boolean getIsInt() {
+        return isInt;
     }
 }

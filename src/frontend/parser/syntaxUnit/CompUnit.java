@@ -1,9 +1,13 @@
 package frontend.parser.syntaxUnit;
 
 import frontend.lexer.Token;
+import frontend.symbol.SymbolTable;
 import utils.IOUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * @author 郑悦
@@ -71,124 +75,32 @@ public class CompUnit extends SyntaxNode { // 根节点要不要implements Synta
         IOUtils.writeCorrectLine(toString());
     }
 
-    /*@Override
-    void unitParser() {
-        Token token = null;
-        Iterator<Token> iterator = Parser.lexIterator.iterator();
-        if (iterator.hasNext()) {
-            token = iterator.next();
+    @Override
+    public void visit() { // 深搜：后序遍历AST
+        SymbolTable table = initSymbolTable(); // 函数中已经包括add to symbolTableList
+//        Visitor.symbolTableList.add(table); // 第一个table，scope=1（全局变量）
+
+        // 为了父节点嵌套
+        /*Visitor.curTable = table;
+        Visitor.curScope = Visitor.scope;*/ // 在上一步init的时候完成符号表迭代
+
+        // 添加新符号
+        // Decl
+        for (Decl decl: declList) {
+            decl.insertSymbol(table); // 是否需要传入对应的SymbolTable
         }
-        if (token == null) {
-            return; // 能不能直接return呢还是说要实时打印
+        // FuncDef
+        for (FuncDef funcDef: funcDefList) {
+            funcDef.insertSymbol(table);
+            // 每个FuncDef有自己的作用域（包括每个Block）
+            funcDef.visit();
+            // 每个FuncDef内部作用域需要赋值外层符号表（fatherSymbolTable
         }
-
-        // 递归下降分析子程序
-        // 但是需要注意，可能是Functype不是DefType，然后需要返回，是不是children的添加
-        // 采取传到Unit里的ArrayList，判断成功后方法更合适？
-        IOUtils.writeCorrectLine(token.toString());
-        lineNum_begin = token.getLineNum();
-        if (token.getTokenType() == LexType.CONSTTK) {
-            Decl declNode = new Decl();
-            children.add(declNode);
-            declNode.unitParser();
-        } else if (token.getTokenType() == LexType.VOIDTK) {
-            FuncDef funcDefNode = new FuncDef();
-            children.add(funcDefNode);
-            funcDefNode.unitParser();
-        } else if (token.getTokenType() == LexType.INTTK) {
-            // 可能是VarDecl，也可能是FuncDef，也可能是MainFuncDef
-            if (!iterator.hasNext()) {
-                // int之后就没有后文
-                Parser.isSyntaxCorrect = false;
-                return;
-            }
-            Token newToken = iterator.next();
-            if (newToken.getTokenType() == LexType.MAINTK) { // int之前打印过了
-                IOUtils.writeCorrectLine(newToken.toString());
-                // 注意由于FuncDef中还有FuncType的非终结符，所以不能急急地统一把newToken写出去
-                MainFuncDef mainFuncDefNode = new MainFuncDef();
-                children.add(mainFuncDefNode);
-                mainFuncDefNode.unitParser();
-            } else {
-                // 不管是变量声明还是函数声明下一个都是标识符
-                // 就看再下一个是不是函数形参的左小括号了
-                Token oldToken = newToken; // 标记符
-                if (isFuncDef(iterator)) {
-                    // 是函数定义
-                    FuncType funcTypeNode = new FuncType();
-//                    children.add(funcTypeNode); // 此处涉及token究竟如何存储的问题
-                    //funcTypeNode.tokenList.add(token); // 最开始进入compUnit分析的第一个token
-                    funcTypeNode.unitParser();
-                    IOUtils.writeCorrectLine(funcTypeNode.toString());
-                    IOUtils.writeCorrectLine(oldToken.toString()); // 命名
-                    newToken = Parser.lexIterator.nowToken(); // 此时应该是左括号
-                    IOUtils.writeCorrectLine(newToken.toString());
-
-                    FuncDef funcDefNode = new FuncDef();
-                    children.add(funcDefNode);
-                    funcDefNode.children.add(funcTypeNode); // 注意直接父节点不要弄错
-                    funcDefNode.tokenList.add(token); // 返回值类型
-                    funcDefNode.tokenList.add(oldToken); // 函数名
-                    funcDefNode.tokenList.add(newToken); // 左小括号
-                } else {
-                    // 是变量定义
-                    IOUtils.writeCorrectLine(oldToken.toString()); // 命名
-                    // 应该先判断为Decl（Decl虽然不用输出，但是需要保留分析
-                    Decl declNode = new Decl();
-                    declNode.tokenList.add(token);
-                    declNode.tokenList.add(oldToken); // 名字
-                    // 接下来判断 标识符 后面的字符
-                    // BType 也不用输出
-                    newToken = Parser.lexIterator.nowToken();
-                    // 1. [ - 变量数组：记住中括号中可能包含ConstExp;
-                    // 2. = - 赋值，不是语法成分，只是VarDef推导右式的一种选择;
-                    // 3. ; 结束VarDecl
-                    // 疑似可以进入VarDecl再仔细分析:为什么不把varDecl放到Decl的子parse中？
-                    // 还是在纠结到底token要给到多少信息，才方便语义分析
-                    VarDecl varDeclNode = new VarDecl(); // 如果语法树的结点不存
-                    varDeclNode.tokenList.add(token);
-                    varDeclNode.tokenList.add(oldToken);
-
-                }
-            }
-        } else if (token.getTokenType() == LexType.CHARTK) {
-            // FuncDef || VarDef
-            if (!iterator.hasNext()) {
-                Parser.isSyntaxCorrect = false;
-                return;
-            }
-            Token newToken = iterator.next();
-            if (newToken.getTokenType() != LexType.IDENFR) {
-                Parser.isSyntaxCorrect = false;
-                return;
-            }
-            IOUtils.writeCorrectLine(newToken.toString());
-            if (!iterator.hasNext()) {
-                Parser.isSyntaxCorrect = false;
-                return;
-            }
-            newToken = iterator.next();
-            if (newToken.getTokenType() == LexType.LPARENT) {
-                // 目前遍历到的token要不要设为全局变量？（比如设给Parser的public static类变量
-                FuncDef funcDefNode = new FuncDef();
-                children.add(funcDefNode);
-                funcDefNode.unitParser();
-            }
+        // MainFuncDef
+        if (mainFuncDef != null) {
+            mainFuncDef.visit();
         }
-
-        Token endToken = Parser.lexIterator.nowToken();
-
-        if (endToken != null) {
-            this.lineNum_end = endToken.getLineNum();
-        }
-
-        IOUtils.writeCorrectLine(toString());
-    }*/
-
-    /*@Override
-    public void setSyntaxName() {
-        syntaxName = "CompUnit";
-    }*/
+    }
 
     public static void main(String[] args) {
         CompUnit compUnit = new CompUnit();
@@ -200,5 +112,20 @@ public class CompUnit extends SyntaxNode { // 根节点要不要implements Synta
         } else {
             System.out.println("new ArrayList but real null");
         }
+
+        Map<String, String> stuNumMap_unorder = new HashMap<>();
+        Map<String, String> stuNumMap_order = new LinkedHashMap<>();
+        stuNumMap_unorder.put("sxq", "22373640");
+        stuNumMap_order.put("sxq", "22373640");
+        stuNumMap_unorder.put("zy", "22373100");
+        stuNumMap_order.put("zy", "22373100");
+        stuNumMap_unorder.put("rwm", "22373140");
+        stuNumMap_order.put("rwm", "22373140");
+        stuNumMap_unorder.put("zyh", "22373089");
+        stuNumMap_order.put("zyh", "22373089");
+        // print
+        System.out.println(stuNumMap_order);
+        System.out.println(stuNumMap_unorder);
+        // result: linkedHashMap维护添加顺序
     }
 }

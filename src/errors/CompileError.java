@@ -1,7 +1,5 @@
 package errors;
 
-import errors.ErrorType;
-
 /**
  * @author 郑悦
  * @Description:

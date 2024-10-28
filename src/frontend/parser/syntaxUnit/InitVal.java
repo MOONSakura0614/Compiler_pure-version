@@ -117,6 +117,21 @@ public class InitVal extends SyntaxNode {
         IOUtils.writeCorrectLine(toString());
     }
 
+    @Override
+    public void visit() {
+        // 检查Exp中的变量引用
+        if (isArrayInit) {
+            for (Comma_Exp comma_exp: comma_exp_list) {
+                if (comma_exp.exp != null)
+                    comma_exp.exp.visit();
+            }
+        } else if (!isStringInit) {
+            if (exp != null) {
+                exp.visit();
+            }
+        }
+    }
+
     public static class Comma_Exp { // --> 变成类变量之后，供Stmt的printf情况解析中的占位符对应实值使用~
         Token comma_token;
         Exp exp;

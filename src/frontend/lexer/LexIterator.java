@@ -35,7 +35,7 @@ public class LexIterator implements Iterable<Token> {
             lexIterator = new LexIterator();
             lexIterator.lexer.lexicalAnalysis(); // 获取TokenList
 
-            lexIterator.lexer.printLexicalResult();
+//            lexIterator.lexer.printLexicalResult();
 
             lexIterator.tokenList = lexIterator.lexer.getTokenList();
             lexIterator.tokenCount = lexIterator.tokenList.size();

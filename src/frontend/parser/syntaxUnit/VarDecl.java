@@ -4,6 +4,7 @@ import errors.CompileError;
 import errors.ErrorType;
 import frontend.lexer.Token;
 import frontend.parser.Parser;
+import frontend.symbol.SymbolTable;
 import utils.IOUtils;
 
 import java.util.ArrayList;
@@ -58,9 +59,6 @@ public class VarDecl extends SyntaxNode {
                 comma_varDefList.add(comma_varDef);
             }
         }
-        /*while (isVarDef()) {
-            // 这里注意，进入是逗号才可以，是分号就退出
-        }*/
         if (isSemicn()) {
             if (lexIterator.iterator().hasNext()) {
                 // 解析分号
@@ -111,6 +109,29 @@ public class VarDecl extends SyntaxNode {
             IOUtils.writeCorrectLine(comma_token.toString());
             if (varDef != null) {
                 varDef.print();
+            }
+        }
+    }
+
+    @Override
+    public void insertSymbol(SymbolTable symbolTable) {
+        Boolean isInt = Boolean.TRUE;
+        if (bType != null) {
+            isInt = bType.getIsInt();
+        }
+        if (varDef != null) {
+            // 添加开头的varDef
+            if (isInt)
+                varDef.insertSymbol(symbolTable);
+            else
+                varDef.insertCharSymbol(symbolTable);
+        }
+        for (Comma_VarDef comma_varDef: comma_varDefList) {
+            if (comma_varDef.varDef != null) {
+                if (isInt)
+                    comma_varDef.varDef.insertSymbol(symbolTable);
+                else
+                    comma_varDef.varDef.insertCharSymbol(symbolTable);
             }
         }
     }

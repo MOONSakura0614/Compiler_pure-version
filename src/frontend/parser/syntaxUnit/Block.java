@@ -1,7 +1,10 @@
 package frontend.parser.syntaxUnit;
 
+import errors.ErrorHandler;
 import frontend.lexer.LexType;
 import frontend.lexer.Token;
+import frontend.symbol.SymbolTable;
+import frontend.visitor.Visitor;
 import utils.IOUtils;
 
 import java.util.AbstractList;
@@ -65,5 +68,81 @@ public class Block extends SyntaxNode {
             IOUtils.writeCorrectLine(rBrace_token.toString());
 
         IOUtils.writeCorrectLine(toString());
+    }
+
+    @Override
+    public void visit() {
+        SymbolTable blockSymTable = initSymbolTable();
+        // 遇到blockItem
+        for (BlockItem blockItem: blockItem_list) {
+            blockItem.visit();
+        }
+        exitCurScope();
+    }
+
+    public void visitInFunc(LexType funcType) {
+        // 那么main应该也算一种函数，但是没有新建符号表（所以说明在mainDef中的visit函数就要建新表
+        SymbolTable funcSymTable = Visitor.curTable;
+
+        // 注意只有void需要一直判断return exp的错误
+        Visitor.inVoidFunc = funcType .equals(LexType.VOIDTK);
+
+        // 按照输入文法规则：判断Return相关的错误↓
+        // 应该先是void只需要判断有Exp就是错的
+        if (blockItem_list.isEmpty()) {
+            // 判断是不是void，不是的话空body的block必报错的
+            if (funcType != LexType.VOIDTK)
+                ErrorHandler.funcLackReturnValueErrorHandle(rBrace_token !=null ? rBrace_token.getLineNum() : 0);
+            /*只需要考虑函数末尾是否存在return语句。
+            报错行号为函数结尾的’}’所在行号。*/
+        } else {
+            BlockItem lastBlockItem = blockItem_list.get(blockItem_list.size() - 1);
+            if (lastBlockItem.getIsDecl()) {
+                // 如果最后一句是声明
+                if (funcType != LexType.VOIDTK)
+                    ErrorHandler.funcLackReturnValueErrorHandle(rBrace_token !=null ? rBrace_token.getLineNum() : 0);
+            } else {
+                Stmt stmt = lastBlockItem.getStmt();
+                // 判断stmt是不是return EXP类型
+                if (stmt.getChosen_plan().equals(7)) { // 是return类型的
+                    if (!funcType.equals(LexType.VOIDTK)) {
+                        if (!stmt.getHasReturnExp()) {
+                            ErrorHandler.funcLackReturnValueErrorHandle(rBrace_token !=null ? rBrace_token.getLineNum() : 0);
+                        }
+                    } /*else {
+                        if (stmt.getHasReturnExp()) { // 报错在return所在行号
+                            ErrorHandler.returnExpForVoidErrorHandle(stmt.getReturnExpLine());
+                        }
+                    }*/
+                } else {
+                    // 没有return语句
+                    if (funcType != LexType.VOIDTK)
+                        ErrorHandler.funcLackReturnValueErrorHandle(rBrace_token !=null ? rBrace_token.getLineNum() : 0);
+                }
+            }
+        }
+        // 不新建符号表，并判断return value是否正确
+        for (BlockItem blockItem: blockItem_list) {
+            blockItem.visit();
+        }
+
+        Visitor.inVoidFunc = Boolean.FALSE;
+
+        // visit in func结束也需要退出一层作用域（回到fatherTable：这点和其他block一致）
+//        exitCurScope(); ————没有initSymTable所以不需要，会在外层调用本函数的FuncDef中退出
+    }
+
+    public void checkReturn0() {
+        if (blockItem_list.isEmpty()) {
+            if (rBrace_token == null)
+                return;
+            ErrorHandler.funcLackReturnValueErrorHandle(rBrace_token.getLineNum()); // 因为没有缺少右括号的错误，所以肯定不为null吧
+            return; // 防止下面的get发生越界
+        }
+        if (!blockItem_list.get(blockItem_list.size() - 1).isReturn0()) {
+            if (rBrace_token == null)
+                return;
+            ErrorHandler.funcLackReturnValueErrorHandle(rBrace_token.getLineNum()); // 因为没有缺少右括号的错误，所以肯定不为null吧
+        }
     }
 }

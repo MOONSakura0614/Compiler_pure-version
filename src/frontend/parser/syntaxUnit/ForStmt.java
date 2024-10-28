@@ -56,4 +56,14 @@ public class ForStmt extends SyntaxNode {
 
         IOUtils.writeCorrectLine(toString());
     }
+
+    @Override
+    public void visit() {
+        if (lVal != null)
+            lVal.visit();
+        if (exp != null)
+            exp.visit();
+        if (lVal != null)
+            lVal.handleConstAssignError();
+    }
 }

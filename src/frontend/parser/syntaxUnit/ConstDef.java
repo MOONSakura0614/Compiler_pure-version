@@ -5,6 +5,10 @@ import errors.ErrorType;
 import frontend.lexer.LexType;
 import frontend.lexer.Token;
 import frontend.parser.Parser;
+import frontend.symbol.ConstSymbol;
+import frontend.symbol.Symbol;
+import frontend.symbol.SymbolTable;
+import frontend.symbol.SymbolType;
 import utils.IOUtils;
 
 import static frontend.parser.Parser.lexIterator;
@@ -108,4 +112,54 @@ public class ConstDef extends SyntaxNode {
             constInitVal.print(); // 如果是null要不要抛RE异常？
         IOUtils.writeCorrectLine(toString());
     }
+
+    @Override
+    public void insertSymbol(SymbolTable symbolTable) { // 默认插入int
+        if (this.ident_token == null)
+            return;
+        // 注意需要检查是否未曾存在才能插入
+        /*String ident_name = this.ident_token.getTokenValue();
+        if (symbolTable.isSymbolExist(ident_name)) {
+            // 重定义-错误处理
+            ErrorHandler.redefineErrorHandle(this.ident_token.getLineNum());
+            return;
+        }*/
+        Symbol symbol = new ConstSymbol(this, ident_token, symbolTable.getScope());
+        if (isArray) {
+            symbol.setSymbolType(SymbolType.ConstIntArray);
+//            ((ConstSymbol) symbol).setConstExp(constExp);
+            symbol.setIsArray();
+        }
+        else
+            symbol.setSymbolType(SymbolType.ConstInt);
+
+        symbolTable.insertSymbol(symbol);
+
+        if (constInitVal != null)
+            constInitVal.visit();
+    }
+
+    public void insertCharSymbol(SymbolTable symbolTable) {
+        if (this.ident_token == null)
+            return;
+        /*String ident_name = this.ident_token.getTokenValue();
+        if (symbolTable.isSymbolExist(ident_name)) {
+            // 重定义-错误处理:在符号表自身的插入函数中完成
+            ErrorHandler.redefineErrorHandle(this.ident_token.getLineNum());
+            return;
+        }*/
+        Symbol symbol = new ConstSymbol(this, ident_token, symbolTable.getScope()); // 包括ConstInitVal
+        if (isArray) {
+            symbol.setSymbolType(SymbolType.ConstCharArray);
+//            ((ConstSymbol) symbol).setConstExp(constExp);
+            symbol.setIsArray();
+        }
+        else
+            symbol.setSymbolType(SymbolType.ConstChar);
+
+        symbolTable.insertSymbol(symbol);
+
+        if (constInitVal != null)
+            constInitVal.visit();
+    } // 如果这个函数改成return新symbol，然后在调用这个函数的地方插入symbolTable是不是更好
 }
