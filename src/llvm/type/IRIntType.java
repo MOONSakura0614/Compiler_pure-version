@@ -7,7 +7,7 @@ package llvm.type;
  * 但是所有类型都继承自Type
  * @date 2024/11/15 18:59
  */
-public class IRIntType {
+public class IRIntType implements IRType {
     @Override
     public String toString() {
         return "i32";

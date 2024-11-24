@@ -9,7 +9,7 @@ import java.util.ArrayList;
  * @Description:
  * @date 2024/11/15 19:01
  */
-public class IRFunctionType extends IRType {
+public class IRFunctionType implements IRType {
     private IRType ret_type;
     private ArrayList<IRType> param_type_list;
     private ArrayList<String> param_name_list; // 函数形参分配的寄存器

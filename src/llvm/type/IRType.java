@@ -5,5 +5,5 @@ package llvm.type;
  * @Description:
  * @date 2024/11/15 18:59
  */
-public class IRType {
+public interface IRType {
 }
