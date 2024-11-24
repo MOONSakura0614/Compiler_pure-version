@@ -21,6 +21,7 @@ public class IOUtils {
     private static final String input = "testfile.txt";
     private static final String output = "output.txt";
     private static final String error = "error.txt";
+    public static final String ir = "llvm_ir.txt";
 
     public static String read(String filename) throws IOException {
         InputStream inputStream = new BufferedInputStream(Files.newInputStream(Paths.get(filename)));
@@ -45,6 +46,16 @@ public class IOUtils {
         clearFile("parser.txt");
         clearFile("error.txt");
         clearFile("symbol.txt");
+        clearFile(ir);
+    }
+
+    // 由于懒得之后de外部IO链接库的bug：这里执行干脆都加上的政策
+    public static void initIROutput() {
+        writeLLVMIR("declare i32 @getint()\n" +
+                "declare i32 @getchar()\n" +
+                "declare void @putint(i32)\n" +
+                "declare void @putch(i32)\n" +
+                "declare void @putstr(i8*)\n");
     }
 
     public static void clearFile(String filePath) {
@@ -74,6 +85,15 @@ public class IOUtils {
                 fileWriter.write(content); // 直接添加换行符
                 fileWriter.flush();
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void writeLLVMIR(String content) {
+        try (FileWriter fileWriter = new FileWriter(ir, true)) {
+                fileWriter.write(content); // 直接添加换行符
+                fileWriter.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

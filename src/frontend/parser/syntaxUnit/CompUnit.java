@@ -92,4 +92,16 @@ public class CompUnit extends SyntaxNode { // 根节点要不要implements Synta
             mainFuncDef.visit();
         }
     }
+
+    public ArrayList<Decl> getDeclList() {
+        return declList;
+    }
+
+    public ArrayList<FuncDef> getFuncDefList() {
+        return funcDefList;
+    }
+
+    public MainFuncDef getMainFuncDef() {
+        return mainFuncDef;
+    }
 }

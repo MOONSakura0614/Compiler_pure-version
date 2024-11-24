@@ -2,6 +2,7 @@ import config.CompilerConfig;
 import frontend.lexer.Lexer;
 import frontend.parser.Parser;
 import frontend.visitor.Visitor;
+import llvm.IRGenerator;
 import utils.IOUtils;
 
 /**
@@ -14,6 +15,7 @@ public class Compiler {
     public static Lexer lexer = Lexer.getInstance();
     public static Parser parser = Parser.getInstance();
     public static Visitor visitor = Visitor.getInstance();
+    public static IRGenerator irGenerator = IRGenerator.getInstance();
 
     public static void main(String[] args) {
         IOUtils.fileInit();
@@ -29,7 +31,9 @@ public class Compiler {
 //        parser.printSyntaxResult();
 
         // Semantic
-        visitor.visitAst();
-        visitor.printSymbolTables();
+        visitor.visitAst(); // 正常语义分析+错误处理
+//        visitor.printSymbolTables();
+
+        // LLVM IR生成阶段新建一个中间代码的符号表
     }
 }

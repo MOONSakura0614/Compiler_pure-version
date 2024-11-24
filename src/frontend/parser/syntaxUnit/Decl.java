@@ -15,7 +15,7 @@ public class Decl extends SyntaxNode {
 
     public Decl() {
         super("Decl");
-//        isConst = false;
+        isConst = Boolean.FALSE;
     }
 
     @Override
@@ -31,6 +31,18 @@ public class Decl extends SyntaxNode {
             varDecl = new VarDecl();
             varDecl.unitParser();
         }
+    }
+
+    public Boolean getIsConst() {
+        return isConst;
+    }
+
+    public ConstDecl getConstDecl() {
+        return constDecl;
+    }
+
+    public VarDecl getVarDecl() {
+        return varDecl;
     }
 
     @Override

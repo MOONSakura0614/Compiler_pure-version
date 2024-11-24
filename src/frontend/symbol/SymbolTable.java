@@ -36,6 +36,17 @@ public class SymbolTable {
             symbolMap.put(symbol.identName, symbol);
         return true;
     }
+    
+    public void insertIRSymbol(Symbol symbol) {
+        // 注意：进入中间代码生成阶段，默认词法、语法、语义合规——不判断是否有
+        // IR阶段的符号表更适合存全局变量和函数——局部变量如何判断使用？？
+        // 常量需要计算出对应的数字/字母
+        // 字符串的翻译和声明是不是应该移到llvm ir的最前面
+        // 全局是@name形式，其他的%4之类代表的局部变量，记录的应该是store的对应指针还是load出的值？
+        if (symbolMap == null)
+            return;
+        symbolMap.put(symbol.identName, symbol);
+    }
 
     // 感觉如果查询符号方法放在这，可能更像树状：一层层指针；所以外层查询放Visitor
     public Symbol findInCurSymTable(String value) {

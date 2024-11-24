@@ -4,6 +4,7 @@ import frontend.lexer.Token;
 import frontend.parser.syntaxUnit.Decl;
 import frontend.parser.syntaxUnit.FuncDef;
 import frontend.parser.syntaxUnit.SyntaxNode;
+import llvm.value.IRValue;
 
 /**
  * @author 郑悦
@@ -20,6 +21,9 @@ public class Symbol {
     protected Boolean isArray; // 注意SysY最多数组只支持一维
     protected SymbolType symbolType;
     // TODO: 2024/10/26 是否需要将Exp表示的值计算出来，防止数组越界？
+    
+    public IRValue irValue; // 代码生成的符号表
+    // TODO: 2024/11/15 还是说代码生成应该重新整一个符号表-->因为这边在frontend下都被protected了！
 
     public Symbol() {
         symbolType = SymbolType.Int;
@@ -29,6 +33,14 @@ public class Symbol {
         identName = ident_name;
         isArray = Boolean.FALSE;
         symbolType = SymbolType.Int;
+    }
+
+
+    public Symbol(String ident_name, IRValue value) {
+        identName = ident_name;
+        isArray = Boolean.FALSE;
+        symbolType = SymbolType.Int;
+        irValue = value; // value中包含irType
     }
 
     public Symbol(Token ident_token, int id) {
