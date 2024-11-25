@@ -32,4 +32,8 @@ public class Character_comp extends SyntaxNode {
             IOUtils.writeCorrectLine(character_token.toString());
         IOUtils.writeCorrectLine(toString());
     }
+
+    public Token getCharacter_token() {
+        return character_token;
+    }
 }

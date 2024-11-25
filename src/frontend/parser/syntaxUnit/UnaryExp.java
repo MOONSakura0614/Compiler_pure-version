@@ -168,4 +168,37 @@ public class UnaryExp extends SyntaxNode {
         }
         return false;
     }
+
+    public int getIntValue() {
+        if (isPrimaryExp) {
+            if (primaryExp != null)
+                return primaryExp.getIntValue();
+
+            return 1;
+        }
+
+        int res = 0;
+        if (isOp) {
+            if (unaryOp == null || unaryExp == null)
+                return 1;
+
+            LexType type = unaryOp.getUnaryOp_token().getTokenType();
+            switch (type) {
+                case PLUS -> {
+                    res += unaryExp.getIntValue();
+                }
+                case MINU -> {
+                    res -= unaryExp.getIntValue();
+                }
+                case NOT -> {
+                    // '!'仅出现在条件表达式中 --> 在求intValue的时候先不做处理
+                    // TODO: 2024/11/25 条件判断
+                }
+            }
+            return res;
+        }
+
+        // TODO: 2024/11/25 如果是Ident():就是调用函数，需要借用call instruction实现
+        return 1; // 防止把其他的MulExp给消了
+    }
 }

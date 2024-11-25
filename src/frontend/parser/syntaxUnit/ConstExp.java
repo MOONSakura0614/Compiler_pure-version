@@ -37,4 +37,12 @@ public class ConstExp extends SyntaxNode {
         if (addExp != null)
             addExp.visit();
     }
+
+    // 服务于中间代码生成的值获取
+    public int getIntValue() {
+        if (addExp != null)
+            return addExp.getIntValue();
+
+        return 0;
+    }
 }

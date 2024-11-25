@@ -149,4 +149,32 @@ public class PrimaryExp extends SyntaxNode {
 
         return false;
     }
+
+    public int getIntValue() {
+        if (isNumber) {
+            if (number != null)
+                return number.getIntValue();
+
+            return 0;
+        } else if (isLVal) {
+            // 得到的是左值，比如某个变量名目前存的值
+            if (lVal != null)
+                return lVal.getIntValue();
+
+            return 0;
+        } else if (isCharacter) {
+            // 这里是否需要强转，ascii码to数字
+            if (character != null)
+                if (character.getCharacter_token() != null && !character.getCharacter_token().getTokenValue().isEmpty())
+                    return character.getCharacter_token().getTokenValue().charAt(0);
+
+            return 0;
+        } else {
+            // 推导右式是(Exp)
+            if (exp != null)
+                return exp.getIntValue();
+
+            return 0;
+        }
+    }
 }

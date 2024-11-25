@@ -32,4 +32,12 @@ public class Number_comp extends SyntaxNode {
             IOUtils.writeCorrectLine(number_token.toString());
         IOUtils.writeCorrectLine(toString());
     }
+
+    public int getIntValue() {
+        // 只支持整数：i32或i8
+        if (number_token != null)
+            return Integer.parseInt(number_token.getTokenValue());
+
+        return 0;
+    }
 }

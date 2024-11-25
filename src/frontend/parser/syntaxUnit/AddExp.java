@@ -1,6 +1,7 @@
 package frontend.parser.syntaxUnit;
 
 
+import frontend.lexer.LexType;
 import frontend.lexer.Token;
 import frontend.symbol.Symbol;
 import utils.IOUtils;
@@ -79,6 +80,34 @@ public class AddExp extends SyntaxNode {
         if (mulExp != null)
             return mulExp.isIdentArray();
         return false;
+    }
+
+    public int getIntValue() {
+        int res = 0;
+        if (addOp_mulExp_list.isEmpty()) {
+            if (mulExp != null)
+                return mulExp.getIntValue();
+
+            return 0;
+        }
+
+        // 是mulExp addOp AddExp……的格式
+        if (mulExp != null)
+            res =  mulExp.getIntValue(); // 最左的
+
+        for (AddOp_MulExp addOp_mulExp: addOp_mulExp_list) {
+            if (addOp_mulExp.addOp_token != null) {
+                LexType opType = addOp_mulExp.addOp_token.getTokenType();
+                if (opType.equals(LexType.PLUS)) { // '+'
+                    if (addOp_mulExp.mulExp != null)
+                        res += addOp_mulExp.mulExp.getIntValue();
+                } else if (opType.equals(LexType.MINU)) { // '-'
+                    if (addOp_mulExp.mulExp != null)
+                        res -= addOp_mulExp.mulExp.getIntValue();
+                }
+            }
+        }
+        return res;
     }
 
     public class AddOp_MulExp {

@@ -1,5 +1,6 @@
 package frontend.parser.syntaxUnit;
 
+import frontend.lexer.LexType;
 import frontend.lexer.Token;
 import frontend.symbol.Symbol;
 import utils.IOUtils;
@@ -76,6 +77,37 @@ public class MulExp extends SyntaxNode {
         if (unaryExp != null)
             return unaryExp.isIdentArray();
         return false;
+    }
+
+    public int getIntValue() {
+        if (mulOp_unaryExp_list.isEmpty()) {
+            if (unaryExp != null)
+                return unaryExp.getIntValue();
+
+            return 0;
+        }
+
+        int res = 1;
+        // 是mulExp mulOp AddExp……的格式
+        if (unaryExp != null)
+            res =  unaryExp.getIntValue(); // 最左的
+
+        for (MulOp_UnaryExp mulOp_unaryExp: mulOp_unaryExp_list) {
+            if (mulOp_unaryExp.mulOp_token != null) {
+                LexType opType = mulOp_unaryExp.mulOp_token.getTokenType();
+                if (opType.equals(LexType.MULT)) { // '*'
+                    if (mulOp_unaryExp.unaryExp != null)
+                        res *= mulOp_unaryExp.unaryExp.getIntValue();
+                } else if (opType.equals(LexType.DIV)) { // '/'
+                    if (mulOp_unaryExp.unaryExp != null)
+                        res /= mulOp_unaryExp.unaryExp.getIntValue();
+                } else if (opType.equals(LexType.MOD)) { // '/'
+                    if (mulOp_unaryExp.unaryExp != null)
+                        res %= mulOp_unaryExp.unaryExp.getIntValue();
+                }
+            }
+        }
+        return res;
     }
 
     public class MulOp_UnaryExp {

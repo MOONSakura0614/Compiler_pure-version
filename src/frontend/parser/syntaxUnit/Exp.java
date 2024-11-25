@@ -56,4 +56,11 @@ public class Exp extends SyntaxNode {
             return addExp.getIdentSymbol();
         return null;
     }
+
+    public int getIntValue() {
+        if (addExp != null)
+            return addExp.getIntValue();
+
+        return 0;
+    }
 }

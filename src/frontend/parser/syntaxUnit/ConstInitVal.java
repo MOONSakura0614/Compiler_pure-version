@@ -143,4 +143,20 @@ public class ConstInitVal extends SyntaxNode {
                 constExp.print();
         }
     }
+
+    public int getIntValue() {
+        // 注意数组初始化的时候，int: 0-padding; char: '\0'-padding（应该也就是ascii的0）
+        if (isArrayInit) {
+            // TODO: 2024/11/25 数组初始化
+            return 0;
+        } else if (isStringInit) {
+            // todo: stringConst只在char数组初始化 以及 printf的格式串中出现
+            return 0;
+        } else {
+            if (constExp != null)
+                return constExp.getIntValue();
+
+            return 0;
+        }
+    }
 }

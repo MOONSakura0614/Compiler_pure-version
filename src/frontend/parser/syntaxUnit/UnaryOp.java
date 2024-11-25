@@ -33,4 +33,8 @@ public class UnaryOp extends SyntaxNode {
             IOUtils.writeCorrectLine(unaryOp_token.toString());
         IOUtils.writeCorrectLine(toString());
     }
+
+    public Token getUnaryOp_token() {
+        return unaryOp_token;
+    }
 }

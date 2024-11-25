@@ -8,6 +8,7 @@ import frontend.lexer.Token;
 import frontend.parser.Parser;
 import frontend.symbol.Symbol;
 import frontend.visitor.Visitor;
+import llvm.IRGenerator;
 import utils.IOUtils;
 
 import static frontend.parser.Parser.lexIterator;
@@ -23,6 +24,9 @@ public class LVal extends SyntaxNode {
     private Token lBracket_token;
     private Exp exp;
     private Token rBracket_token;
+
+    // 如果此处左值是int变量，则他有自己的数值
+//    private int intValue = 0;
 
     public LVal() {
         super("LVal");
@@ -127,5 +131,28 @@ public class LVal extends SyntaxNode {
             return null;
 
         return Visitor.curTable.findInCurSymTable(ident_token.getTokenValue());
+    }
+
+    public int getIntValue() {
+//        return intValue; // 还是说在符号表里找value()
+        if (isArrayElement) {
+            // 如果是数组元素--从内存里load？
+            // TODO: 2024/11/25 数组相关-中间代码设置
+        } else {
+            // 是int还是char，求intValue的话，说明需要i32
+            // 或者统一成i32计算，最后判断是否需要类型转换？
+            if (ident_token != null) {
+                if (IRGenerator.cur_ir_symTable != null) {
+                    // 在符号表中查找变量的值
+                    Symbol symbol = IRGenerator.cur_ir_symTable.findInCurSymTable(ident_token.getTokenValue());
+//                    if (IRGenerator.cur_ir_symTable.isSymbolExist(ident_token.getTokenValue())) {
+                    if (symbol != null) {
+                        return symbol.getIntValue();
+                    }
+                }
+            }
+        }
+
+        return 0; // default return value
     }
 }

@@ -85,9 +85,17 @@ public class SymbolTable {
     }
 
     public boolean isSymbolExist(String identValue) { // 按照标识符查询
-        if (symbolMap != null)
-            return symbolMap.containsKey(identValue);
-        return true; // 在map未初始化的时候肯定不存在，但未初始化就是一种错误，不会出现
+        if (symbolMap != null) {
+            if (symbolMap.containsKey(identValue))
+                return true;
+
+            if (this.fatherTable != null) {
+                return this.fatherTable.isSymbolExist(identValue);
+            } else {
+                return false; // 自己没有这个符号，父符号表也没有
+            }
+        }
+        return false; // 在map未初始化的时候肯定不存在，但未初始化就是一种错误，不会出现
     }
 
     public boolean isSymbolTableEmpty() {
