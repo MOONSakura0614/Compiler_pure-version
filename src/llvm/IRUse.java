@@ -1,4 +1,7 @@
-package llvm.value;
+package llvm;
+
+import llvm.value.IRUser;
+import llvm.value.IRValue;
 
 /**
  * @author 郑悦

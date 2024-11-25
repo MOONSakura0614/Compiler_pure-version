@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * @author 郑悦
- * @Description:
+ * @Description: 语义分析过程：构建符号表的遍历器
  * @date 2024/10/16 22:27
  */
 public class Visitor {

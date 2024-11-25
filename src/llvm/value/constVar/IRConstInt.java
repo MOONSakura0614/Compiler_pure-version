@@ -11,6 +11,10 @@ import llvm.value.IRValue;
 public class IRConstInt extends IRConst {
     private int val;
 
+    public IRConstInt() {
+        super();
+    }
+
     public IRConstInt(IRType type, String name, int val) {
         super(type, name);
     }

@@ -17,6 +17,8 @@ public class Compiler {
     public static Visitor visitor = Visitor.getInstance();
     public static IRGenerator irGenerator = IRGenerator.getInstance();
 
+//    public static Boolean llvm_ir_gen = Boolean.FALSE;
+
     public static void main(String[] args) {
         IOUtils.fileInit();
 
@@ -34,6 +36,17 @@ public class Compiler {
         visitor.visitAst(); // 正常语义分析+错误处理
 //        visitor.printSymbolTables();
 
+        // 错误处理：保证进入LLVM IR生成阶段没错
+        if (!(Visitor.isSemanticCorrect && Parser.isSyntaxCorrect && Lexer.getInstance().getIsLexicalCorrect())) {
+            IOUtils.writeError();
+            return;
+        }
+
         // LLVM IR生成阶段新建一个中间代码的符号表
+//        llvm_ir_gen = Boolean.TRUE;
+        IRGenerator.setLlvm_ir_gen(Boolean.TRUE);
+        // 服务于AST符号表的insertSym和IR过程中的符号表的区分操作
+        irGenerator.generateIR();
+        irGenerator.getIrModule().printIR();
     }
 }

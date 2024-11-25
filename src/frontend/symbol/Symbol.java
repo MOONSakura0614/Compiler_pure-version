@@ -35,11 +35,17 @@ public class Symbol {
         symbolType = SymbolType.Int;
     }
 
-
     public Symbol(String ident_name, IRValue value) {
         identName = ident_name;
         isArray = Boolean.FALSE;
         symbolType = SymbolType.Int;
+        irValue = value; // value中包含irType
+    }
+
+    public Symbol(String ident_name, SymbolType type, IRValue value) {
+        identName = ident_name;
+        isArray = Boolean.FALSE;
+        symbolType = type;
         irValue = value; // value中包含irType
     }
 
@@ -85,4 +91,7 @@ public class Symbol {
         return isArray;
     }
 
+    public void setIrValue(IRValue irValue) {
+        this.irValue = irValue;
+    }
 }

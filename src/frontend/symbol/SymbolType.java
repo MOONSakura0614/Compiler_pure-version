@@ -19,5 +19,5 @@ public enum SymbolType {
     IntArray,
     VoidFunc,
     CharFunc,
-    IntFunc;
+    IntFunc
 }

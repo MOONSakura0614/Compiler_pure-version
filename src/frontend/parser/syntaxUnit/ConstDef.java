@@ -9,6 +9,9 @@ import frontend.symbol.ConstSymbol;
 import frontend.symbol.Symbol;
 import frontend.symbol.SymbolTable;
 import frontend.symbol.SymbolType;
+import llvm.IRGenerator;
+import llvm.value.constVar.IRConst;
+import llvm.value.constVar.IRConstInt;
 import utils.IOUtils;
 
 import static frontend.parser.Parser.lexIterator;
@@ -123,6 +126,13 @@ public class ConstDef extends SyntaxNode {
             symbol.setSymbolType(SymbolType.ConstInt);
 
         symbolTable.insertSymbol(symbol);
+
+        // 在中间代码生成阶段
+        if (IRGenerator.llvm_ir_gen) {
+//            IRConstInt constInt = builder.buildIRGlobalVar();
+
+//            symbol.setIrValue();
+        }
 
         if (constInitVal != null)
             constInitVal.visit();

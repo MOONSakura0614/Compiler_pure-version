@@ -8,6 +8,12 @@ package llvm.type;
  * @date 2024/11/15 18:59
  */
 public class IRIntType implements IRType {
+    public static final IRIntType intType;
+
+    static {
+        intType = new IRIntType();
+    }
+
     @Override
     public String toString() {
         return "i32";

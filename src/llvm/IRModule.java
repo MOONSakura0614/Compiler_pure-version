@@ -21,7 +21,6 @@ public class IRModule {
     private static final IRModule module = new IRModule(); // 单例模式
     private List<IRGlobalVar> globalVarList;
     private List<IRFunction> functionList;
-//    private IList<Function, IRModule> functions;
     private HashMap<Integer, Instruction> instructions;
 
     private IRModule() {
@@ -53,6 +52,14 @@ public class IRModule {
         return functionList;
     }
 
+    public void setGlobalVarList(List<IRGlobalVar> globalVarList) {
+        this.globalVarList = globalVarList;
+    }
+
+    public void setFunctionList(List<IRFunction> functionList) {
+        this.functionList = functionList;
+    }
+
     public void printIR() {
         IOUtils.clearFile(IOUtils.ir);
         IOUtils.initIROutput(); // 加入四条外联的输入输出函数
@@ -60,7 +67,9 @@ public class IRModule {
             IOUtils.writeLLVMIR(globalVariable.toString());
         }
         for (IRFunction function: functionList) {
-            IOUtils.writeLLVMIR(function.toString());
+            // 注意function定义是大工程，需要遍历打印
+//            IOUtils.writeLLVMIR(function.toString());
+            function.printIR();
         }
     }
 }

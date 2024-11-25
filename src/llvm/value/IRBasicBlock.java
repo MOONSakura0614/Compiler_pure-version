@@ -6,4 +6,14 @@ package llvm.value;
  * @date 2024/11/13 22:56
  */
 public class IRBasicBlock extends IRValue {
+    private IRBasicBlock prevBlock;
+    private IRBasicBlock nextBlock;
+
+    public void setPrevBlock(IRBasicBlock prevBlock) {
+        this.prevBlock = prevBlock;
+    }
+
+    public void setNextBlock(IRBasicBlock nextBlock) {
+        this.nextBlock = nextBlock;
+    }
 }

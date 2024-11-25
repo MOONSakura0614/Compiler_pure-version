@@ -4,6 +4,7 @@ import frontend.lexer.LexType;
 import frontend.lexer.Token;
 import frontend.symbol.SymbolTable;
 import frontend.visitor.Visitor;
+import llvm.IRBuilder;
 
 import java.util.ArrayList;
 
@@ -525,4 +526,6 @@ public abstract class SyntaxNode implements Comparable<SyntaxNode> {
         Visitor.curTable = Visitor.curTable.getFatherTable();
         Visitor.curScope = Visitor.curTable.getScope();
     }
+
+    public static IRBuilder builder = IRBuilder.getInstance(); // 服务于Value构建（遍历到每个节点构建）
 }
