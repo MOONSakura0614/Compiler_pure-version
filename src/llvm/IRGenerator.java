@@ -1,9 +1,15 @@
 package llvm;
 
+import errors.ErrorHandler;
 import frontend.parser.Parser;
 import frontend.parser.syntaxUnit.*;
+import frontend.symbol.FuncSymbol;
+import frontend.symbol.Symbol;
 import frontend.symbol.SymbolTable;
+import frontend.symbol.SymbolType;
 import frontend.visitor.Visitor;
+import llvm.type.IRFunctionType;
+import llvm.type.IRIntType;
 import llvm.value.IRFunction;
 import llvm.value.IRGlobalVar;
 import llvm.value.IRValue;
@@ -19,6 +25,7 @@ public class IRGenerator {
     private static IRGenerator irGenerator; // 单例模式
     private CompUnit ast; // 语法树的根节点 compUnit
     private static Parser parser;
+    private static IRBuilder builder;
 //    private SymbolTable symbolTable; // SSA
     public static SymbolTable cur_ir_symTable;
     // 记录的应该是当前的符号表——curSymTable
@@ -30,9 +37,11 @@ public class IRGenerator {
 //    public static SymbolTable constSymTable;
 //    每个符号表中的不同符号代表有标记常量和变量==>不用每个作用域两个表
     public static Boolean llvm_ir_gen = Boolean.FALSE;
+    public static Boolean globalVar_gen = Boolean.FALSE;
 
     static {
         parser = Parser.getInstance();
+        builder = IRBuilder.getInstance();
         globalVars = new ArrayList<>();
         functions = new ArrayList<>();
 //        constSymTable = new SymbolTable();
@@ -82,6 +91,8 @@ public class IRGenerator {
     }
 
     public void generateIR() {
+        llvm_ir_gen = Boolean.TRUE;
+
         if (parser == null)
             parser = Parser.getInstance();
         ast = parser.getAst();
@@ -94,12 +105,16 @@ public class IRGenerator {
 
         visitCompUnit(ast);
 
+        globalVar_gen = Boolean.TRUE; // 用于build value（判断什么时候创建的value需要加入全局变量
+
         // 全局变量：GlobalVariable
         for (Decl decl: ast.getDeclList()) {
             visitDecl(decl);
             // 过程中构建的GlobalVar直接加入IRGenerator的list中（最后再统一给IRModule的成员赋值）
         }
         // 结束分析后，加入全局变量（关于printf的格式串可以考虑遍历完下面的所有函数的BasicBlock之后在最后面GlobalVars保存）
+
+        globalVar_gen = Boolean.FALSE; // 注意下面之后，除了str，其他不在加入GlobalVars
 
         // lib外部静态链接的IO函数需要在哪输出:提前在前面的IOUtils里的函数就写入(具体见IrModule的printIR函数)
         // GlobalValue：自定义函数
@@ -114,6 +129,8 @@ public class IRGenerator {
         // 设置IRModule的成员变量
         irModule.setGlobalVarList(globalVars);
         irModule.setFunctionList(functions);
+
+        llvm_ir_gen = Boolean.FALSE;
     }
 
     // 下面是遍历语法树
@@ -145,7 +162,7 @@ public class IRGenerator {
     }
 
     private void visitVarDecl(VarDecl varDecl) {
-//        varDecl.generateIR();
+        varDecl.insertSymbol(cur_ir_symTable);
     }
 
     // 注意一个decl中可能有好多def --> 在def中进行value生成
@@ -153,13 +170,80 @@ public class IRGenerator {
         // 插入符号表
         constDecl.insertSymbol(cur_ir_symTable);
         // 构建ConstValue--在上面的insert过程添加
-
     }
 
     private void visitMainFuncDef(MainFuncDef mainFuncDef) {
+        // 构建一个function（但是名字是main）
+        IRFunction mainFunc = builder.buildIRMainFunc();
+//        cur_ir_symTable.insertSymbol(new FuncSymbol()); // main标识不加符号表了
+        if (mainFuncDef.getBlock() != null)
+            visitBlock(mainFuncDef.getBlock());
+    }
+
+    private void visitBlock(Block block) {
+        newIRSymTable();
+        ArrayList<BlockItem> blockItem_list = block.getBlockItem_list();
+        for (BlockItem blockItem: blockItem_list) {
+            visitBlockItem(blockItem);
+        }
+        exitCurScope();
+    }
+
+    private void visitBlockItem(BlockItem blockItem) {
+        if (blockItem.getIsDecl()) {
+            Decl decl = blockItem.getDecl();
+            if (decl != null)
+                decl.insertSymbol(cur_ir_symTable);
+        } else {
+            Stmt stmt = blockItem.getStmt();
+            if (stmt != null)
+                visitStmt(stmt);
+        }
+    }
+
+    private void visitStmt(Stmt stmt) {
+        Integer chosen_plan = stmt.getChosen_plan();
+        // 遇到block是新的作用域，其他需要检查符号调用
+        switch (chosen_plan) {
+            case 1 -> {
+                // LVal '=' Exp ';' 赋值指令
+            }
+            case 2 -> {
+                // [Exp] ';' 纯运算，不知道可不可以完全舍弃不翻译
+            }
+            case 3 -> {
+                // Block
+                if (stmt.getBlock() != null) {
+                    visitBlock(stmt.getBlock());
+                }
+            }
+            case 4 -> {
+                // todo:跳转 'if' '(' Cond ')' Stmt [ 'else' Stmt ]
+            }
+            case 5 -> {
+                // todo:循环 'for' '(' [ForStmt] ';' [Cond] ';' [ForStmt] ')' Stmt
+            }
+            case 6 -> {
+                // 'break' ';' | 'continue' ';'
+            }
+            case 7 -> {
+                // 'return' [Exp] ';' ret指令
+            }
+            case 8, 9 -> {
+                // LVal '=' 'getint''('')'';'
+                // LVal '=' 'getchar''('')'';'
+                // 输入函数调用 和 赋值 指令
+            }
+            case 10 -> {
+                // printf 输出函数调用
+            }
+        }
     }
 
     private void visitFuncDef(FuncDef funcDef) {
+        // 先把函数名加入外层符号表
+        funcDef.insertSymbol(cur_ir_symTable);
+        newIRSymTable();
     }
 
     public static void setLlvm_ir_gen(Boolean llvm_ir_gen) {

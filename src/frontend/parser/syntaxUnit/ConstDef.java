@@ -10,7 +10,10 @@ import frontend.symbol.Symbol;
 import frontend.symbol.SymbolTable;
 import frontend.symbol.SymbolType;
 import llvm.IRGenerator;
+import llvm.value.IRGlobalValue;
+import llvm.value.IRGlobalVar;
 import llvm.value.constVar.IRConst;
+import llvm.value.constVar.IRConstChar;
 import llvm.value.constVar.IRConstInt;
 import utils.IOUtils;
 
@@ -129,12 +132,18 @@ public class ConstDef extends SyntaxNode {
 
         // 在中间代码生成阶段
         if (IRGenerator.llvm_ir_gen) {
-//            IRConstInt constInt = builder.buildIRGlobalVar();
-
-//            symbol.setIrValue();
+            int val = constInitVal.getIntValue();
+            IRConstInt constInt = builder.buildConstInt(ident_token.getTokenValue(), val);
+            symbol.setIntValue(val);
+            symbol.setIrValue(constInt);
+            if (IRGenerator.globalVar_gen) {
+                IRGlobalVar globalVar = builder.buildIRGlobalVar(constInt);
+                IRGenerator.globalVars.add(globalVar);
+                globalVar.setInt_value(val);
+            }
         }
 
-        if (constInitVal != null)
+        if (!IRGenerator.llvm_ir_gen && constInitVal != null)
             constInitVal.visit();
     }
 
@@ -151,7 +160,20 @@ public class ConstDef extends SyntaxNode {
 
         symbolTable.insertSymbol(symbol);
 
-        if (constInitVal != null)
+        // 在中间代码生成阶段
+        if (IRGenerator.llvm_ir_gen) {
+            int val = constInitVal.getIntValue();
+            IRConstChar constChar = builder.buildConstChar(ident_token.getTokenValue(), val);
+            symbol.setIntValue(val);
+            symbol.setIrValue(constChar);
+            if (IRGenerator.globalVar_gen) {
+                IRGlobalVar globalVar = builder.buildIRGlobalVar(constChar);
+                IRGenerator.globalVars.add(globalVar);
+                globalVar.setInt_value(val);
+            }
+        }
+
+        if (!IRGenerator.llvm_ir_gen && constInitVal != null)
             constInitVal.visit();
     }
 }

@@ -8,6 +8,11 @@ package llvm.value;
 public class IRBasicBlock extends IRValue {
     private IRBasicBlock prevBlock;
     private IRBasicBlock nextBlock;
+    private IRFunction inFunc;
+
+    public IRBasicBlock(IRFunction function) {
+        inFunc = function;
+    }
 
     public void setPrevBlock(IRBasicBlock prevBlock) {
         this.prevBlock = prevBlock;

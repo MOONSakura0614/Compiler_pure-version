@@ -700,4 +700,8 @@ public class Stmt extends SyntaxNode {
 //        exp.isZero(); // 疑似没有要求检查这么认真，只要有return就好？（因为类型不匹配只强调了void的感觉）
         return Boolean.TRUE;
     }
+
+    public Block getBlock() {
+        return block;
+    }
 }

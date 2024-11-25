@@ -9,6 +9,11 @@ import frontend.symbol.Symbol;
 import frontend.symbol.SymbolTable;
 import frontend.symbol.SymbolType;
 import frontend.symbol.VarSymbol;
+import llvm.IRGenerator;
+import llvm.value.IRGlobalVar;
+import llvm.value.IRValue;
+import llvm.value.constVar.IRConstChar;
+import llvm.value.constVar.IRConstInt;
 import utils.IOUtils;
 
 import static frontend.parser.Parser.lexIterator;
@@ -135,7 +140,23 @@ public class VarDef extends SyntaxNode {
 
         symbolTable.insertSymbol(symbol);
 
-        if (initVal != null)
+        // 在中间代码生成阶段
+        if (IRGenerator.llvm_ir_gen) {
+            int val = 0;
+            if (initVal != null) {
+                val = initVal.getIntValue();
+            }
+            IRValue value = builder.buildInt(ident_token.getTokenValue());
+            symbol.setIrValue(value);
+            symbol.setIntValue(val);
+            if (IRGenerator.globalVar_gen) {
+                IRGlobalVar globalVar = builder.buildIRGlobalVar(value);
+                IRGenerator.globalVars.add(globalVar);
+                globalVar.setInt_value(val);
+            }
+        }
+
+        if (!IRGenerator.llvm_ir_gen && initVal != null)
             initVal.visit();
     }
 
@@ -152,7 +173,24 @@ public class VarDef extends SyntaxNode {
 
         symbolTable.insertSymbol(symbol);
 
-        if (initVal != null)
+        // 在中间代码生成阶段
+        if (IRGenerator.llvm_ir_gen) {
+            // TODO: 2024/11/26 没有完成数组的
+            int val = 0;
+            if (initVal != null) {
+                val = initVal.getIntValue();
+            }
+            IRValue value = builder.buildChar(ident_token.getTokenValue());
+            symbol.setIrValue(value);
+            symbol.setIntValue(val);
+            if (IRGenerator.globalVar_gen) {
+                IRGlobalVar globalVar = builder.buildIRGlobalVar(value);
+                IRGenerator.globalVars.add(globalVar);
+                globalVar.setInt_value(val);
+            }
+        }
+
+        if (!IRGenerator.llvm_ir_gen && initVal != null) // 在中间代码生成阶段，不再语义visit
             initVal.visit();
     }
 }

@@ -14,6 +14,10 @@ public class IRConst extends IRValue {
         super();
     }
 
+    public IRConst(IRType type) {
+        super(type);
+    }
+
     public IRConst(IRType type, String name) {
         super(type, name);
     }

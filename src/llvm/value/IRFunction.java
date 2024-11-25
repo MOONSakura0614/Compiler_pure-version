@@ -26,6 +26,7 @@ public class IRFunction extends IRGlobalValue {
     }
 
     public IRFunction(String name, IRType ret_type, ArrayList<IRType> irTypes) {
+        // 普通自定义函数，直接传参数类型的list
         // 合成IRFuncType
         super(new IRFunctionType(ret_type, irTypes), name);
 //        isMainFunc = isMain; // 不需要main标注，main和普通自定义函数是一样的（只是没参数，名字固定main，返回值固定int 0）
@@ -53,9 +54,10 @@ public class IRFunction extends IRGlobalValue {
         // 符号表在build 还是 AST遍历的时候记录？
     }
 
-    public IRFunction(String name, IRFunctionType type, Boolean isMain) { // 传入IRFuncType才对
+//    public IRFunction(String name, IRFunctionType type, Boolean isMain) { // 传入IRFuncType才对
+    public IRFunction(String name, IRFunctionType type) { // 传入IRFuncType
         super(type, name);
-        isMainFunc = isMain;
+//        isMainFunc = isMain;
         // 合成IRFuncType
         irArguments_list = new ArrayList<>();
         irBasicBlock_list = new ArrayList<>();
@@ -88,7 +90,7 @@ public class IRFunction extends IRGlobalValue {
     public String toString() {
         StringBuilder funcDeclare = new StringBuilder();
         funcDeclare.append("define dso_local ");
-        funcDeclare.append(((IRFunctionType) irType).getRet_type().toString() + " "); // void | i32 | i8
+        funcDeclare.append(((IRFunctionType) irType).getRet_type().toString()).append(" "); // void | i32 | i8
         funcDeclare.append("@" + getName() + '(');
         // 形参表
         // TODO: 2024/11/24 疑似函数形参用的寄存器和函数体之间都要跳一个，比如4个形参0~3，但是4被跳过，下面从5开始

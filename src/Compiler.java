@@ -30,7 +30,7 @@ public class Compiler {
         CompilerConfig.isParser = true;
 
         parser.parse();
-//        parser.printSyntaxResult();
+        parser.printSyntaxResult();
 
         // Semantic
         visitor.visitAst(); // 正常语义分析+错误处理

@@ -30,35 +30,36 @@ public enum IOLib {
         this.content = content;
         IRValue irValue;
         ArrayList<IRType> arg_list = new ArrayList<>();
-        switch (this) {
-            case GETCHAR8 -> {
+        switch (content) {
+//            case GETCHAR8 -> {
+            case "declare i32 @getchar()" -> {
                 irValue = new IRFunction("getchar",
                         new IRFunctionType(IRIntType.intType, new ArrayList<>()), new ArrayList<>()); // 空参
                 ioFuncSym = new Symbol("getchar", SymbolType.CharFunc, irValue);
                 this.ioFuncValue = irValue;
                 break;
             }
-            case GETINT32 -> {
+            case "declare i32 @getint()" -> {
                 irValue = new IRFunction("getint",
                         new IRFunctionType(IRIntType.intType, new ArrayList<>()), new ArrayList<>()); // 空参
                 ioFuncSym = new Symbol("getint", SymbolType.IntFunc, irValue);
                 this.ioFuncValue = irValue;
             }
-            case PUT_INT_32 -> {
+            case "declare void @putint(i32)" -> {
                 arg_list.add(IRIntType.intType);
                 irValue = new IRFunction("putint",
                         new IRFunctionType(IRVoidType.voidType, arg_list), arg_list); // i32参
                 ioFuncSym = new Symbol("putint", SymbolType.IntFunc, irValue);
                 this.ioFuncValue = irValue;
             }
-            case PUT_CH -> {
+            case "declare void @putch(i32)" -> {
                 arg_list.add(IRIntType.intType);
                 irValue = new IRFunction("putch",
                         new IRFunctionType(IRVoidType.voidType, arg_list), arg_list); // i32参
                 ioFuncSym = new Symbol("putch", SymbolType.IntFunc, irValue);
                 this.ioFuncValue = irValue;
             }
-            case PUT_STR -> {
+            case "declare void @putstr(i8*)" -> {
                 arg_list.add(IRPointerType.i8PointType);
                 // ArrayList.add()方法返回的是boolean，所以需要在外面构建list
                 irValue = new IRFunction("putstr",
@@ -80,6 +81,18 @@ public enum IOLib {
 
     public String getContent() {
         return content;
+    }
+
+    public void setIoFuncValue(IRValue ioFuncValue) {
+        this.ioFuncValue = ioFuncValue;
+    }
+
+    public void setIoFuncSym(Symbol ioFuncSym) {
+        this.ioFuncSym = ioFuncSym;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
     }
 
     @Override

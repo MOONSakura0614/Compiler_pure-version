@@ -23,6 +23,6 @@ public class IRGlobalValue extends IRUser {
 
     @Override
     public String toString() {
-        return "define dso_local";
+        return "define dso_local"; // 这个是函数
     }
 }

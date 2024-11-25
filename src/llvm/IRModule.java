@@ -64,7 +64,7 @@ public class IRModule {
         IOUtils.clearFile(IOUtils.ir);
         IOUtils.initIROutput(); // 加入四条外联的输入输出函数
         for (IRGlobalVar globalVariable: globalVarList) {
-            IOUtils.writeLLVMIR(globalVariable.toString());
+            IOUtils.writeLLVMIR(globalVariable.toString() + '\n');
         }
         for (IRFunction function: functionList) {
             // 注意function定义是大工程，需要遍历打印

@@ -20,7 +20,7 @@ import static frontend.parser.Parser.lexIterator;
 public class Block extends SyntaxNode {
     private Token lBrace_token;
     private Token rBrace_token;
-    private AbstractList<BlockItem> blockItem_list;
+    private ArrayList<BlockItem> blockItem_list;
 
     public Block() {
         super("Block");
@@ -137,5 +137,9 @@ public class Block extends SyntaxNode {
                 return;
             ErrorHandler.funcLackReturnValueErrorHandle(rBrace_token.getLineNum()); // 因为没有缺少右括号的错误，所以肯定不为null吧
         }
+    }
+
+    public ArrayList<BlockItem> getBlockItem_list() {
+        return blockItem_list;
     }
 }

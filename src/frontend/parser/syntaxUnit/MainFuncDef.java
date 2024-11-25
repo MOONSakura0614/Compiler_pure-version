@@ -88,4 +88,8 @@ public class MainFuncDef extends SyntaxNode {
             block.checkReturn0();
         }
     }
+
+    public Block getBlock() {
+        return block;
+    }
 }

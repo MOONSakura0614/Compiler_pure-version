@@ -18,7 +18,7 @@ public class IRValue {
     protected AbstractList<IRUser> userList; // def-use，保存value的使用者
 
     public IRValue() {
-        System.out.println("test init");
+//        System.out.println("test init");
         userList = new ArrayList<>(); // 注意static块只能初始化static变量，非类变量的单纯成员变量还是在构造的时候初始化
     }
 

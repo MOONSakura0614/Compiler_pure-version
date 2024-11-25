@@ -62,6 +62,10 @@ public class BlockItem extends SyntaxNode {
         return stmt;
     }
 
+    public Decl getDecl() {
+        return decl;
+    }
+
     public Boolean isReturn0() {
         if (isDecl) {
             return Boolean.FALSE;
