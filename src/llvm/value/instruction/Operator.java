@@ -12,5 +12,5 @@ public enum Operator {
     Alloca, Load, Store, GEP, // 内存操作
     Phi, MemPhi, LoadDep, // Phi指令
     Br, Call, Ret, // 跳转指令
-    Not // 非运算符
+    Not // 非运算符-一元4
 }

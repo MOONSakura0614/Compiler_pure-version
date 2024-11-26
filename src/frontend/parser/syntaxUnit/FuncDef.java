@@ -133,4 +133,37 @@ public class FuncDef extends SyntaxNode {
 
         symbolTable.insertSymbol(symbol); // 其实就是Visitor的静态变量curTable
     }
+
+    public FuncFParams getFuncFParams() {
+        return funcFParams;
+    }
+
+    public Token getIdent_token() {
+        return ident_token;
+    }
+
+    public String getFuncName() {
+        if (ident_token == null)
+            return null;
+
+        return ident_token.getTokenValue();
+    }
+
+    public LexType getFuncType() { // lexType
+        if (funcType == null)
+            return null;
+
+        return funcType.getFuncType();
+    }
+
+    public String getFuncTypeStr() {
+        if (funcType == null)
+            return null;
+
+        return funcType.getFuncTypeStr();
+    }
+
+    public Block getBlock() {
+        return block;
+    }
 }

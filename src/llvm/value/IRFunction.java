@@ -2,9 +2,9 @@ package llvm.value;
 
 import llvm.type.IRFunctionType;
 import llvm.type.IRType;
+import llvm.value.instruction.Instruction;
 import utils.IOUtils;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 /**
@@ -17,7 +17,8 @@ public class IRFunction extends IRGlobalValue {
     private ArrayList<IRArgument> irArguments_list;
     // todo 没懂为什么需要一个isLibrary的bool常量？
     private ArrayList<IRBasicBlock> irBasicBlock_list;
-    private int reg_num = -1; // 函数内部的
+    private int reg_num = 0; // 函数内部的
+    // 还没涉及跳转，普通自定义函数，如果有args一定会先load
 
     public IRFunction() {
         irArguments_list = new ArrayList<>();
@@ -34,7 +35,7 @@ public class IRFunction extends IRGlobalValue {
         irBasicBlock_list = new ArrayList<>();
         // 得到形参
         for (IRType arg_type: irTypes) {
-            IRArgument argument = new IRArgument(arg_type, "%" + (++this.reg_num));
+            IRArgument argument = new IRArgument(arg_type, "%" + (this.reg_num++));
             irArguments_list.add(argument);
         }
         // 符号表在build 还是 AST遍历的时候记录？
@@ -48,22 +49,30 @@ public class IRFunction extends IRGlobalValue {
         irBasicBlock_list = new ArrayList<>();
         // 得到形参
         for (IRType arg_type: irTypes) {
-            IRArgument argument = new IRArgument(arg_type, "%" + (++this.reg_num));
+            IRArgument argument = new IRArgument(arg_type, "%" + (this.reg_num++));
             irArguments_list.add(argument);
         }
         // 符号表在build 还是 AST遍历的时候记录？
+        if (isMainFunc) { // 不对，都是进block的时候比形参用的多一个
+            reg_num = 1; // 从%1给值
+        }
     }
 
 //    public IRFunction(String name, IRFunctionType type, Boolean isMain) { // 传入IRFuncType才对
+    public IRFunction(String name, IRType type) { // 传入IRFuncType
+        super(new IRFunctionType(type, new ArrayList<>()), name);
+//        isMainFunc = isMain;
+        // 合成IRFuncType
+        irArguments_list = new ArrayList<>();
+        irBasicBlock_list = new ArrayList<>();
+    }
+
     public IRFunction(String name, IRFunctionType type) { // 传入IRFuncType
         super(type, name);
 //        isMainFunc = isMain;
         // 合成IRFuncType
         irArguments_list = new ArrayList<>();
         irBasicBlock_list = new ArrayList<>();
-        /*if (isMainFunc) { // 不对，都是进block的时候比形参用的多一个
-            reg_num = 0; // 从%1给值
-        }*/
     }
 
     public void addBasicBlock(IRBasicBlock irBasicBlock) {
@@ -86,11 +95,35 @@ public class IRFunction extends IRGlobalValue {
         IOUtils.writeLLVMIR(this.toString());
     }
 
+    public void setIrArguments_list(ArrayList<IRArgument> irArguments_list) {
+        this.irArguments_list = irArguments_list;
+    }
+
+    public ArrayList<IRArgument> getIrArguments_list() {
+        return irArguments_list;
+    }
+
+    public Instruction getLastInst() {
+        if (irBasicBlock_list.isEmpty())
+            return null;
+
+        return irBasicBlock_list.get(irBasicBlock_list.size() - 1).getLastInst();
+    }
+
+    public void fParams2Args(ArrayList<IRType> irTypes) {
+        // 命名行动
+        for (IRType arg_type: irTypes) {
+            IRArgument argument = new IRArgument(arg_type, "%" + (++this.reg_num)); // 维护函数内的寄存器命名
+            irArguments_list.add(argument);
+        }
+    }
+
     @Override
     public String toString() {
         StringBuilder funcDeclare = new StringBuilder();
         funcDeclare.append("define dso_local ");
-        funcDeclare.append(((IRFunctionType) irType).getRet_type().toString()).append(" "); // void | i32 | i8
+        if (irType instanceof IRFunctionType)
+            funcDeclare.append(((IRFunctionType) irType).getRet_type().toString()).append(" "); // void | i32 | i8
         funcDeclare.append("@" + getName() + '(');
         // 形参表
         // TODO: 2024/11/24 疑似函数形参用的寄存器和函数体之间都要跳一个，比如4个形参0~3，但是4被跳过，下面从5开始
@@ -98,12 +131,19 @@ public class IRFunction extends IRGlobalValue {
         // define dso_local void @play(int, int)(i32 signext %0, i32 signext %1)
         // define dso_local i32 @main(i32 signext %0)
         // 这里应该是任何函数，都是直接上形参表，不写纯类型的那个——比如(int, int)这种
-        for (IRArgument argument: irArguments_list) {
+        for (int i = 0; i < irArguments_list.size(); i++) {
+            if (i != 0) {
+                funcDeclare.append(", ");
+            }
             // 这时候给argument赋值来得及吗，还是之前build function的时候？
-            argument.setName("%" + (++this.reg_num)); // 虚拟寄存器从0开始
-            funcDeclare.append(argument.toString()); // 从%0开始？
+//            argument.setName("%" + (++this.reg_num)); // 虚拟寄存器从0开始
+            funcDeclare.append(irArguments_list.get(i).toString()); // 从%0开始？
         }
-        funcDeclare.append(')'); // 形参结束
+        funcDeclare.append(") {\n"); // 形参结束
+        for (IRBasicBlock basicBlock: irBasicBlock_list) {
+            funcDeclare.append(basicBlock.toString());
+        }
+        funcDeclare.append("}\n"); // 形参结束
         // '{\n'留给BasicBlock？和‘}\n’？
         return funcDeclare.toString();
     }
@@ -116,56 +156,26 @@ public class IRFunction extends IRGlobalValue {
         return "";
     }
 
-    public static void main(String[] args) {
-        // 测试Java中的多重继承
-        Son son = new Son("female");
-        ((Father) son).setAge(10);
-        son.setName("yyy");
-        System.out.println(((Father) son).name); // 可以访问public变量和方法
-        System.out.println(son.toString());
-    }
-}
-
-
-class Grandpa {
-    protected String name;
-
-    public void setName(String name) {
-        this.name = name;
+    public String getBodyIR() {
+        // 函数体内的IR，主要是instruction
+        return null;
     }
 
-    public String getName() {
-        return name;
-    }
-    @Override
-    public String toString() {
-        return "grand ";
-    }
-}
+    public void addFParamsInst() {
 
-class Father extends Grandpa {
-    int age;
-
-    public void setAge(int age) {
-        this.age = age;
     }
 
-    public int getAge() {
-        return age;
-    }
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(super.toString());
-        return sb.append("father ").toString();
-    }
-}
-
-class Son extends Father {
-    String sex;
-    public Son(String sex) {
-        this.sex = sex;
+    public int getReg_num() {
+        return reg_num;
     }
 
-    public Son() {}
+    public void addReg_num() {
+        reg_num++;
+    }
+
+    public int getLocalValRegNum() {
+        int tmp = reg_num;
+        reg_num++;
+        return tmp;
+    }
 }

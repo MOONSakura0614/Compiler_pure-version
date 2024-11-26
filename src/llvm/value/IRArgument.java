@@ -1,6 +1,7 @@
 package llvm.value;
 
 import llvm.type.IRType;
+import llvm.value.instruction.Instruction;
 
 /**
  * @author 郑悦
@@ -21,5 +22,4 @@ public class IRArgument extends IRValue {
     public String toString() {
         return irType.toString() + " " + name;
     }
-
 }

@@ -2,6 +2,7 @@ package frontend.parser.syntaxUnit;
 
 import errors.CompileError;
 import errors.ErrorType;
+import frontend.lexer.LexType;
 import frontend.lexer.Token;
 import frontend.parser.Parser;
 import frontend.symbol.SymbolTable;
@@ -131,5 +132,22 @@ public class VarDecl extends SyntaxNode {
                     comma_varDef.varDef.insertCharSymbol(symbolTable);
             }
         }
+    }
+
+    public LexType getVarType() {
+        if (bType == null)
+            return null;
+
+        return bType.basic_type_token.getTokenType();
+    }
+
+    public ArrayList<VarDef> getVarDefs() {
+        ArrayList<VarDef> varDefs = new ArrayList<>();
+        if (varDef != null)
+            varDefs.add(varDef);
+        for (Comma_VarDef comma_varDef: comma_varDefList) {
+            varDefs.add(comma_varDef.varDef);
+        }
+        return varDefs;
     }
 }

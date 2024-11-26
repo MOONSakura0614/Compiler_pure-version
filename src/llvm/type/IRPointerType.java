@@ -21,6 +21,10 @@ public class IRPointerType implements IRType {
         i8PointType = new IRPointerType(IRCharType.charType);
     }
 
+    public IRType getElement_type() {
+        return element_type;
+    }
+
     @Override
     public String toString() {
         return element_type.toString() + "*";

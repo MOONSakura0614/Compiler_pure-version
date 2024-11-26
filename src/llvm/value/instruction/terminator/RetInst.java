@@ -22,4 +22,13 @@ public class RetInst extends Instruction {
         super(retValue.getIrType(), Operator.Ret);
         addOperand(retValue);
     }
+
+    @Override
+    public String toString() {
+        if (!getOperandList().isEmpty()) {
+            return "ret " + getOperand(0).getIrType() + " " + getOperand(0).getName();
+        } else {
+            return "ret void";
+        }
+    }
 }

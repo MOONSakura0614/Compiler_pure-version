@@ -16,6 +16,8 @@ public class IRValue {
     public static int reg_number = -1; // 每个函数应该是从0开始
     // 【和基本块的符号表不同，SSA跳出基本块但在同一函数内reg_num也是递增的】
     protected AbstractList<IRUser> userList; // def-use，保存value的使用者
+    protected int load_reg_num = 0;
+    protected String ident_name; // 不是每个子类都会用到
 
     public IRValue() {
 //        System.out.println("test init");
@@ -55,5 +57,14 @@ public class IRValue {
 
     public String getName() {
         return name;
+    }
+
+    public void setIdent_name(String ident_name) {
+        // 用于在符号表中找局部变量的内存位置（alloc标注的%reg_Num）--> 后面每次用到再load
+        this.ident_name = ident_name;
+    }
+
+    public String getIdent_name() {
+        return ident_name;
     }
 }

@@ -5,6 +5,7 @@ import errors.ErrorType;
 import frontend.lexer.LexType;
 import frontend.lexer.Token;
 import frontend.parser.Parser;
+import frontend.symbol.Symbol;
 import frontend.symbol.SymbolTable;
 import frontend.symbol.SymbolType;
 import frontend.symbol.VarSymbol;
@@ -101,6 +102,11 @@ public class FuncFParam extends SyntaxNode {
         symbolTable.insertSymbol(symbol); // 注意FFPs中的每个形参也是要判断是否重定义的
     }
 
+    public Symbol getSymbol(SymbolTable symbolTable) {
+        Symbol symbol = symbolTable.findInCurSymTable(ident_token.getTokenValue());
+        return symbol;
+    }
+
     public Boolean getIsArray() {
         return isArray;
     }
@@ -109,5 +115,11 @@ public class FuncFParam extends SyntaxNode {
         if (bType == null)
             return false;
         return bType.getIsInt();
+    }
+
+    public LexType getVarType() {
+        if (bType == null)
+            return null;
+        return bType.basic_type_token.getTokenType();
     }
 }

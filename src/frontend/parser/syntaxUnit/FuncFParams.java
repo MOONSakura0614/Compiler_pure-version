@@ -1,5 +1,6 @@
 package frontend.parser.syntaxUnit;
 
+import frontend.lexer.LexType;
 import frontend.lexer.Token;
 import frontend.symbol.FuncSymbol;
 import frontend.symbol.SymbolTable;
@@ -136,5 +137,17 @@ public class FuncFParams extends SyntaxNode {
         for (FuncFParam fParam: funcFParams) {
             fParam.insertSymbol(symbolTable);
         }
+    }
+
+    public ArrayList<LexType> getArgTypes() {
+        ArrayList<LexType> types = new ArrayList<>();
+        if (funcFParam == null)
+            return types; // 空集合
+
+        types.add(funcFParam.getVarType());
+        for (Comma_FParam comma_fParam: comma_fParam_list) {
+            types.add(comma_fParam.fParam.getVarType());
+        }
+        return types;
     }
 }

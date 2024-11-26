@@ -21,11 +21,13 @@ public class Symbol {
     protected Boolean isArray; // 注意SysY最多数组只支持一维
     protected SymbolType symbolType;
     // TODO: 2024/10/26 是否需要将Exp表示的值计算出来，防止数组越界？
-    
+
+    // 下面是支持中间代码生成
     public IRValue irValue; // 代码生成的符号表
     // TODO: 2024/11/15 还是说代码生成应该重新整一个符号表-->因为这边在frontend下都被protected了！
     private int intValue = 0; // 对于i8和i32变量——可以从SymbolType判断变量的实值类型
-    private char charValue = 0; // 对于i8和i32变量
+//    private char charValue = 0; // 对于i8和i32变量 --> 统一用int记录了
+    private String pointerReg;
 
     public Symbol() {
         symbolType = SymbolType.Int;
@@ -103,5 +105,13 @@ public class Symbol {
 
     public void setIntValue(int intValue) {
         this.intValue = intValue;
+    }
+
+    public String getIdentName() {
+        return identName;
+    }
+
+    public void setPointerReg(String pointerReg) {
+        this.pointerReg = pointerReg;
     }
 }

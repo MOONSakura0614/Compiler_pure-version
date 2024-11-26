@@ -34,6 +34,13 @@ public class FuncType extends SyntaxNode {
         IOUtils.writeCorrectLine(toString());
     }
 
+    public String getFuncTypeStr() {
+        if (funcType_token == null)
+            return null;
+
+        return funcType_token.getTokenValue();
+    }
+
     public LexType getFuncType() {
         if (funcType_token == null)
             return null;

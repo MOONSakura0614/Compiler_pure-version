@@ -1,18 +1,17 @@
 package llvm;
 
-import errors.ErrorHandler;
+import frontend.lexer.LexType;
 import frontend.parser.Parser;
 import frontend.parser.syntaxUnit.*;
-import frontend.symbol.FuncSymbol;
 import frontend.symbol.Symbol;
 import frontend.symbol.SymbolTable;
-import frontend.symbol.SymbolType;
-import frontend.visitor.Visitor;
-import llvm.type.IRFunctionType;
-import llvm.type.IRIntType;
-import llvm.value.IRFunction;
-import llvm.value.IRGlobalVar;
-import llvm.value.IRValue;
+import llvm.type.*;
+import llvm.value.*;
+import llvm.value.instruction.Instruction;
+import llvm.value.instruction.memory.AllocaInst;
+import llvm.value.instruction.memory.LoadInst;
+import llvm.value.instruction.memory.StoreInst;
+import llvm.value.instruction.terminator.RetInst;
 
 import java.util.ArrayList;
 
@@ -31,8 +30,11 @@ public class IRGenerator {
     // 记录的应该是当前的符号表——curSymTable
     private IRModule irModule;
     private IRValue irValue;
+    private LexType varDefType = LexType.INTTK;
     public static ArrayList<IRGlobalVar> globalVars;
     public static ArrayList<IRFunction> functions;
+    public static IRFunction cur_func; // 目前处于的函数
+    public static IRBasicBlock cur_basicBlock; // 目前处于的基本块
 //    public static int cur_ir_symTable_scope;
 //    public static SymbolTable constSymTable;
 //    每个符号表中的不同符号代表有标记常量和变量==>不用每个作用域两个表
@@ -162,14 +164,37 @@ public class IRGenerator {
     }
 
     private void visitVarDecl(VarDecl varDecl) {
-        varDecl.insertSymbol(cur_ir_symTable);
+        if (globalVar_gen) {
+            varDecl.insertSymbol(cur_ir_symTable);
+            return;
+        }
+        // 局部变量声明：主要是instruction使用
+        varDefType = varDecl.getVarType();
+        for (VarDef varDef: varDecl.getVarDefs()) {
+            visitVarDef_local(varDef);
+        }
+    }
+
+    private void visitVarDef_local(VarDef varDef) {
     }
 
     // 注意一个decl中可能有好多def --> 在def中进行value生成
     public void visitConstDecl(ConstDecl constDecl) {
         // 插入符号表
-        constDecl.insertSymbol(cur_ir_symTable);
+        if (globalVar_gen) {
+            constDecl.insertSymbol(cur_ir_symTable);
+            return;
+        }
+        varDefType = constDecl.getVarType(); // 传给下面value定义和symbol插入
         // 构建ConstValue--在上面的insert过程添加
+        for (ConstDef constDef: constDecl.getConstDefs()) {
+            visitConstDef_local(constDef);
+        }
+        // 下面是局部变量的const
+    }
+
+    private void visitConstDef_local(ConstDef constDef) {
+        // 构建IRValue
     }
 
     private void visitMainFuncDef(MainFuncDef mainFuncDef) {
@@ -178,6 +203,7 @@ public class IRGenerator {
 //        cur_ir_symTable.insertSymbol(new FuncSymbol()); // main标识不加符号表了
         if (mainFuncDef.getBlock() != null)
             visitBlock(mainFuncDef.getBlock());
+        functions.add(mainFunc);
     }
 
     private void visitBlock(Block block) {
@@ -192,8 +218,15 @@ public class IRGenerator {
     private void visitBlockItem(BlockItem blockItem) {
         if (blockItem.getIsDecl()) {
             Decl decl = blockItem.getDecl();
-            if (decl != null)
-                decl.insertSymbol(cur_ir_symTable);
+            if (decl == null)
+                return;
+//            if (decl != null)
+//                decl.insertSymbol(cur_ir_symTable);
+            // 全局才加GlobalVar
+            // 下面是局部变量声明
+            visitDecl(decl);
+            AllocaInst localVarDef = builder.buildLocalVar();
+
         } else {
             Stmt stmt = blockItem.getStmt();
             if (stmt != null)
@@ -206,7 +239,14 @@ public class IRGenerator {
         // 遇到block是新的作用域，其他需要检查符号调用
         switch (chosen_plan) {
             case 1 -> {
-                // LVal '=' Exp ';' 赋值指令
+                // LVal '=' Exp ';' 赋值指令 ———— 有可能需要修改符号表和对应的value的值
+                // TODO: 2024/11/26 数组未实现
+                LVal lVal = stmt.getlVal();
+                Symbol lVal_sym = lVal.getIdentSymbol();
+                Exp exp = stmt.getExp();
+                int val = exp.getIntValue();
+                lVal_sym.setIntValue(val); // 下面符号改变的value不需要重复声明（只要对应语句
+//                Symbol symbol = cur_ir_symTable.findInCurSymTable(lVal.)
             }
             case 2 -> {
                 // [Exp] ';' 纯运算，不知道可不可以完全舍弃不翻译
@@ -244,6 +284,158 @@ public class IRGenerator {
         // 先把函数名加入外层符号表
         funcDef.insertSymbol(cur_ir_symTable);
         newIRSymTable();
+        ArrayList<IRType> arg_types = visitFuncFParams(funcDef.getFuncFParams());
+        IRType ret_type = IRVoidType.voidType;
+        switch (funcDef.getFuncType()) {
+            case INTTK -> {
+                ret_type = IRIntType.intType;
+            }
+            case CHARTK -> {
+                ret_type = IRCharType.charType;
+            }
+            case VOIDTK -> {
+//                ret_type = IRVoidType.voidType; // 其实这里可以省略啦
+            }
+        }
+        IRFunction irFunction = new IRFunction(funcDef.getFuncName(), ret_type, arg_types);
+        cur_func = irFunction;
+        visitBlockInFunc(funcDef.getBlock()); // InFunc表明此时无需新建符号表和基本块
+        functions.add(irFunction);
+        if (ret_type instanceof IRVoidType && !(irFunction.getLastInst() instanceof RetInst)) {
+            // 其他类型会显示return，但是void有可能没有
+            Instruction inst = new RetInst();
+            cur_basicBlock.addInst(inst);
+        }
+    }
+
+    private void visitFuncDef_FArgsAfterF(FuncDef funcDef) {
+        // 先把函数名加入外层符号表
+        funcDef.insertSymbol(cur_ir_symTable);
+        newIRSymTable();
+//        ArrayList<IRType> arg_types = visitFuncFParams(funcDef.getFuncFParams());
+        IRType ret_type = IRVoidType.voidType;
+        switch (funcDef.getFuncType()) {
+            case INTTK -> {
+                ret_type = IRIntType.intType;
+            }
+            case CHARTK -> {
+                ret_type = IRCharType.charType;
+            }
+            case VOIDTK -> {
+//                ret_type = IRVoidType.voidType; // 其实这里可以省略啦
+            }
+        }
+//        IRFunction irFunction = new IRFunction(funcDef.getFuncName(), ret_type, arg_types);
+        IRFunction irFunction = new IRFunction(funcDef.getFuncName(), ret_type);
+        cur_func = irFunction;
+        getArgsFromFParams(funcDef.getFuncFParams());
+//        ArrayList<IRArgument> args = getArgsFromFParams(funcDef.getFuncFParams());
+        // TODO: 2024/11/26 每次使用都load？下面暂时在IRValue中保留标识符（indent_name），不是寄存器（name） => 便于在符号表中找symbol和对应值（后序使用的寄存器）
+        // TODO: 2024/11/26 还是说在符号表中维持reg_name，但是指导书不认可?？
+        // 就形参而言，arg的name需要保留，但是如果arg有ident_name，可从symbolTable中更新最后load的reg_name
+        /* 符号表的存储格式同学们可以自己设计，下面给出符号表的简略示例，同学们在实验中可以根据自己需要自行设计。其中需要注意作用域与符号表的对应关系，以及必要信息的保存。 */
+        // 函数形参加载
+//        irFunction.addFParamsInst();
+//        IRBasicBlock basicBlock = new IRBasicBlock(irFunction);
+//        cur_basicBlock = basicBlock;
+//        cur_func = irFunction;
+//        for (IRArgument argument: args) {
+//            // 先alloc，再store，
+//        }
+        visitBlockInFunc(funcDef.getBlock()); // InFunc表明此时无需新建符号表和基本块
+        functions.add(irFunction);
+        if (ret_type instanceof IRVoidType && !(irFunction.getLastInst() instanceof RetInst)) {
+            // 其他类型会显示return，但是void有可能没有
+            Instruction inst = new RetInst();
+            cur_basicBlock.addInst(inst);
+        }
+    }
+
+    public void newBasicBlock() {
+        cur_basicBlock = new IRBasicBlock(cur_func);
+//        cur_func.addReg_num(); // 这个应该是因为基本块的label占了，所以加1，没有一定要求（SSA不重复即可）
+        cur_func.addBasicBlock(cur_basicBlock);
+    }
+
+    private void visitBlockInFunc(Block block) { // 已经新建符号表并加入形参，但是形参还需要alloca和load
+        if (cur_func == null)
+            return;
+        newBasicBlock();
+        // 在进入InFunc的BB函数前就处理完形参（因为懒得传FParams）
+        // 反驳上一行，通过irFunc的成员变量也可以
+        AllocaInst allocaInst;
+        StoreInst storeInst;
+        LoadInst loadInst;
+        // 处理局部变量命名：reg_num（在func中）
+        for (IRArgument argument: cur_func.getIrArguments_list()) {
+            builder.buildFuncArgInsts(argument);
+//            allocaInst = new AllocaInst(argument.getIrType());
+//            allocaInst.setName("%" + cur_func.getLocalValRegNum());
+//            cur_basicBlock.addInst(allocaInst);
+            // TODO: 2024/11/26 但是目前符号表里只有ident的形参标记，没有目前寄存器的name？下面调用的时候怎么获取？
+//            storeInst = new StoreInst();
+            // Instruction一定是依托BasicBlock存在的，所以cur_BB会在
+        }
+        // 处理真正的语句
+        ArrayList<BlockItem> blockItem_list = block.getBlockItem_list();
+        for (BlockItem blockItem: blockItem_list) {
+            visitBlockItem(blockItem);
+        }
+//        cur_func.addBasicBlock(cur_basicBlock);
+        exitCurScope();
+    }
+
+    private ArrayList<IRType> visitFuncFParams(FuncFParams funcFParams) {
+        ArrayList<IRType> types = new ArrayList<>();
+        funcFParams.insertSymbol(cur_ir_symTable); // 插入符号表，方便下面取值
+        // 构造IRTypes
+        ArrayList<LexType> lexTypes = funcFParams.getArgTypes();
+        for (LexType lexType: lexTypes) {
+            switch (lexType) {
+                // TODO: 2024/11/26 没有考虑函数参数是数组的情况
+                case INTTK -> {
+                    types.add(IRIntType.intType);
+                }
+                case CHARTK -> {
+                    types.add(IRCharType.charType);
+                }
+            }
+        }
+        return types;
+    }
+
+    public ArrayList<IRArgument> getArgsFromFParams(FuncFParams funcFParams) {
+        if (funcFParams.getFParamsDetail().isEmpty())
+            return null;
+        ArrayList<IRType> types = new ArrayList<>();
+        ArrayList<IRArgument> arguments = new ArrayList<>();
+        // 构造IRTypes
+        LexType lexType;
+        IRType irType = IRCharType.charType;
+        Symbol symbol;
+        IRArgument argument;
+        for (FuncFParam fParam: funcFParams.getFParamsDetail()) {
+            lexType = fParam.getVarType();
+            switch (lexType) {
+                // TODO: 2024/11/26 没有考虑函数参数是数组的情况
+                case INTTK -> {
+                    types.add(IRIntType.intType);
+                    irType = IRIntType.intType;
+                }
+                case CHARTK -> {
+                    types.add(IRCharType.charType);
+                    irType = IRCharType.charType;
+                }
+            }
+            fParam.insertSymbol(cur_ir_symTable);
+            symbol = fParam.getSymbol(cur_ir_symTable); // 依次插入
+            // 把生成的Args返回 -->  不在irFunc初始化创建的时候赋值Arg
+            argument = new IRArgument(irType, "%" + cur_func.getLocalValRegNum()); // 一开始就给arg加入reg_num
+            symbol.setIrValue(argument);
+            argument.setIdent_name(symbol.getIdentName());
+        }
+        cur_func.setIrArguments_list(arguments); // 在alloc的时候再记录ident_name？--> 符号表
+        return arguments;
     }
 
     public static void setLlvm_ir_gen(Boolean llvm_ir_gen) {

@@ -704,4 +704,12 @@ public class Stmt extends SyntaxNode {
     public Block getBlock() {
         return block;
     }
+
+    public LVal getlVal() {
+        return lVal;
+    }
+
+    public Exp getExp() {
+        return exp;
+    }
 }

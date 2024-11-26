@@ -139,4 +139,21 @@ public class ConstDecl extends SyntaxNode{
             }
         }
     }
+
+    public LexType getVarType() {
+        if (bType == null)
+            return null;
+
+        return bType.basic_type_token.getTokenType();
+    }
+
+    public ArrayList<ConstDef> getConstDefs() {
+        ArrayList<ConstDef> constDefs = new ArrayList<>();
+        if (constDef != null)
+            constDefs.add(constDef);
+        for (Comma_constDef comma_constDef: comma_constDef_list) {
+            constDefs.add(comma_constDef.constDef);
+        }
+        return constDefs;
+    }
 }
