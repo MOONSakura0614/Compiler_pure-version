@@ -18,6 +18,10 @@ public class IRArgument extends IRValue {
         super(type, name);
     }
 
+    public void printArg() {
+        System.out.println(ident_name + " " + name + " " + irType);
+    }
+
     @Override
     public String toString() {
         return irType.toString() + " " + name;

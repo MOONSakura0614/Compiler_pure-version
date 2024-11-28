@@ -299,6 +299,17 @@ public class IRGenerator {
         }
         IRFunction irFunction = new IRFunction(funcDef.getFuncName(), ret_type, arg_types);
         cur_func = irFunction;
+
+        FuncFParams fParams = funcDef.getFuncFParams();
+        if (fParams != null) {
+            ArrayList<String> names = fParams.getIdentNames();
+            ArrayList<IRArgument> arguments = cur_func.getIrArguments_list();
+            // 没有像下面那个函数一样用getArgsFromFParams(FuncFParams)方法，所以args没有ident_name，要人为加上
+            for (int i = 0; i < arg_types.size(); i++) {
+                cur_func.getArgByIndex(i).setIdent_name(names.get(i));
+            }
+        }
+
         visitBlockInFunc(funcDef.getBlock()); // InFunc表明此时无需新建符号表和基本块
         functions.add(irFunction);
         if (ret_type instanceof IRVoidType && !(irFunction.getLastInst() instanceof RetInst)) {
@@ -432,6 +443,8 @@ public class IRGenerator {
             argument = new IRArgument(irType, "%" + cur_func.getLocalValRegNum()); // 一开始就给arg加入reg_num
             symbol.setIrValue(argument);
             argument.setIdent_name(symbol.getIdentName());
+            // zy:test
+            argument.printArg();
         }
         cur_func.setIrArguments_list(arguments); // 在alloc的时候再记录ident_name？--> 符号表
         return arguments;

@@ -150,4 +150,16 @@ public class FuncFParams extends SyntaxNode {
         }
         return types;
     }
+
+    public ArrayList<String> getIdentNames() {
+        ArrayList<String> names = new ArrayList<>();
+        if (funcFParam == null)
+            return names;
+
+        names.add(funcFParam.getIdentName());
+        for (Comma_FParam comma_fParam: comma_fParam_list) {
+            names.add(comma_fParam.fParam.getIdentName());
+        }
+        return names;
+    }
 }

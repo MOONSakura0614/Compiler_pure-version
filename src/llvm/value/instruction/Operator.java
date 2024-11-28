@@ -52,6 +52,8 @@ public enum Operator {
         opMap.put(LexType.MINU, Sub);
         opMap.put(LexType.MULT, Mul);
         opMap.put(LexType.DIV, Div);
+        opMap.put(LexType.MOD, Mod);
+
         opMap.put(LexType.AND, And);
         opMap.put(LexType.OR, Or);
 

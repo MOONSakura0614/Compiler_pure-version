@@ -41,6 +41,10 @@ public class IRFunction extends IRGlobalValue {
         // 符号表在build 还是 AST遍历的时候记录？
     }
 
+    public IRArgument getArgByIndex(int index) {
+        return irArguments_list.get(index);
+    }
+
     public IRFunction(String name, IRType ret_type, ArrayList<IRType> irTypes, Boolean isMain) {
         // 合成IRFuncType
         super(new IRFunctionType(ret_type, irTypes), name);

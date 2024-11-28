@@ -122,4 +122,8 @@ public class FuncFParam extends SyntaxNode {
             return null;
         return bType.basic_type_token.getTokenType();
     }
+
+    public String getIdentName() {
+        return ident_token.getTokenValue();
+    }
 }

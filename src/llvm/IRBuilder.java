@@ -104,7 +104,9 @@ public class IRBuilder {
         allocaInst.setName("%" + cur_func.getLocalValRegNum());
         Symbol symbol = cur_ir_symTable.findInCurSymTable(ident_name);
         if (symbol != null) {
+            System.out.println(allocaInst);
             symbol.setPointerReg(allocaInst.getName());
+            symbol.setIrValue(allocaInst); // 形参对应的irValue
         }
         cur_basicBlock.addInst(allocaInst);
 
@@ -314,7 +316,7 @@ public class IRBuilder {
             IRValue unaryValue = buildUnaryExp(unaryExp.getUnaryExp());
             switch (lexType) {
                 case PLUS, MINU -> {
-                    return new UnaryInst(unaryExp.getUnaryOp(), unaryValue); // 单目操作数（但双目操作符，所以左值补0）
+                    return buildUnaryInst(unaryExp.getUnaryOp(), unaryValue); // 单目操作数（但双目操作符，所以左值补0）
                 }
                 case NOT -> { // 暂时还没写到跳转
 //                    return buildUnaryInst();
@@ -327,6 +329,12 @@ public class IRBuilder {
             // call指令调用
         }
         return null;
+    }
+
+    private IRValue buildUnaryInst(Token unaryOp, IRValue unaryValue) {
+        UnaryInst unaryInst = new UnaryInst(unaryOp, unaryValue);
+        cur_basicBlock.addInst(unaryInst);
+        return unaryInst;
     }
 
     // 常量是不是应该分离讨论：算了还是说把init中用到Number和Character的，和用ident的一样处理

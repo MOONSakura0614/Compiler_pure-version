@@ -219,7 +219,7 @@ public class UnaryExp extends SyntaxNode {
     }
 
     public Token getUnaryOp() {
-        if (getUnaryOp() == null)
+        if (unaryOp == null)
             return null;
         return unaryOp.getUnaryOp_token();
     }

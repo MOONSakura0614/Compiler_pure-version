@@ -2,6 +2,7 @@ package llvm.value.instruction;
 
 import frontend.lexer.Token;
 import llvm.IRGenerator;
+import llvm.type.IRIntType;
 import llvm.value.IRValue;
 
 /**
@@ -16,6 +17,7 @@ public class UnaryInst extends Instruction {
     public UnaryInst(Token op_token, IRValue unaryValue) {
         super(Operator.getOperator(op_token), "%" + IRGenerator.cur_func.getLocalValRegNum());
         addOperand(unaryValue);
+        setIrType(IRIntType.intType);
     }
 
     public boolean isNot() {
