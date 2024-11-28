@@ -1,7 +1,6 @@
 package llvm.value.instruction.terminator;
 
 import llvm.type.IRVoidType;
-import llvm.value.IRUser;
 import llvm.value.IRValue;
 import llvm.value.instruction.Instruction;
 import llvm.value.instruction.Operator;
@@ -26,7 +25,7 @@ public class RetInst extends Instruction {
     @Override
     public String toString() {
         if (!getOperandList().isEmpty()) {
-            return "ret " + getOperand(0).getIrType() + " " + getOperand(0).getName();
+            return "ret " + getOperandByIndex(0).getIrType() + " " + getOperandByIndex(0).getName();
         } else {
             return "ret void";
         }

@@ -43,6 +43,9 @@ public class IRGlobalVar extends IRGlobalValue {
             irType = IRPointerType.i8PointType;
         }
 //        IRModule.getInstance().addGlobalVar(this);
+        // 重设全局变量的名称
+        setName("@"+irValue.getName());
+        irValue.setName("@"+irValue.getName());
     }
 
     public IRGlobalVar(String name, IRValue irValue) {
@@ -114,11 +117,13 @@ public class IRGlobalVar extends IRGlobalValue {
             // 注意要用0-padding
             if (getGlobalVarIrType() instanceof IRArrayType) {
                 IRArrayType arrayType = (IRArrayType) type;
-                return "@" + getGlobalVarName() + " = dso_local global " + '[' + arrayType.getElementType().toString()
+//                return "@" + getGlobalVarName() + " = dso_local global " + '[' + arrayType.getElementType().toString()
+                return getName() + " = dso_local global " + '[' + arrayType.getElementType().toString()
                         + " x " + arrayType.getLength() + ']' + " " + getArrayContent(); // char也改成int输出
             }
         }
-        return "@" + getGlobalVarName() + " = dso_local global " + getGlobalVarIrType() +" " + int_value; // char也改成int输出
+        return getName() + " = dso_local global " + getGlobalVarIrType() +" " + int_value; // char也改成int输出
+//        return "@" + getGlobalVarName() + " = dso_local global " + getGlobalVarIrType() +" " + int_value; // char也改成int输出
     }
 
     public String getArrayContent() {

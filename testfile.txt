@@ -1,11 +1,14 @@
-const int a = 10;
+const int a0 = 10;
 const char c = 'a';
 const char c0 = c - 1;
-int b = 10 + a;
+int b = 10 + a0;
 int sum(int a, int b) {
-    return a+b;
+    int a1 = (23+12)*10-10-2;
+    const char z = c0 + 256*2;
+    return a0;
 }
+void voidReturn() {}
 int main() {
-    int a1 = a+b;
+    // int a1 = a+b;
     return 0;
 }

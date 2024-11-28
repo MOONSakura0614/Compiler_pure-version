@@ -68,8 +68,8 @@ public class IRModule {
         }
         for (IRFunction function: functionList) {
             // 注意function定义是大工程，需要遍历打印
-//            IOUtils.writeLLVMIR(function.toString());
-            function.printIR();
+            IOUtils.writeLLVMIR(function.toString());
+//            function.printIR();
         }
     }
 }

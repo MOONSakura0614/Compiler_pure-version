@@ -140,7 +140,9 @@ public class ConstDef extends SyntaxNode {
                 IRGlobalVar globalVar = builder.buildIRGlobalVar(constInt);
                 IRGenerator.globalVars.add(globalVar);
                 globalVar.setInt_value(val);
+                symbol.setIrValue(globalVar);
             }
+            System.out.println(symbol.irValue);
         }
 
         if (!IRGenerator.llvm_ir_gen && constInitVal != null)
@@ -170,10 +172,23 @@ public class ConstDef extends SyntaxNode {
                 IRGlobalVar globalVar = builder.buildIRGlobalVar(constChar);
                 IRGenerator.globalVars.add(globalVar);
                 globalVar.setInt_value(val);
+                symbol.setIrValue(globalVar);
             }
         }
 
         if (!IRGenerator.llvm_ir_gen && constInitVal != null)
             constInitVal.visit();
+    }
+
+    public Boolean getIsArray() {
+        return isArray;
+    }
+
+    public ConstInitVal getConstInitVal() {
+        return constInitVal;
+    }
+
+    public String getIdentName() {
+        return ident_token.getTokenValue();
     }
 }

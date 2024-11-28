@@ -5,5 +5,5 @@ package llvm.value.constVar;
  * @Description:
  * @date 2024/11/15 22:51
  */
-public class IRConstArray {
+public class IRConstArray extends IRConst {
 }

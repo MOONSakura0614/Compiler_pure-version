@@ -10,7 +10,6 @@ import llvm.value.IRValue;
  * @date 2024/11/15 22:51
  */
 public class IRConstInt extends IRConst {
-    private int val = 0;
 
     public IRConstInt() {
         super();
@@ -18,6 +17,7 @@ public class IRConstInt extends IRConst {
 
     public IRConstInt(int val) {
         super(IRIntType.intType);
+        setName("" + val);
         this.val = val;
     }
 
@@ -30,7 +30,13 @@ public class IRConstInt extends IRConst {
         super(type, name);
     }
 
-    public int getVal() {
-        return val;
+    @Override
+    public String toString() {
+        return "i32 " + val;
     }
+
+    public static void main(String[] args) {
+        System.out.println(new IRConstInt(10));
+    }
+
 }

@@ -1,7 +1,5 @@
 package llvm.value.instruction.memory;
 
-import com.sun.jdi.Value;
-import llvm.value.IRArgument;
 import llvm.value.IRValue;
 import llvm.value.instruction.Instruction;
 import llvm.value.instruction.Operator;
@@ -25,11 +23,11 @@ public class StoreInst extends Instruction {
     }
 
     public IRValue getLVal() { // 把内存中取的变量[这里也是alloca取出的寄存器name]存到寄存器中
-        return getOperand(0);
+        return getOperandByIndex(0);
     }
 
     public IRValue getPointer() {
-        return getOperand(1);
+        return getOperandByIndex(1);
     }
     @Override
     public String toString() {

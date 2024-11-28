@@ -166,4 +166,16 @@ public class InitVal extends SyntaxNode {
             return 0;
         }
     }
+
+    public Exp getExp() {
+        return exp;
+    }
+
+    public Boolean getArrayInit() {
+        return isArrayInit;
+    }
+
+    public Boolean getStringInit() {
+        return isStringInit;
+    }
 }

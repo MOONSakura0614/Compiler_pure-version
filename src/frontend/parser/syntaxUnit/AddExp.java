@@ -131,6 +131,13 @@ public class AddExp extends SyntaxNode {
             }
         }
 
+        public MulExp getMulExp() {
+            return mulExp;
+        }
+
+        public Token getAddOp_token() {
+            return addOp_token;
+        }
     }
 
     @Override
@@ -142,5 +149,13 @@ public class AddExp extends SyntaxNode {
             if (addOp_mulExp.mulExp != null)
                 addOp_mulExp.mulExp.visit();
         }
+    }
+
+    public MulExp getMulExp() {
+        return mulExp;
+    }
+
+    public ArrayList<AddOp_MulExp> getAddOp_mulExp_list() {
+        return addOp_mulExp_list;
     }
 }

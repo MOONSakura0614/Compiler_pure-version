@@ -177,4 +177,36 @@ public class PrimaryExp extends SyntaxNode {
             return 0;
         }
     }
+
+    public Exp getExp() {
+        return exp;
+    }
+
+    public Boolean getIsLVal() {
+        return isLVal;
+    }
+
+    public LVal getlVal() {
+        return lVal;
+    }
+
+    public Boolean getIsParent() { // 就是Exp
+        return isParent;
+    }
+
+    public Boolean getIsNumber() {
+        return isNumber;
+    }
+
+    public Number_comp getNumber() {
+        return number;
+    }
+
+    public Boolean getIsCharacter() {
+        return isCharacter;
+    }
+
+    public Character_comp getCharacter() {
+        return character;
+    }
 }

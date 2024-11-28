@@ -63,4 +63,8 @@ public class Exp extends SyntaxNode {
 
         return 0;
     }
+
+    public AddExp getAddExp() {
+        return addExp;
+    }
 }

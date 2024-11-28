@@ -42,7 +42,7 @@ public class IRBasicBlock extends IRValue {
         // TODO: 2024/11/26 尚未实现基本块的label，只是简单在operands中记录了指令
         for (Instruction instruction: instructions) {
 //            System.out.println("BBBBB:inst");
-            sb.append(' ');
+            sb.append("    ");
             sb.append(instruction);
             sb.append('\n');
         }

@@ -201,4 +201,30 @@ public class UnaryExp extends SyntaxNode {
         // TODO: 2024/11/25 如果是Ident():就是调用函数，需要借用call instruction实现
         return 1; // 防止把其他的MulExp给消了
     }
+
+    public Boolean getIsPrimaryExp() {
+        return isPrimaryExp;
+    }
+
+    public PrimaryExp getPrimaryExp() {
+        return primaryExp;
+    }
+
+    public Boolean getIsIdent() {
+        return isIdent;
+    }
+
+    public Boolean getIsOp() {
+        return isOp;
+    }
+
+    public Token getUnaryOp() {
+        if (getUnaryOp() == null)
+            return null;
+        return unaryOp.getUnaryOp_token();
+    }
+
+    public UnaryExp getUnaryExp() {
+        return unaryExp;
+    }
 }

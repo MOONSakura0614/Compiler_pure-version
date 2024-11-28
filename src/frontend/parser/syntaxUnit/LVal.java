@@ -155,4 +155,8 @@ public class LVal extends SyntaxNode {
 
         return 0; // default return value
     }
+
+    public String getIdentName() {
+        return ident_token.getTokenValue();
+    }
 }

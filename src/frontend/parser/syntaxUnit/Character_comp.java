@@ -36,4 +36,8 @@ public class Character_comp extends SyntaxNode {
     public Token getCharacter_token() {
         return character_token;
     }
+
+    public int getIntValue() {
+        return character_token.getTokenValue().charAt(0);
+    }
 }

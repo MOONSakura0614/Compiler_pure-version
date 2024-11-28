@@ -178,4 +178,8 @@ public class IRFunction extends IRGlobalValue {
         reg_num++;
         return tmp;
     }
+
+    public IRType getRetType() {
+        return ((IRFunctionType) irType).getRet_type();
+    }
 }

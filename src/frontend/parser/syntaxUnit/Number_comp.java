@@ -40,4 +40,8 @@ public class Number_comp extends SyntaxNode {
 
         return 0;
     }
+
+    public Token getNumber_token() {
+        return number_token;
+    }
 }

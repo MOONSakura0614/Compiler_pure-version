@@ -171,7 +171,7 @@ public class IRGenerator {
         // 局部变量声明：主要是instruction使用
         varDefType = varDecl.getVarType();
         for (VarDef varDef: varDecl.getVarDefs()) {
-            visitVarDef_local(varDef);
+            builder.buildVarLocal(varDefType, varDef);
         }
     }
 
@@ -185,25 +185,23 @@ public class IRGenerator {
             constDecl.insertSymbol(cur_ir_symTable);
             return;
         }
+        // 下面是局部变量的const：需要自己逐个完成constDef的instruction
         varDefType = constDecl.getVarType(); // 传给下面value定义和symbol插入
         // 构建ConstValue--在上面的insert过程添加
         for (ConstDef constDef: constDecl.getConstDefs()) {
-            visitConstDef_local(constDef);
+            builder.buildConstLocal(varDefType, constDef);
         }
-        // 下面是局部变量的const
-    }
-
-    private void visitConstDef_local(ConstDef constDef) {
-        // 构建IRValue
     }
 
     private void visitMainFuncDef(MainFuncDef mainFuncDef) {
         // 构建一个function（但是名字是main）
         IRFunction mainFunc = builder.buildIRMainFunc();
+        functions.add(mainFunc);
+        cur_func = mainFunc;
 //        cur_ir_symTable.insertSymbol(new FuncSymbol()); // main标识不加符号表了
+        newBasicBlock(); // todo 在函数体开始遍历时 new成一个基本块，其实范围不准确，因为需要在跳转前面是一个基本块
         if (mainFuncDef.getBlock() != null)
             visitBlock(mainFuncDef.getBlock());
-        functions.add(mainFunc);
     }
 
     private void visitBlock(Block block) {
@@ -226,7 +224,6 @@ public class IRGenerator {
             // 下面是局部变量声明
             visitDecl(decl);
             AllocaInst localVarDef = builder.buildLocalVar();
-
         } else {
             Stmt stmt = blockItem.getStmt();
             if (stmt != null)
@@ -242,7 +239,9 @@ public class IRGenerator {
                 // LVal '=' Exp ';' 赋值指令 ———— 有可能需要修改符号表和对应的value的值
                 // TODO: 2024/11/26 数组未实现
                 LVal lVal = stmt.getlVal();
-                Symbol lVal_sym = lVal.getIdentSymbol();
+                // 注意下面的方法不能使用！！！因为是在语义分析的Visitor中的符号表！不是IR的！
+//                Symbol lVal_sym = lVal.getIdentSymbol();
+                Symbol lVal_sym = cur_ir_symTable.findInCurSymTable(lVal.getIdentName());
                 Exp exp = stmt.getExp();
                 int val = exp.getIntValue();
                 lVal_sym.setIntValue(val); // 下面符号改变的value不需要重复声明（只要对应语句
@@ -268,6 +267,7 @@ public class IRGenerator {
             }
             case 7 -> {
                 // 'return' [Exp] ';' ret指令
+                builder.buildRetInst(stmt);
             }
             case 8, 9 -> {
                 // LVal '=' 'getint''('')'';'
@@ -304,6 +304,7 @@ public class IRGenerator {
         if (ret_type instanceof IRVoidType && !(irFunction.getLastInst() instanceof RetInst)) {
             // 其他类型会显示return，但是void有可能没有
             Instruction inst = new RetInst();
+//            System.out.println("in IR Generator:visitFuncDef(FuncDef funcDef), 缺少void ret");
             cur_basicBlock.addInst(inst);
         }
     }
@@ -369,24 +370,22 @@ public class IRGenerator {
         // 处理局部变量命名：reg_num（在func中）
         for (IRArgument argument: cur_func.getIrArguments_list()) {
             builder.buildFuncArgInsts(argument);
-//            allocaInst = new AllocaInst(argument.getIrType());
-//            allocaInst.setName("%" + cur_func.getLocalValRegNum());
-//            cur_basicBlock.addInst(allocaInst);
-            // TODO: 2024/11/26 但是目前符号表里只有ident的形参标记，没有目前寄存器的name？下面调用的时候怎么获取？
-//            storeInst = new StoreInst();
-            // Instruction一定是依托BasicBlock存在的，所以cur_BB会在
         }
         // 处理真正的语句
         ArrayList<BlockItem> blockItem_list = block.getBlockItem_list();
         for (BlockItem blockItem: blockItem_list) {
             visitBlockItem(blockItem);
         }
-//        cur_func.addBasicBlock(cur_basicBlock);
+//        cur_func.addBasicBlock(cur_basicBlock); // 在newBasicBlock()方法中已经添加了
         exitCurScope();
     }
 
     private ArrayList<IRType> visitFuncFParams(FuncFParams funcFParams) {
         ArrayList<IRType> types = new ArrayList<>();
+        if (funcFParams == null) {
+            // 没有参数
+            return types;
+        }
         funcFParams.insertSymbol(cur_ir_symTable); // 插入符号表，方便下面取值
         // 构造IRTypes
         ArrayList<LexType> lexTypes = funcFParams.getArgTypes();

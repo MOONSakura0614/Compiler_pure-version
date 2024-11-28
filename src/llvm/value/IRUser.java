@@ -17,6 +17,11 @@ public class IRUser extends IRValue {
         operandList = new ArrayList<>();
     }
 
+    public IRUser(String name) {
+        super(name);
+        operandList = new ArrayList<>();
+    }
+
     public IRUser(IRType type, String name) {
         super(type, name);
         operandList = new ArrayList<>();
@@ -26,11 +31,22 @@ public class IRUser extends IRValue {
         return operandList;
     }
 
+    public IRValue getOperandByIndex(int index) {
+        if (index >= operandList.size())
+            return null;
+
+//        System.out.println(index);
+//        System.out.println(operandList.get(index));
+//        return operandList.remove(index);
+        return operandList.get(index);
+    }
+
     public IRValue getOperand(int index) {
         if (index >= operandList.size())
             return null;
 
-        return operandList.remove(index);
+//        return operandList.remove(index);
+        return operandList.get(index);
     }
 
     public void addOperand(IRValue operand) {

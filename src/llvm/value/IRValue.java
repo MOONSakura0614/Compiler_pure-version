@@ -12,7 +12,7 @@ import java.util.ArrayList;
  */
 public class IRValue {
     protected IRType irType;
-    protected String name; // 局部虚拟寄存器的%+数字命名 | GlobalValue的@+文字命名
+    protected String name = ""; // 局部虚拟寄存器的%+数字命名 | GlobalValue的@+文字命名
     public static int reg_number = -1; // 每个函数应该是从0开始
     // 【和基本块的符号表不同，SSA跳出基本块但在同一函数内reg_num也是递增的】
     protected AbstractList<IRUser> userList; // def-use，保存value的使用者
@@ -49,6 +49,10 @@ public class IRValue {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public void setIrType(IRType irType) {
+        this.irType = irType;
     }
 
     public IRType getIrType() {

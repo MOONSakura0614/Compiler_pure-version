@@ -146,6 +146,7 @@ public class VarDef extends SyntaxNode {
             if (initVal != null) {
                 val = initVal.getIntValue();
             }
+            // TODO: 2024/11/28 下面这个地方设Value的new有点莫名其妙，全局就在if中重新set了；普通的局部，也应该是用 alloca那条吧（从内存使用的时候再load
             IRValue value = builder.buildInt(ident_token.getTokenValue());
             symbol.setIrValue(value);
             symbol.setIntValue(val);
@@ -153,6 +154,7 @@ public class VarDef extends SyntaxNode {
                 IRGlobalVar globalVar = builder.buildIRGlobalVar(value);
                 IRGenerator.globalVars.add(globalVar);
                 globalVar.setInt_value(val);
+                symbol.setIrValue(globalVar);
             }
         }
 
@@ -180,17 +182,31 @@ public class VarDef extends SyntaxNode {
             if (initVal != null) {
                 val = initVal.getIntValue();
             }
-            IRValue value = builder.buildChar(ident_token.getTokenValue());
+            IRValue value = builder.buildChar(ident_token.getTokenValue()); // 全局变量采用自己的标志符做名字？
             symbol.setIrValue(value);
             symbol.setIntValue(val);
             if (IRGenerator.globalVar_gen) {
                 IRGlobalVar globalVar = builder.buildIRGlobalVar(value);
                 IRGenerator.globalVars.add(globalVar);
                 globalVar.setInt_value(val);
+                // V2:全局变量的irValue改成globalVar
+                symbol.setIrValue(globalVar);
             }
         }
 
         if (!IRGenerator.llvm_ir_gen && initVal != null) // 在中间代码生成阶段，不再语义visit
             initVal.visit();
+    }
+
+    public String getIdentName() {
+        return ident_token.getTokenValue();
+    }
+
+    public Boolean getIsArray() {
+        return isArray;
+    }
+
+    public InitVal getInitVal() {
+        return initVal;
     }
 }

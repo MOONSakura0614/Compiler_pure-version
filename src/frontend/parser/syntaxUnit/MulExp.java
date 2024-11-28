@@ -131,6 +131,13 @@ public class MulExp extends SyntaxNode {
             }
         }
 
+        public UnaryExp getUnaryExp() {
+            return unaryExp;
+        }
+
+        public Token getMulOp_token() {
+            return mulOp_token;
+        }
     }
 
     @Override
@@ -142,5 +149,13 @@ public class MulExp extends SyntaxNode {
             if (mulOp_unaryExp.unaryExp != null)
                 mulOp_unaryExp.unaryExp.visit();
         }
+    }
+
+    public UnaryExp getUnaryExp() {
+        return unaryExp;
+    }
+
+    public ArrayList<MulOp_UnaryExp> getMulOp_unaryExp_list() {
+        return mulOp_unaryExp_list;
     }
 }

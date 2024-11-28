@@ -17,6 +17,12 @@ public class Instruction extends IRUser {
     }
 
     public Instruction(Operator operator) {
+        super(); // 通过父类的无参构造，记得初始化操作数list
+        this.operator = operator;
+    }
+
+    public Instruction(Operator operator, String name) {
+        super(name);
         this.operator = operator;
     }
 
