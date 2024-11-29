@@ -12,6 +12,13 @@ int sum(int a, int b) {
 }
 void voidReturn() {}
 int main() {
+    int yy;
+    yy = b;
+    yy = getint();
+    char zz;
+    zz = getchar();
+    voidReturn();
+    yy = sum(a0, b);
     // int a1 = a+b;
     return 0;
 }

@@ -3,7 +3,6 @@ package llvm;
 import frontend.lexer.LexType;
 import frontend.lexer.Token;
 import frontend.parser.syntaxUnit.*;
-import frontend.symbol.ConstSymbol;
 import frontend.symbol.Symbol;
 import llvm.type.*;
 import llvm.value.IRArgument;
@@ -101,7 +100,7 @@ public class IRBuilder {
         allocaInst.setName("%" + cur_func.getLocalValRegNum());
         Symbol symbol = cur_ir_symTable.findInCurSymTable(ident_name);
         if (symbol != null) {
-            System.out.println(allocaInst);
+//            System.out.println(allocaInst);
             symbol.setPointerReg(allocaInst.getName());
             symbol.setIrValue(allocaInst); // 形参对应的irValue
         }
@@ -312,6 +311,45 @@ public class IRBuilder {
 
     CallInst callInst;
 
+    public CallInst buildCallInst(UnaryExp unaryExp) {
+        // 获取当前IR符号表中的保存函数定义相关信息的符号
+        symbol = cur_ir_symTable.findInCurSymTable(unaryExp.getIdent_token().getTokenValue());
+        Symbol funcSym = symbol;
+//        System.out.println(symbol.irValue);
+        ArrayList<IRValue> rArgs = new ArrayList<>();
+        if (unaryExp.getFuncRParams() != null) {
+            // !!用公共变量就是不太好，在下面调用的过程中，symbol就被改了数据！！！
+            rArgs = buildRealArgs(unaryExp.getFuncRParams());
+        }
+//        System.out.println(symbol.irValue);
+        callInst = new CallInst((IRFunction) funcSym.irValue, rArgs);
+        cur_basicBlock.addInst(callInst);
+        return callInst;
+    }
+
+    // 库函数调用
+    // 输入
+    public CallInst buildCallInst(String ioLibName) {
+        // 获取当前IR符号表中的保存函数定义相关信息的符号
+        symbol = cur_ir_symTable.findInCurSymTable(ioLibName);
+        ArrayList<IRValue> rArgs = new ArrayList<>();
+        callInst = new CallInst((IRFunction) symbol.irValue, rArgs);
+        System.out.println(symbol.irValue);
+        cur_basicBlock.addInst(callInst);
+        return callInst;
+    }
+
+    // 输出：针对print
+
+    private ArrayList<IRValue> buildRealArgs(FuncRParams rParams) {
+        ArrayList<IRValue> rArgs = new ArrayList<>();
+        ArrayList<Exp> exps = rParams.getExps(); // 获取实参的表示
+        for (Exp exp: exps) {
+            rArgs.add(buildExp(exp));
+        }
+        return rArgs;
+    }
+
     // UnaryExp → PrimaryExp → '(' Exp ')' | LVal | Number | Character
     // %2 = add i32 1, 2  -- 可以直接计算的Number和Character处理【不涉及虚拟寄存器】
     public IRValue buildUnaryExp(UnaryExp unaryExp) {
@@ -335,6 +373,7 @@ public class IRBuilder {
             }
         } else if (unaryExp.getIsIdent()) {
             // call指令调用
+            return buildCallInst(unaryExp);
         }
         return null;
     }
@@ -359,12 +398,26 @@ public class IRBuilder {
             return buildConstInt(primaryExp.getCharacter().getIntValue());
         } else {
             // 左值部分：关于符号表取数（或者，取对应的虚拟寄存器号）
-            return buildLVal(primaryExp.getlVal());
+            return buildLValInRight(primaryExp.getlVal());
         }
     }
 
     // LVal → Ident ['[' Exp ']']
-    public IRValue buildLVal(LVal lVal) {
+    public IRValue buildLVal(LVal lVal) { // 获取可用的指针左值
+        // 注意区分全局和局部变量
+        // TODO: 2024/11/28 尚未实现getElement指令，无法操作数组
+        symbol = cur_ir_symTable.findInCurSymTable(lVal.getIdentName());
+        value = symbol.irValue;
+        /*if (symbol.isConstSymbol()) { // 源程序保证正确，所以不会出现常量再赋值
+            // 关于局部变量在符号表中对应的IRValue的设置:Const肯定有对应的值不用愁，直接用val
+            return new IRConstInt(symbol.getIntValue()); // 初始值，i32
+        } else {
+            return value;
+        }*/
+        return value;
+    }
+
+    public IRValue buildLValInRight(LVal lVal) { // 得到loadInst或常量——等号右边的式子
         // 注意区分全局和局部变量
         // TODO: 2024/11/28 尚未实现getElement指令，无法操作数组
         symbol = cur_ir_symTable.findInCurSymTable(lVal.getIdentName());
@@ -374,12 +427,14 @@ public class IRBuilder {
             return new IRConstInt(symbol.getIntValue()); // 初始值，i32
         } else {
             // 全局变量：直接用@
-            if (value instanceof IRGlobalVar) {
+            // GlobalVar也是指针形式，徐亚先load再使用
+            /*if (value instanceof IRGlobalVar) {
                 return value;
             } else {
                 // 局部变量，先load，再返回load的值
-                return buildLoadInst(value);
-            }
+                return buildLoadInst(value); // 这个是左值在右边，给其他人赋值的情况?
+            }*/
+            return buildLoadInst(value); // 这个是左值在右边，给其他人赋值的情况?
         }
 //        return value;
     }

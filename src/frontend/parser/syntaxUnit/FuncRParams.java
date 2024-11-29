@@ -15,7 +15,7 @@ import static frontend.parser.Parser.lexIterator;
  */
 public class FuncRParams extends SyntaxNode {
     private Exp exp;
-    private AbstractList<Comma_Exp> comma_exp_list;
+    private ArrayList<Comma_Exp> comma_exp_list;
 
     public FuncRParams() {
         super("FuncRParams");

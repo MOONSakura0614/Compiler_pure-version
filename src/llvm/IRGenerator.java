@@ -139,12 +139,21 @@ public class IRGenerator {
     private void visitCompUnit(CompUnit compUnit) {
         // 构造初始的符号表
         SymbolTable symbolTable = newIRSymTable();
+        Symbol symbol = IOLib.GETCHAR8.getIoFuncSym();
         // 插入库函数符号
-        symbolTable.insertSymbol(IOLib.GETCHAR8.getIoFuncSym());
+        symbolTable.insertSymbol(symbol);
+        symbol.setRetType(IRIntType.intType);
+
+        symbol = IOLib.GETINT32.getIoFuncSym();
         symbolTable.insertSymbol(IOLib.GETINT32.getIoFuncSym());
+        symbol.setRetType(IRIntType.intType);
+
         symbolTable.insertSymbol(IOLib.PUT_STR.getIoFuncSym());
+        symbol.setRetType(IRVoidType.voidType);
         symbolTable.insertSymbol(IOLib.PUT_INT_32.getIoFuncSym());
+        symbol.setRetType(IRVoidType.voidType);
         symbolTable.insertSymbol(IOLib.PUT_CH.getIoFuncSym());
+        symbol.setRetType(IRVoidType.voidType);
         // 库函数无需插入IRModule中的FuncList，只要查询表能查到就行
         // IR输出的时候，单独在初始化ir.txt的时候就在最前面加完了库函数的声明
         // 下面的全局变量和函数就正常visit？
@@ -173,9 +182,6 @@ public class IRGenerator {
         for (VarDef varDef: varDecl.getVarDefs()) {
             builder.buildVarLocal(varDefType, varDef);
         }
-    }
-
-    private void visitVarDef_local(VarDef varDef) {
     }
 
     // 注意一个decl中可能有好多def --> 在def中进行value生成
@@ -255,7 +261,8 @@ public class IRGenerator {
 //                builder.buildAssignInsts(lVal_irValue, irValue);
             }
             case 2 -> {
-                // [Exp] ';' 纯运算，不知道可不可以完全舍弃不翻译
+                // [Exp] ';' 纯运算，不知道可不可以完全舍弃不翻译<--不可以！，因为最后到UnaryExp这步的时候，可能会退出函数调用!
+                builder.buildExp(stmt.getExp());
             }
             case 3 -> {
                 // Block
@@ -280,9 +287,13 @@ public class IRGenerator {
                 // LVal '=' 'getint''('')'';'
                 // LVal '=' 'getchar''('')'';'
                 // 输入函数调用 和 赋值 指令
+                irValue = builder.buildCallInst(stmt.getIOLibName());
+                IRValue lValIrValue = builder.buildLVal(stmt.getlVal());
+                builder.buildStoreInst(irValue, lValIrValue);
             }
             case 10 -> {
                 // printf 输出函数调用
+//                irValue = builder.buildCallInst(stmt.getIOLibName());
             }
         }
     }
@@ -290,6 +301,7 @@ public class IRGenerator {
     private void visitFuncDef(FuncDef funcDef) {
         // 先把函数名加入外层符号表
         funcDef.insertSymbol(cur_ir_symTable);
+
         newIRSymTable();
         ArrayList<IRType> arg_types = visitFuncFParams(funcDef.getFuncFParams());
         IRType ret_type = IRVoidType.voidType;
@@ -306,6 +318,10 @@ public class IRGenerator {
         }
         IRFunction irFunction = new IRFunction(funcDef.getFuncName(), ret_type, arg_types);
         cur_func = irFunction;
+
+        // 添加函数对应的IRValue
+        Symbol symbol = cur_ir_symTable.findInCurSymTable(funcDef.getFuncName());
+        symbol.setIrValue(cur_func);
 
         FuncFParams fParams = funcDef.getFuncFParams();
         if (fParams != null) {

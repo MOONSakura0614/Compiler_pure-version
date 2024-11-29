@@ -29,6 +29,10 @@ public class IRFunctionType implements IRType {
         return ret_type;
     }
 
+    public void setRet_type(IRType ret_type) {
+        this.ret_type = ret_type;
+    }
+
     public ArrayList<IRType> getParam_type_list() {
         return param_type_list;
     }

@@ -4,6 +4,9 @@ import frontend.lexer.Token;
 import frontend.parser.syntaxUnit.Decl;
 import frontend.parser.syntaxUnit.FuncDef;
 import frontend.parser.syntaxUnit.SyntaxNode;
+import llvm.type.IRFunctionType;
+import llvm.type.IRIntType;
+import llvm.type.IRType;
 import llvm.value.IRValue;
 
 /**
@@ -120,5 +123,9 @@ public class Symbol {
 
     public void setPointerReg(String pointerReg) {
         this.pointerReg = pointerReg;
+    }
+
+    public void setRetType(IRType type) {
+        ((IRFunctionType) irValue.getIrType()).setRet_type(type);
     }
 }

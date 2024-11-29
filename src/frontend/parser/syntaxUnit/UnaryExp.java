@@ -227,4 +227,12 @@ public class UnaryExp extends SyntaxNode {
     public UnaryExp getUnaryExp() {
         return unaryExp;
     }
+
+    public Token getIdent_token() {
+        return ident_token;
+    }
+
+    public FuncRParams getFuncRParams() {
+        return funcRParams;
+    }
 }

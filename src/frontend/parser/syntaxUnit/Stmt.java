@@ -712,4 +712,18 @@ public class Stmt extends SyntaxNode {
     public Exp getExp() {
         return exp;
     }
+
+    public String getIOLibName() {
+        switch (chosen_plan) {
+            case 8,9 -> {
+                return inputFunc_token.getTokenValue();
+            }
+            case 10 -> {
+                return print_token.getTokenValue();
+            }
+            default -> {
+                return null;
+            }
+        }
+    }
 }

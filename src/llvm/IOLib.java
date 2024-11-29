@@ -37,7 +37,6 @@ public enum IOLib {
                         new IRFunctionType(IRIntType.intType, new ArrayList<>()), new ArrayList<>()); // 空参
                 ioFuncSym = new Symbol("getchar", SymbolType.CharFunc, irValue);
                 this.ioFuncValue = irValue;
-                break;
             }
             case "declare i32 @getint()" -> {
                 irValue = new IRFunction("getint",
@@ -95,8 +94,24 @@ public enum IOLib {
         this.content = content;
     }
 
+    public boolean match(Symbol funcSym) {
+        String name = funcSym.getIdentName();
+        return false;
+    }
+
     @Override
     public String toString() {
         return this.content;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(IRIntType.intType);
+        System.out.println(new IRFunctionType(IRIntType.intType, new ArrayList<>()));
+        System.out.println(new IRFunctionType(IRIntType.intType, new ArrayList<>()).getRet_type());
+        System.out.println(GETCHAR8.ioFuncValue.getIrType());
+        // 这个时候ret_type还是无法成为有重写toString方法的intType（不知道为什么）--所以紧急在IRGenerator里改了
+        // 显示的是一个普通的irType，哈希地址
+        System.out.println(PUT_INT_32.ioFuncValue.getIrType());
+//        System.out.println((IRIntType) (((IRFunctionType) GETCHAR8.ioFuncValue.getIrType()).getRet_type())); // 显示类型不对
     }
 }
