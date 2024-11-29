@@ -24,6 +24,7 @@ import llvm.value.instruction.terminator.RetInst;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static llvm.IRGenerator.*;
@@ -360,12 +361,13 @@ public class IRBuilder {
 
         if (!stmt.getHasPrintExp()) {
             // 直接逐个输出StringConst
-            for (int i = 0; i < printStr.length(); i++) {
+            buildPutConstStrByChar(printStr);
+            /*for (int i = 0; i < printStr.length(); i++) {
                 arg = new IRConstInt(printStr.charAt(i));
                 // 不用constChar因为，putchar也是要求i32做参数，用char还得zext
                 callInst = new CallInst(irFunction, arg);
                 cur_basicBlock.addInst(callInst);
-            }
+            }*/
         } else {
             // 有占位符
             // 定义正则模式，匹配 %c 和 %d（大小写敏感）
@@ -404,12 +406,55 @@ public class IRBuilder {
     public void buildPutConstStrByChar(String str) {
         IRConstInt arg;
         IRFunction function = (IRFunction) IOLib.PUT_CH.getIoFuncValue();
-        for (int i = 0; i < str.length(); i++) {
-            arg = new IRConstInt(str.charAt(i));
-            // 不用constChar因为，putchar也是要求i32做参数，用char还得zext
-            callInst = new CallInst(function, arg);
-            cur_basicBlock.addInst(callInst);
+
+        // 处理字符串中的转义字符问题————防止\n被当成\、n两个字符对待
+        String pattern = "\\\\n";
+        Pattern compiledPattern = Pattern.compile(pattern);
+        String[] parts = compiledPattern.split(str);
+        // 谨防末尾的\n消失
+        int cnt = 0;
+        Matcher matcherC = compiledPattern.matcher(str);
+        while (matcherC.find()) {
+            cnt++; // '\n'出现的数量
         }
+
+//        System.out.println("cnt:"+cnt);
+//        System.out.println(str);
+        int tmp = '\n';
+        if (cnt > 0) {
+            for (String s: parts) {
+//                buildPutConstStrByChar(s); // parts中的肯定不含\n进入下面的else块中
+                for (int i = 0; i < s.length(); i++) {
+                    arg = new IRConstInt(s.charAt(i));
+                    // 不用constChar因为，putchar也是要求i32做参数，用char还得zext
+                    callInst = new CallInst(function, arg);
+                    cur_basicBlock.addInst(callInst);
+                }
+                // 输出转义符\n
+                if (cnt > 0) {
+                    arg = new IRConstInt(tmp);
+                    callInst = new CallInst(function, arg);
+                    cur_basicBlock.addInst(callInst);
+                    cnt--;
+                }
+//                System.out.printf("%chhh%d%c", tmp, tmp, tmp);
+            }
+            while (cnt > 0) {
+                arg = new IRConstInt(tmp);
+                callInst = new CallInst(function, arg);
+                cur_basicBlock.addInst(callInst);
+                cnt--;
+            }
+        } else {
+            // 不含\n -- 可以直接输出
+            for (int i = 0; i < str.length(); i++) {
+                arg = new IRConstInt(str.charAt(i));
+                // 不用constChar因为，putchar也是要求i32做参数，用char还得zext
+                callInst = new CallInst(function, arg);
+                cur_basicBlock.addInst(callInst);
+            }
+        }
+
     }
 
     private ArrayList<IRValue> buildPrintExps(ArrayList<Exp> exps) {
@@ -589,16 +634,29 @@ public class IRBuilder {
     public static void main(String[] args) {
 
         // 输入字符串
-        String input = "%c%dThis is a test string with %c and %d and some more %c and %d%c values.%d\n";
+        String input = "\\nThis is a test\\n\\n string with\\n\\n";
+        System.out.println("---逐字符打印开始---");
+        for (int i = 0; i < input.length(); i++) {
+            System.out.println(input.charAt(i));
+        }
+        System.out.println("---逐字符打印结束---");
 
         // 定义正则模式，匹配 %c 和 %d（大小写敏感）
-        String pattern = "(%c|%d)";
+        String pattern = "\\\\n";
+        System.out.println(pattern.length()); // 一个字符
 
         // 编译正则表达式
         Pattern compiledPattern = Pattern.compile(pattern);
 
         // 使用 split 方法分割字符串
         String[] parts = compiledPattern.split(input);
+
+        int res = 0;
+        Matcher matcher = compiledPattern.matcher(input);
+        while (matcher.find()) {
+            res++;
+        }
+        System.out.println(res);
 
         for (String str: parts) {
             if (str.isEmpty()) {

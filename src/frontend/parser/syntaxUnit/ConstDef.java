@@ -142,7 +142,7 @@ public class ConstDef extends SyntaxNode {
                 globalVar.setInt_value(val);
                 symbol.setIrValue(globalVar);
             }
-            System.out.println(symbol.irValue);
+//            System.out.println(symbol.irValue);
         }
 
         if (!IRGenerator.llvm_ir_gen && constInitVal != null)

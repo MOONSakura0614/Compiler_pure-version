@@ -61,7 +61,7 @@ public class CallInst extends Instruction {
     public String toString() {
         StringBuilder s = new StringBuilder();
         IRType returnType = ((IRFunctionType) calledFunc.getIrType()).getRet_type();
-        System.out.println(returnType);
+//        System.out.println(returnType);
         if (returnType instanceof IRVoidType) {
             s.append("call ");
         } else {

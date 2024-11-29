@@ -254,8 +254,9 @@ public class IRGenerator {
 //                Symbol lVal_sym = lVal.getIdentSymbol();
                 Symbol lVal_sym = cur_ir_symTable.findInCurSymTable(lVal.getIdentName());
                 Exp exp = stmt.getExp();
-                int val = exp.getIntValue();
-                lVal_sym.setIntValue(val); // 下面符号改变的value不需要重复声明（只要对应语句
+                // TODO: 2024/11/29 Exp普通的(非const，非global)应该都不能乱求值；：谨防除零陷阱
+//                int val = exp.getIntValue();
+//                lVal_sym.setIntValue(val); // 下面符号改变的value不需要重复声明（只要对应语句
 //                Symbol symbol = cur_ir_symTable.findInCurSymTable(lVal.)
 
                 // 生成对应的赋值一系列操作的指令语句
@@ -474,7 +475,7 @@ public class IRGenerator {
             symbol.setIrValue(argument);
             argument.setIdent_name(symbol.getIdentName());
             // zy:test
-            argument.printArg();
+//            argument.printArg();
         }
         cur_func.setIrArguments_list(arguments); // 在alloc的时候再记录ident_name？--> 符号表
         return arguments;
