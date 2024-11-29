@@ -148,10 +148,15 @@ public class IRGenerator {
         symbolTable.insertSymbol(IOLib.GETINT32.getIoFuncSym());
         symbol.setRetType(IRIntType.intType);
 
+        symbol = IOLib.PUT_STR.getIoFuncSym();
         symbolTable.insertSymbol(IOLib.PUT_STR.getIoFuncSym());
         symbol.setRetType(IRVoidType.voidType);
+
+        symbol = IOLib.PUT_INT_32.getIoFuncSym();
         symbolTable.insertSymbol(IOLib.PUT_INT_32.getIoFuncSym());
         symbol.setRetType(IRVoidType.voidType);
+
+        symbol = IOLib.PUT_CH.getIoFuncSym();
         symbolTable.insertSymbol(IOLib.PUT_CH.getIoFuncSym());
         symbol.setRetType(IRVoidType.voidType);
         // 库函数无需插入IRModule中的FuncList，只要查询表能查到就行
@@ -293,7 +298,8 @@ public class IRGenerator {
             }
             case 10 -> {
                 // printf 输出函数调用
-//                irValue = builder.buildCallInst(stmt.getIOLibName());
+                // 输出函数都是void，不需要返回值
+                builder.buildCallInst(stmt);
             }
         }
     }

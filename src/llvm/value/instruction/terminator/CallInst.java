@@ -23,6 +23,8 @@ import java.util.ArrayList;
 public class CallInst extends Instruction {
     private IRFunction calledFunc;
     private ArrayList<IRValue> realArgs;
+//    private IRValue singleArg; // 形参表中只有一个变量
+    // 为了输出统一，在constructor里面对上面的singleArg还是给一个新的realArgs，然后加入其中
 
     // CallInst的类型与返回值类型一致
     public CallInst(IRFunction function, ArrayList<IRValue> arguments) {
@@ -37,6 +39,22 @@ public class CallInst extends Instruction {
 //        System.out.println(functionType);
         calledFunc = function;
         realArgs = arguments;
+    }
+
+    public CallInst(IRFunction function, IRValue arg) {
+        super(((IRFunctionType) function.getIrType()).getRet_type(), Operator.Call);
+        IRFunctionType functionType = (IRFunctionType) (function.getIrType());
+        if (!(functionType.getRet_type() instanceof IRVoidType)) {
+            setName("%" + IRGenerator.cur_func.getLocalValRegNum()); // 有返回值
+        }
+        setIrType(functionType.getRet_type()); // void 或者 具体的返回值类型
+//        System.out.println(functionType.getRet_type());
+//        System.out.println(irType instanceof IRIntType);
+//        System.out.println(functionType);
+        calledFunc = function;
+//        singleArg = arg;
+        realArgs = new ArrayList<>();
+        realArgs.add(arg);
     }
 
     @Override

@@ -713,6 +713,22 @@ public class Stmt extends SyntaxNode {
         return exp;
     }
 
+    public ArrayList<Exp> getPrintExps() {
+        ArrayList<Exp> printExps = new ArrayList<>();
+        for (InitVal.Comma_Exp comma_exp: comma_exp_list) {
+            printExps.add(comma_exp.exp);
+        }
+        return printExps;
+    }
+
+    public Boolean getHasPrintExp() {
+        return hasPrintExp;
+    }
+
+    public Token getString_token() {
+        return string_token;
+    }
+
     public String getIOLibName() {
         switch (chosen_plan) {
             case 8,9 -> {

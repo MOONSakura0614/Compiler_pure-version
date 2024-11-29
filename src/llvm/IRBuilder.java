@@ -23,6 +23,8 @@ import llvm.value.instruction.terminator.CallInst;
 import llvm.value.instruction.terminator.RetInst;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.regex.Pattern;
 
 import static llvm.IRGenerator.*;
 
@@ -334,12 +336,89 @@ public class IRBuilder {
         symbol = cur_ir_symTable.findInCurSymTable(ioLibName);
         ArrayList<IRValue> rArgs = new ArrayList<>();
         callInst = new CallInst((IRFunction) symbol.irValue, rArgs);
-        System.out.println(symbol.irValue);
+//        System.out.println(symbol.irValue);
         cur_basicBlock.addInst(callInst);
         return callInst;
     }
 
     // 输出：针对print
+    public void buildCallInst(Stmt stmt) {
+        // 获取当前IR符号表中的保存函数定义相关信息的符号
+        symbol = IOLib.PUT_CH.getIoFuncSym();
+        IRFunction irFunction = (IRFunction) IOLib.PUT_CH.getIoFuncValue();
+
+        String rawStr = stmt.getString_token().getTokenValue();
+        String printStr; //  = stmt.getString_token().getTokenValue();
+        // 注意这个string_token是包括前后的双引号的！需要去掉
+        printStr = rawStr.substring(1, rawStr.length() - 1);
+
+        ArrayList<IRValue> rArgs = new ArrayList<>();
+        IRValue arg;
+        ArrayList<Exp> exps = stmt.getPrintExps();
+        // TODO: 2024/11/29 输出暂时用for循环逐字符输出，看后面要不要改成输出str(等完成数组)
+        // 用逐字符输出方式，注意printf中格式串的拆解（占位符取出来，其他的输出），占位符部分输出PrintExp的内容
+
+        if (!stmt.getHasPrintExp()) {
+            // 直接逐个输出StringConst
+            for (int i = 0; i < printStr.length(); i++) {
+                arg = new IRConstInt(printStr.charAt(i));
+                // 不用constChar因为，putchar也是要求i32做参数，用char还得zext
+                callInst = new CallInst(irFunction, arg);
+                cur_basicBlock.addInst(callInst);
+            }
+        } else {
+            // 有占位符
+            // 定义正则模式，匹配 %c 和 %d（大小写敏感）
+            String pattern = "(%c|%d)";
+            // 编译正则表达式
+            Pattern compiledPattern = Pattern.compile(pattern);
+            // 使用 split 方法分割字符串
+            String[] parts = compiledPattern.split(printStr);
+            rArgs = buildPrintExps(exps);
+            // 生成指令
+            // 占位符regex之间分开的空字符串也会记录在parts字符串数组中
+            for (int i = 0; i < parts.length; i++) {
+                if (!parts[i].isEmpty()) {
+                    buildPutConstStrByChar(parts[i]);
+                }
+
+                if (i < rArgs.size()) {
+                    // 除了最后一条分割出的串，其他后面总是跟着一个占位符
+                    // 最后一条字符串后面可能会还有一个（结尾的不计入）--> 只需通过exp的数量判断还有没有就行
+                    buildPutSingleVar(rArgs.get(i));
+                }
+            }
+        }
+    }
+
+    public void buildPutSingleVar(IRValue irValue) {
+        IRFunction irFunction = (IRFunction) IOLib.PUT_INT_32.getIoFuncValue();
+        if (!(irValue.getIrType() instanceof IRIntType)) {
+            irValue = buildConvInst(Operator.Zext, irValue); // 重载成i32的方便输出函数使用
+            irFunction = (IRFunction) IOLib.PUT_CH.getIoFuncValue();
+        }
+        callInst = new CallInst(irFunction, irValue);
+        cur_basicBlock.addInst(callInst);
+    }
+
+    public void buildPutConstStrByChar(String str) {
+        IRConstInt arg;
+        IRFunction function = (IRFunction) IOLib.PUT_CH.getIoFuncValue();
+        for (int i = 0; i < str.length(); i++) {
+            arg = new IRConstInt(str.charAt(i));
+            // 不用constChar因为，putchar也是要求i32做参数，用char还得zext
+            callInst = new CallInst(function, arg);
+            cur_basicBlock.addInst(callInst);
+        }
+    }
+
+    private ArrayList<IRValue> buildPrintExps(ArrayList<Exp> exps) {
+        ArrayList<IRValue> irValues = new ArrayList<>();
+        for (Exp exp: exps) {
+            irValues.add(buildExp(exp));
+        }
+        return irValues;
+    }
 
     private ArrayList<IRValue> buildRealArgs(FuncRParams rParams) {
         ArrayList<IRValue> rArgs = new ArrayList<>();
@@ -505,5 +584,28 @@ public class IRBuilder {
         }
         storeInst = new StoreInst(irValue, lValIrValue);
         cur_basicBlock.addInst(storeInst);
+    }
+
+    public static void main(String[] args) {
+
+        // 输入字符串
+        String input = "%c%dThis is a test string with %c and %d and some more %c and %d%c values.%d\n";
+
+        // 定义正则模式，匹配 %c 和 %d（大小写敏感）
+        String pattern = "(%c|%d)";
+
+        // 编译正则表达式
+        Pattern compiledPattern = Pattern.compile(pattern);
+
+        // 使用 split 方法分割字符串
+        String[] parts = compiledPattern.split(input);
+
+        for (String str: parts) {
+            if (str.isEmpty()) {
+                System.out.println(str+" 长度："+str.length());
+            }
+        }
+
+        System.out.println(Arrays.toString(parts));
     }
 }
