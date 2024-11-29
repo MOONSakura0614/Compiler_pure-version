@@ -378,8 +378,9 @@ public class IRBuilder {
             String[] parts = compiledPattern.split(printStr);
             rArgs = buildPrintExps(exps);
             // 生成指令
+            int i;
             // 占位符regex之间分开的空字符串也会记录在parts字符串数组中
-            for (int i = 0; i < parts.length; i++) {
+            for (i = 0; i < parts.length; i++) {
                 if (!parts[i].isEmpty()) {
                     buildPutConstStrByChar(parts[i]);
                 }
@@ -389,6 +390,12 @@ public class IRBuilder {
                     // 最后一条字符串后面可能会还有一个（结尾的不计入）--> 只需通过exp的数量判断还有没有就行
                     buildPutSingleVar(rArgs.get(i));
                 }
+            }
+            while (i < rArgs.size()) {
+                // 除了最后一条分割出的串，其他后面总是跟着一个占位符
+                // 最后一条字符串后面可能会还有一个（结尾的不计入）--> 只需通过exp的数量判断还有没有就行
+                buildPutSingleVar(rArgs.get(i));
+                i++;
             }
         }
     }

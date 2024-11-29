@@ -216,7 +216,7 @@ public class IRGenerator {
     }
 
     private void visitBlock(Block block) {
-        newIRSymTable();
+        newIRSymTable(); // 没有跳转不用newBB
         ArrayList<BlockItem> blockItem_list = block.getBlockItem_list();
         for (BlockItem blockItem: blockItem_list) {
             visitBlockItem(blockItem);

@@ -167,6 +167,7 @@ public class ConstDef extends SyntaxNode {
             int val = constInitVal.getIntValue();
             IRConstChar constChar = builder.buildConstChar(ident_token.getTokenValue(), val);
             symbol.setIntValue(val);
+//            System.out.printf("%c\n", val);
             symbol.setIrValue(constChar);
             if (IRGenerator.globalVar_gen) {
                 IRGlobalVar globalVar = builder.buildIRGlobalVar(constChar);

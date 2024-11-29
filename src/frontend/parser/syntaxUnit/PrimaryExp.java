@@ -166,7 +166,7 @@ public class PrimaryExp extends SyntaxNode {
             // 这里是否需要强转，ascii码to数字
             if (character != null)
                 if (character.getCharacter_token() != null && !character.getCharacter_token().getTokenValue().isEmpty())
-                    return character.getCharacter_token().getTokenValue().charAt(0);
+                    return character.getIntValue();
 
             return 0;
         } else {

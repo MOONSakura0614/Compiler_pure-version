@@ -38,6 +38,6 @@ public class Character_comp extends SyntaxNode {
     }
 
     public int getIntValue() {
-        return character_token.getTokenValue().charAt(0);
+        return character_token.getTokenValue().charAt(1);
     }
 }
