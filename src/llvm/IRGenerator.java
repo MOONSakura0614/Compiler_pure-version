@@ -267,7 +267,8 @@ public class IRGenerator {
             }
             case 2 -> {
                 // [Exp] ';' 纯运算，不知道可不可以完全舍弃不翻译<--不可以！，因为最后到UnaryExp这步的时候，可能会退出函数调用!
-                builder.buildExp(stmt.getExp());
+                if (stmt.getExp() != null)
+                    builder.buildExp(stmt.getExp());
             }
             case 3 -> {
                 // Block

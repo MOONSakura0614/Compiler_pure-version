@@ -1,6 +1,7 @@
 package llvm.value;
 
 import frontend.symbol.Symbol;
+import llvm.IRGenerator;
 import llvm.value.instruction.Instruction;
 
 import java.util.ArrayList;
@@ -22,6 +23,8 @@ public class IRBasicBlock extends IRValue {
         inFunc = function;
 //        reg_num = function.getReg_num() + 1;
         instructions = new ArrayList<>();
+        setName("%" + IRGenerator.cur_func.getLocalValRegNum());
+        // TODO: 2024/11/29 虽然暂时没整跳转，但是唯一一个label还是拥有一下自己的虚拟寄存器编号吧~ 
     }
 
     public void setPrevBlock(IRBasicBlock prevBlock) {

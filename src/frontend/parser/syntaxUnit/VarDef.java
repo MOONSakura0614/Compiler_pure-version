@@ -144,7 +144,9 @@ public class VarDef extends SyntaxNode {
         if (IRGenerator.llvm_ir_gen) {
             int val = 0;
             if (initVal != null) {
-                val = initVal.getIntValue();
+                if (IRGenerator.globalVar_gen || symbol.isConstSymbol())
+                    val = initVal.getIntValue(); // 只有全局和常量才能保证一定能求出值，否则可能就不出来，很多exp是初始化0的初值
+                // TODO: 2024/11/29 可能会造成除零错误等 
             }
             // TODO: 2024/11/28 下面这个地方设Value的new有点莫名其妙，全局就在if中重新set了；普通的局部，也应该是用 alloca那条吧（从内存使用的时候再load
             IRValue value = builder.buildInt(ident_token.getTokenValue());
