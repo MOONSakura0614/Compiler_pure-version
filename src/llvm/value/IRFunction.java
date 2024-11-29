@@ -186,4 +186,8 @@ public class IRFunction extends IRGlobalValue {
     public IRType getRetType() {
         return ((IRFunctionType) irType).getRet_type();
     }
+
+    public ArrayList<IRType> getArgTypes() {
+        return ((IRFunctionType) irType).getParam_type_list();
+    }
 }

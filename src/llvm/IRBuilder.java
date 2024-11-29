@@ -324,8 +324,28 @@ public class IRBuilder {
             // !!用公共变量就是不太好，在下面调用的过程中，symbol就被改了数据！！！
             rArgs = buildRealArgs(unaryExp.getFuncRParams());
         }
+        // 针对原来的function中的类型要求对参数进行类型转换
+        ArrayList<IRType> argTypes = ((IRFunction) funcSym.irValue).getArgTypes();
+        IRValue arg;
+        ArrayList<IRValue> refinedArgs = new ArrayList<>();
+        for (int i = 0; i < rArgs.size(); i++) {
+            arg = rArgs.get(i);
+            if (!arg.getIrType().equals(argTypes.get(i))) {
+                // 类型不同
+                if (argTypes.get(i).equals(IRIntType.intType)) { // 说明形参需要的是i32
+                    convInst = new ConvInst(Operator.Zext, arg);
+                    cur_basicBlock.addInst(convInst);
+                } else {
+                    convInst = new ConvInst(Operator.Trunc, arg);
+                    cur_basicBlock.addInst(convInst);
+                }
+                arg = callInst;
+            }
+            refinedArgs.add(arg);
+        }
 //        System.out.println(symbol.irValue);
-        callInst = new CallInst((IRFunction) funcSym.irValue, rArgs);
+//        callInst = new CallInst((IRFunction) funcSym.irValue, rArgs);
+        callInst = new CallInst((IRFunction) funcSym.irValue, refinedArgs);
         cur_basicBlock.addInst(callInst);
         return callInst;
     }
