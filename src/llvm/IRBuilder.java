@@ -108,8 +108,9 @@ public class IRBuilder {
         cur_basicBlock.addInst(allocaInst);
 
         // store:存入对应值(store arg对应的reg 到 alloca对应的内存指针reg)
-        storeInst = new StoreInst(argument, allocaInst);
-        cur_basicBlock.addInst(storeInst);
+        /*storeInst = new StoreInst(argument, allocaInst);
+        cur_basicBlock.addInst(storeInst);*/
+        buildStoreInst(argument, allocaInst);
         // 注意随用随load，在要用到这个值（查询调用的ident_name之类的再生成load指令）
     }
 
@@ -157,7 +158,7 @@ public class IRBuilder {
 
         cur_basicBlock.addInst(allocaInst);
 
-        storeInst = new StoreInst(value, allocaInst);
+        storeInst = new StoreInst(value, allocaInst); // 因为是直接用数值，不是寄存器，所以不区分类型（不用进buildStore去类型转化
         cur_basicBlock.addInst(storeInst);
     }
 
@@ -191,21 +192,22 @@ public class IRBuilder {
             // TODO: 2024/11/28 下面的赋值，没有完成数组的情况
             // 获取计算的最终结果
             value = buildInitVal(varDef.getInitVal()); // --> 获取最后存储结果的寄存器（load出来的）
-            // 获取value过程的instructions已经存了
-            if (type.equals(IRCharType.charType)) { // TODO: 2024/11/28 计算时全按照i32，先zext到32，然后最后根据结果需要什么选择是否trunc到8
-                // 注意对res判断，进行类型转化（res是否类型为IRValue更好）——res就是initVal得出的IRValue结果，可能类型和type不同？
-                convInst = buildConvInst(Operator.Trunc, value);
-//                cur_basicBlock.addInst(convInst); // 类型转化的在构造出Inst的函数内部就添加了（就是上一行的build中
-                /*if (resValue == null) {
-                    // 说明类型一致
-                }*/
-                value = convInst;
-            }
 
             if (value == null)
                 return;
+            // 获取value过程的instructions已经存了
+            /*if (type.equals(IRCharType.charType)) { // TODO: 2024/11/28 计算时全按照i32，先zext到32，然后最后根据结果需要什么选择是否trunc到8
+                // 注意对res判断，进行类型转化（res是否类型为IRValue更好）——res就是initVal得出的IRValue结果，可能类型和type不同？
+                convInst = buildConvInst(Operator.Trunc, value);
+//                cur_basicBlock.addInst(convInst); // 类型转化的在构造出Inst的函数内部就添加了（就是上一行的build中
+                *//*if (resValue == null) {
+                    // 说明类型一致
+                }*//*
+                value = convInst;
+            }
             storeInst = new StoreInst(value, allocaInst);
-            cur_basicBlock.addInst(storeInst);
+            cur_basicBlock.addInst(storeInst);*/
+            buildStoreInst(value, allocaInst);
         }
     }
 
@@ -439,7 +441,7 @@ public class IRBuilder {
 
     public void buildStoreInst(IRValue irValue, IRValue lValIrValue) {
         // 注意类型转化
-        if (irValue.getIrType().equals(((IRPointerType) lValIrValue.getIrType()).getElement_type())) {
+        if (!irValue.getIrType().equals(((IRPointerType) lValIrValue.getIrType()).getElement_type())) {
             if (irValue.getIrType().equals(IRIntType.intType)) {
                 irValue = buildConvInst(Operator.Trunc, irValue);
             } else if (irValue.getIrType().equals(IRCharType.charType)) {
