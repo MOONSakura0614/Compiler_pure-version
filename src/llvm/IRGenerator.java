@@ -246,6 +246,13 @@ public class IRGenerator {
                 int val = exp.getIntValue();
                 lVal_sym.setIntValue(val); // 下面符号改变的value不需要重复声明（只要对应语句
 //                Symbol symbol = cur_ir_symTable.findInCurSymTable(lVal.)
+
+                // 生成对应的赋值一系列操作的指令语句
+                irValue = builder.buildExp(exp);
+                IRValue lVal_irValue = lVal_sym.irValue; // alloca语句
+                // 只要store到对应位置就行
+                builder.buildStoreInst(irValue, lVal_irValue);
+//                builder.buildAssignInsts(lVal_irValue, irValue);
             }
             case 2 -> {
                 // [Exp] ';' 纯运算，不知道可不可以完全舍弃不翻译

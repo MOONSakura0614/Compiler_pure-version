@@ -5,6 +5,9 @@ int b = 10 + a0;
 int sum(int a, int b) {
     int a1 = (23+12)*10-10-2;
     const char z = c0 + 256*2;
+    a1 = z +100;
+    char z2 = a;
+    a1 = z2 + a1;
     return -3-3 + 9 * 66 / 99 % 17;
 }
 void voidReturn() {}

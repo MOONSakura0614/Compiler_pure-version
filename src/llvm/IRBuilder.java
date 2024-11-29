@@ -5,10 +5,7 @@ import frontend.lexer.Token;
 import frontend.parser.syntaxUnit.*;
 import frontend.symbol.ConstSymbol;
 import frontend.symbol.Symbol;
-import llvm.type.IRCharType;
-import llvm.type.IRFunctionType;
-import llvm.type.IRIntType;
-import llvm.type.IRType;
+import llvm.type.*;
 import llvm.value.IRArgument;
 import llvm.value.IRFunction;
 import llvm.value.IRGlobalVar;
@@ -198,7 +195,7 @@ public class IRBuilder {
             if (type.equals(IRCharType.charType)) { // TODO: 2024/11/28 计算时全按照i32，先zext到32，然后最后根据结果需要什么选择是否trunc到8
                 // 注意对res判断，进行类型转化（res是否类型为IRValue更好）——res就是initVal得出的IRValue结果，可能类型和type不同？
                 convInst = buildConvInst(Operator.Trunc, value);
-                cur_basicBlock.addInst(convInst); // 类型转化的在构造出Inst的函数内部就添加了（就是上一行的build中
+//                cur_basicBlock.addInst(convInst); // 类型转化的在构造出Inst的函数内部就添加了（就是上一行的build中
                 /*if (resValue == null) {
                     // 说明类型一致
                 }*/
@@ -212,11 +209,13 @@ public class IRBuilder {
         }
     }
 
-    private ConvInst buildConvInst(Operator op, IRValue value) {
-        return new ConvInst(op, value);
+    public ConvInst buildConvInst(Operator op, IRValue value) {
+        convInst = new ConvInst(op, value);
+        cur_basicBlock.addInst(convInst);
+        return convInst;
     }
 
-    private IRValue buildInitVal(InitVal initVal) {
+    public IRValue buildInitVal(InitVal initVal) {
         // 获取最终结果的寄存器
         if (initVal.getArrayInit() || initVal.getStringInit()) {
             // 数组待实现
@@ -232,13 +231,13 @@ public class IRBuilder {
     ConvInst convInst;
     Operator op;
 
-    private IRValue buildExp(Exp exp) {
+    public IRValue buildExp(Exp exp) {
         if (exp.getAddExp() == null)
             return null;
         return buildAddExp(exp.getAddExp());
     }
 
-    private IRValue buildAddExp(AddExp addExp) {
+    public IRValue buildAddExp(AddExp addExp) {
         MulExp mulExp = addExp.getMulExp();
         if (mulExp == null)
             return null; // 不可能发生的错误情况
@@ -270,11 +269,18 @@ public class IRBuilder {
     }
 
     /* 二元运算的结果存储在一个新的虚拟寄存器中 */
-    private BinaryInst buildBinaryInst(Operator op, IRValue irValue_left, IRValue irValue_right) {
+    public BinaryInst buildBinaryInst(Operator op, IRValue irValue_left, IRValue irValue_right) {
+        // 进行运算的时候都统一转化为i32，最后再按需要的结果转换类型
+        if (irValue_left.getIrType() instanceof IRCharType) {
+            irValue_left = buildConvInst(Operator.Zext, irValue_left);
+        }
+        if (irValue_right.getIrType() instanceof IRCharType) {
+            irValue_right = buildConvInst(Operator.Zext, irValue_right);
+        }
         return new BinaryInst(op, "%" + cur_func.getLocalValRegNum(), irValue_left, irValue_right);
     }
 
-    private IRValue buildMulExp(MulExp mulExp) {
+    public IRValue buildMulExp(MulExp mulExp) {
         UnaryExp unaryExp = mulExp.getUnaryExp();
         if (unaryExp == null)
             return null;
@@ -306,7 +312,7 @@ public class IRBuilder {
 
     // UnaryExp → PrimaryExp → '(' Exp ')' | LVal | Number | Character
     // %2 = add i32 1, 2  -- 可以直接计算的Number和Character处理【不涉及虚拟寄存器】
-    private IRValue buildUnaryExp(UnaryExp unaryExp) {
+    public IRValue buildUnaryExp(UnaryExp unaryExp) {
         if (unaryExp.getIsPrimaryExp()) {
             PrimaryExp primaryExp = unaryExp.getPrimaryExp();
             return buildPrimaryExp(primaryExp);
@@ -331,7 +337,7 @@ public class IRBuilder {
         return null;
     }
 
-    private IRValue buildUnaryInst(Token unaryOp, IRValue unaryValue) {
+    public IRValue buildUnaryInst(Token unaryOp, IRValue unaryValue) {
         UnaryInst unaryInst = new UnaryInst(unaryOp, unaryValue);
         cur_basicBlock.addInst(unaryInst);
         return unaryInst;
@@ -339,7 +345,7 @@ public class IRBuilder {
 
     // 常量是不是应该分离讨论：算了还是说把init中用到Number和Character的，和用ident的一样处理
     // TODO: 2024/11/28 应该在一开始识别常量，如果用常量init，那么alloc之后，直接store常值；；； 还是曲折一点，遇到常量先alloc，再store常量，再load，得到的新的虚拟寄存器的值再使用（store回去）
-    private IRValue buildPrimaryExp(PrimaryExp primaryExp) {
+    public IRValue buildPrimaryExp(PrimaryExp primaryExp) {
         if (primaryExp.getIsNumber()) {
             // 如果是数字，直接load
             return buildConstInt(primaryExp.getNumber().getIntValue());
@@ -356,7 +362,7 @@ public class IRBuilder {
     }
 
     // LVal → Ident ['[' Exp ']']
-    private IRValue buildLVal(LVal lVal) {
+    public IRValue buildLVal(LVal lVal) {
         // 注意区分全局和局部变量
         // TODO: 2024/11/28 尚未实现getElement指令，无法操作数组
         symbol = cur_ir_symTable.findInCurSymTable(lVal.getIdentName());
@@ -376,7 +382,7 @@ public class IRBuilder {
 //        return value;
     }
 
-    private IRValue buildLoadInst(IRValue value) {
+    public LoadInst buildLoadInst(IRValue value) {
         loadInst = new LoadInst(value);
         cur_basicBlock.addInst(loadInst);
         return loadInst;
@@ -393,8 +399,9 @@ public class IRBuilder {
             else {
                 if (value instanceof IRGlobalVar) { // 全局变量存的是地址
                     // load pointer
-                    loadInst = new LoadInst(value);
-                    cur_basicBlock.addInst(loadInst);
+                    loadInst = buildLoadInst(value);
+                    /*loadInst = new LoadInst(value);
+                    cur_basicBlock.addInst(loadInst);*/
                     value = loadInst;
 //                    retInst = new RetInst(loadInst);
 //                    cur_basicBlock.addInst(retInst);
@@ -420,5 +427,26 @@ public class IRBuilder {
         }
         cur_basicBlock.addInst(retInst); // 每条ret语句也是属于自己对应的基本块的（函数可能被划分-->有多条return
 //        System.out.println(retInst);
+    }
+
+    public void buildAssignInsts(IRValue lValIrValue, IRValue irValue) {
+        // 前者为alloca的pointer，后者为右值（Exp）
+        loadInst = buildLoadInst(lValIrValue); // 把pointer对应的内存加载到寄存器中
+//        cur_basicBlock.addInst(loadInst); --> 有build方法的，在build方法中加入基本快，不是像下面的new出来的
+        storeInst = new StoreInst(irValue, lValIrValue);
+        cur_basicBlock.addInst(storeInst);
+    }
+
+    public void buildStoreInst(IRValue irValue, IRValue lValIrValue) {
+        // 注意类型转化
+        if (irValue.getIrType().equals(((IRPointerType) lValIrValue.getIrType()).getElement_type())) {
+            if (irValue.getIrType().equals(IRIntType.intType)) {
+                irValue = buildConvInst(Operator.Trunc, irValue);
+            } else if (irValue.getIrType().equals(IRCharType.charType)) {
+                irValue = buildConvInst(Operator.Zext, irValue);
+            }
+        }
+        storeInst = new StoreInst(irValue, lValIrValue);
+        cur_basicBlock.addInst(storeInst);
     }
 }
