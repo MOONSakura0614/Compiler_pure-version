@@ -339,7 +339,7 @@ public class IRBuilder {
                     convInst = new ConvInst(Operator.Trunc, arg);
                     cur_basicBlock.addInst(convInst);
                 }
-                arg = callInst;
+                arg = convInst;
             }
             refinedArgs.add(arg);
         }
@@ -576,6 +576,7 @@ public class IRBuilder {
         if (symbol.isConstSymbol()) {
             // 关于局部变量在符号表中对应的IRValue的设置:Const肯定有对应的值不用愁，直接用val
             return new IRConstInt(symbol.getIntValue()); // 初始值，i32
+//            return symbol.irValue; // 初始值，i32
         } else {
             // 全局变量：直接用@
             // GlobalVar也是指针形式，徐亚先load再使用

@@ -89,6 +89,7 @@ define dso_local i32 @main() {
     store i8 %11, i8* %7
     %12 = alloca i32
     store i32 1, i32* %12
-    %13 = call i32 @func7(i32 1, i32 97)
+    %13 = trunc i32 97 to i8
+    %14 = call i32 @func7(i32 1, i8 %13)
     ret i32 0
 }
