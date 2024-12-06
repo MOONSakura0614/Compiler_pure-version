@@ -1,6 +1,7 @@
 package frontend.parser.syntaxUnit;
 
 import frontend.lexer.Token;
+import llvm.value.instruction.Operator;
 import utils.IOUtils;
 
 import java.util.ArrayList;
@@ -57,7 +58,7 @@ public class RelExp extends SyntaxNode {
         IOUtils.writeCorrectLine(toString());
     }
 
-    private class RelOp_AddExp {
+    public class RelOp_AddExp {
         private Token relOp_token;
         private AddExp addExp;
         private static final RelExp relExp = new RelExp();
@@ -76,6 +77,18 @@ public class RelExp extends SyntaxNode {
             if (addExp != null)
                 addExp.print();
         }
+
+        public Token getRelOp_token() {
+            return relOp_token;
+        }
+
+        public Operator getRelOp() {
+            return Operator.opMap.get(relOp_token.getTokenType());
+        }
+
+        public AddExp getAddExp() {
+            return addExp;
+        }
     }
 
     @Override
@@ -86,5 +99,18 @@ public class RelExp extends SyntaxNode {
             if (relOp_addExp.addExp != null)
                 relOp_addExp.addExp.visit();
         }
+    }
+
+    public boolean isRelOpAddExpsEmpty() {
+        return relOp_addExp_list.isEmpty();
+    }
+
+    public AddExp getAddExp() {
+        return addExp;
+    }
+
+    public ArrayList<RelOp_AddExp> getRelOp_addExp_list() {
+        // 与LAndExp和LOrExp不同，RelOp的可选项太多，所以都得返回
+        return relOp_addExp_list;
     }
 }

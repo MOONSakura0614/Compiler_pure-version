@@ -7,10 +7,16 @@ import frontend.symbol.Symbol;
 import frontend.symbol.SymbolTable;
 import llvm.type.*;
 import llvm.value.*;
+import llvm.value.constVar.IRConstInt;
+import llvm.value.instruction.BinaryInst;
+import llvm.value.instruction.IcmpInst;
 import llvm.value.instruction.Instruction;
+import llvm.value.instruction.Operator;
 import llvm.value.instruction.memory.AllocaInst;
 import llvm.value.instruction.memory.LoadInst;
 import llvm.value.instruction.memory.StoreInst;
+import llvm.value.instruction.terminator.BrInst;
+import llvm.value.instruction.terminator.CallInst;
 import llvm.value.instruction.terminator.RetInst;
 
 import java.util.ArrayList;
@@ -221,6 +227,16 @@ public class IRGenerator {
         for (BlockItem blockItem: blockItem_list) {
             visitBlockItem(blockItem);
         }
+        /*BlockItem tmpBlockItem;
+        for (int i = 0; i < blockItem_list.size(); i++) {
+            tmpBlockItem = blockItem_list.get(i);
+            curBlockItem_index = i;
+            curBlock = block;
+            if (tmpBlockItem.getIRGen()) {
+                continue; // 已经遍历过
+            }
+            visitBlockItem(tmpBlockItem);
+        }*/
         exitCurScope();
     }
 
@@ -278,7 +294,85 @@ public class IRGenerator {
                 }
             }
             case 4 -> {
-                // todo:跳转 'if' '(' Cond ')' Stmt [ 'else' Stmt ]
+                // 跳转 'if' '(' Cond ')' Stmt [ 'else' Stmt ]
+                visitBranch(stmt);
+                /*IRBasicBlock condBlock = cur_basicBlock; // 添加if中cond和br语句的基本块
+                IRBasicBlock trueBlock; // cond条件成立时
+                IRBasicBlock falseBlock;
+                IRBasicBlock finalBlock;
+
+                ArrayList<IRBasicBlock> condBlockList = new ArrayList<>(); // 为了回填跳转实现短路求值！——感觉只有Cond推出LOrExp
+                condBlockList.add(cur_basicBlock);
+                // 先遍历LAndExp(LAndExp对应的BB需要加为真直接跳trueBlock，因为是||衔接的)，但LAndExp内部的EqExp则需要跳到下一个Cond
+
+
+                BinaryInst condInst = visitCond(stmt.getCond());
+                // TODO: 2024/12/6 如果cond构造的时候new了新的Block注意此时condBlock要改变，一定是最后一次icmpInst添加到那个block
+                condBlock = cur_basicBlock;
+                // visitCond的时候把生成icmpInst的过程语句都添加到之前对应的基本块中:只剩br语句没存（以及br构造需要condInst）
+                // TODO: 2024/12/5 注意cond的短路求值也要支持跳转，所以上面的block不能设成全局的！会混淆
+                if (stmt.getHasElse()) {
+                     */
+                    /*basicBlock;
+                     if (...) {
+                        trueBlock;
+                        ...
+                        trueEndBlock;
+                     } else {
+                        falseBlock;
+                        ...
+                        falseEndBlock;
+                     }
+                     finalBlock;*/
+                    /*
+                    // br语句和ret语句下面是新的基本块，跳转语句是一个基本块的终止
+                    // icmp和br语句都归于当前的基本块（还未新建基本块）
+//                    BinaryInst condInst = visitCond(stmt.getCond());
+                    // 需要存下当前的block:即上文的condBlock
+                    newBasicBlock(); // cur_bb替换成新的
+                    trueBlock = cur_basicBlock; // 得到label
+                    visitStmt(stmt.getIfStmt());
+                    newBasicBlock();
+                    falseBlock = cur_basicBlock;
+                    visitStmt(stmt.getElseStmt());
+
+                    // 将跳转语句添加回之前保存的condBlock中
+                    builder.buildBrInst(condBlock, trueBlock, falseBlock, condInst);
+
+                    // 添加跳转到finalBlock的跳转语句：对trueBlock（防止执行FalseBlock）【FalseBlock也需要添加吗？】
+                    // 如果不想几百年后再回填跳转语句，只能马上生成finalBlock，但是就要稍微改之前的逻辑！
+                    // TODO: 2024/12/5 之前是Block中每个BlockItem遍历，好处是Block是固定的
+                    //  一个Func内只有一个全局Block，只是BlockItem可能也是一个Block罢了
+                    // TODO: 2024/12/5 要不就用SlotTracker重新按每个虚拟寄存器出现的次数print（或者print之前统一调用重命名程序）
+                    //  这里buildBrInst的时候就留个cond和空的%没有数字的label？——但是不知道具体跳转到哪里？？
+                    // TODO: 2024/12/5 重构Block语法树结点，BlockItem里加一个是否构建过llvm？
+                    // 或者下面直接new一个新的，之后退出去
+                    // 1.继续在当前的Block未完待续的BlockItem_list中走下去
+                    // 2.退回到上一个Block
+                    // TODO: 2024/12/5 有个问题，如果有多个分支，可能有多个结束的基本块，那么是不是ret void在最后一次new出来的BB里面也很合理
+                    //  【但是如果if-else的里面自带ret也很难办！！！_多生成的是死代码单纯不执行就ret了，还是ret后有br会被lli判断错误？】
+                    newBasicBlock();
+                    finalBlock = cur_basicBlock; // 当前的最新bb
+                    builder.buildBrInst(trueBlock, finalBlock);
+                    builder.buildBrInst(falseBlock, finalBlock);
+                    // 注意如果是blockItemList里的最后一个，很可能又进入外层的Block中的新的里面又new一个？？
+                    // 好像也不是那么愁：BB和B定义不同，不是{}一个Block就是一个BB，之前没有跳转和循环的时候都是一个函数体只有一个BB，B是用来new新的符号表的
+                } else {
+                     */
+                    /*basicBlock;
+                     if (...) {
+                        trueBlock;
+                     }
+                     finalBlock;*/
+                    /*
+                    newBasicBlock();
+                    trueBlock = cur_basicBlock;
+                    visitStmt(stmt.getIfStmt());
+
+                    newBasicBlock();
+                    finalBlock = cur_basicBlock;
+                    builder.buildBrInst(condBlock, trueBlock, finalBlock, condInst);
+                }*/
             }
             case 5 -> {
                 // todo:循环 'for' '(' [ForStmt] ';' [Cond] ';' [ForStmt] ')' Stmt
@@ -305,6 +399,242 @@ public class IRGenerator {
             }
         }
     }
+
+    /* 单独处理分支语句 */
+    public void visitBranch(Stmt stmt) {
+        // 为了Cond相关
+        // 处理Cond
+        Cond cond = stmt.getCond();
+        LOrExp lOrExp = cond.getlOrExp(); // 由||连接的
+        IRBasicBlock curBlock = cur_basicBlock; // 当前块，需要加第一个icmp（顺序），以及后面补充的第一条br（回填）的块
+        IRBasicBlock trueBlock; // label为真跳转到的基本块
+        IRBasicBlock falseBlock;
+        if (lOrExp.isOrLAndExpsEmpty()) {
+            // 如果只由一个lAndExp（由&&连接）组成
+            LAndExp lAndExp = lOrExp.getlAndExp();
+            ArrayList<IRBasicBlock> lAndBB; // 基本块的最后一条是条件br结束，然后取最后一条指令set为假跳转到的
+            lAndBB = visitLAndExp(lAndExp);
+//            curBlock = cur_basicBlock; // 不知道上面lAndExp的分析过程是否new过基本块
+            // (在EqExp1 && EqExp2 && ... 之间会互相转:假的话要直接转到falseBlock（这是没有||的情况，不然转到||后的下一个LAndExp）
+
+            // 处理完仅有的一个lAndExp
+//            newBasicBlock(); // 在处理lAndExp的最后已经newBB了
+            trueBlock = cur_basicBlock;
+            // 分析if-stmt
+            visitStmt(stmt.getIfStmt()); // 构建true要跳转到BB（在visitLAndExp时已经加上trueBlock了）
+
+            // 如果有else
+            visitElseAndNextBlockItem(stmt, trueBlock, lAndBB);
+
+            // 结束Else之后会有总的结束块（这里唯一问题是对于void函数[只有ret void会被检查加回去]，
+            // 如果if，else中都有ret语句，那ret后这俩基本块还加了无条件跳转到结束块的，
+            // 结束块没指令被加上ret void，会不会lli出错）
+        } else {
+            // 有||连接的多个lOrExp
+            LAndExp lAndExp = lOrExp.getlAndExp();
+            ArrayList<IRBasicBlock> lAndBB;
+            lAndBB = visitLAndExp(lAndExp); // 第一个LAndExp-->true跳到下个&&后的eqExp，最后一个eqExp为真则跳ifBlock
+
+            // if一定有对应的ifStmt，即使为空
+            trueBlock = cur_basicBlock;
+            visitStmt(stmt.getIfStmt()); // 此时最后一条EqExp成立时跳转到就是真的
+            // llvm ir虚拟寄存器的number没有说按出现顺序严格递增，只要不重复就行
+
+            // 处理||后面的多个LAndExps
+//            ArrayList<ArrayList<IRBasicBlock>> lOrBB_lAndBBs = new ArrayList<>();
+            // 每个元素是lAndBBs,然后lAndBB中的最后一个为真要跳if，为假跳下一个lOrExp（前面的为假也跳下一个lOrExp，没有下一个就跳else或者final）
+//            lOrBB_lAndBBs.add(lAndBB);
+//            ArrayList<IRBasicBlock> tmpLAndBB = lAndBB;
+            for (LAndExp lAnd: lOrExp.getOrLAndExps()) {
+                // 上面newBB用于ifStmt了，所以进入新的LAndExp之前要再次newBB
+                newBasicBlock();
+//                for (IRBasicBlock block: tmpLAndBB) { // -->or的短路求值逻辑在下面的visitAfterOr里面设置trueBlock体现的
+                for (IRBasicBlock block: lAndBB) {
+                    refillLogicalBlock(block, cur_basicBlock, true); // set前一个lAndExp为假时需要跳转到的block
+                }
+                // 保证lAndBB中最后一条br指令的trueBlock都是正确设置的，只需改造falseBlock的跳转即可
+                lAndBB = visitLAndExpAfterOr(lAnd, trueBlock);
+            }
+            // 最后一组的每个block的falseBlock还没有正确设置（&&中遇到false要直接跳转，因为没有新的||，所以只能跳转到else或者final）
+            visitElseAndNextBlockItem(stmt, trueBlock, lAndBB);
+        }
+    }
+
+    /* refill lAndExp */
+    private void visitElseAndNextBlockItem(Stmt stmt, IRBasicBlock trueBlock, ArrayList<IRBasicBlock> lAndBB) {
+        IRBasicBlock falseBlock;
+        if (stmt.getHasElse()) {
+            newBasicBlock();
+            falseBlock = cur_basicBlock;
+            visitStmt(stmt.getElseStmt());
+            for (IRBasicBlock block: lAndBB) {
+                refillLogicalBlock(block, falseBlock, true);
+            }
+            newBasicBlock();
+            builder.buildBrInst(trueBlock, cur_basicBlock);
+            builder.buildBrInst(falseBlock, cur_basicBlock);
+        } else {
+            newBasicBlock();
+            for (IRBasicBlock block: lAndBB) {
+                refillLogicalBlock(block, cur_basicBlock, true); // 相当于直接跳出去了
+            }
+            builder.buildBrInst(trueBlock, cur_basicBlock); // 无条件跳转
+        }
+    }
+
+    private ArrayList<IRBasicBlock> visitLAndExp(LAndExp lAndExp) {
+        ArrayList<IRBasicBlock> lAndBB = new ArrayList<>();
+        IRBasicBlock tmpBlock = cur_basicBlock;
+        BinaryInst condInst;
+        if (lAndExp.isAndEqExpsEmpty()) {
+            // 没有&&
+            condInst = visitEqExp(lAndExp.getEqExp());
+            lAndBB.add(cur_basicBlock);
+            // 注意刚建立lAndExp，对于第一个eqExp的指令建立都是在当前基本块的（没有跳转，分支和ret就不用newBB）
+//            lAndBB.add(visitEqExp(lAndExp.getEqExp()));
+            // 为真跳到if【或者是||后的】，为假跳到else【都会new一次block代表下一个判断语句或者是if】
+            newBasicBlock(); // 给下面要跳转的
+            builder.buildBrInst(tmpBlock, cur_basicBlock, true, condInst); // 最后一个EqExp所在的最后一条跳转语句
+        } else {
+            // 为真才跳到下一个EqExp（就是分析第二个开始的Exp之前都要newBB，第一个EqExp结束的时候就有br）
+            condInst = visitEqExp(lAndExp.getEqExp());
+            lAndBB.add(cur_basicBlock);
+            // 此时是第一个EqExp，还未添加br语句，下面添加br语句，但是br中的falseBlock需要后面才能回填
+
+            for (EqExp eqExp: lAndExp.getAndEqExps()) {
+                newBasicBlock();
+                builder.buildBrInst(tmpBlock, cur_basicBlock, true, condInst); // 还没给tmpB赋新值，术语上一个EqExp的BB
+                tmpBlock = cur_basicBlock; // 记录本次EqExp所在的基本块
+                condInst = visitEqExp(eqExp);
+                lAndBB.add(cur_basicBlock);
+            }
+            newBasicBlock(); // 给下面要跳转的
+            builder.buildBrInst(tmpBlock, cur_basicBlock, true, condInst); // 最后一个EqExp所在的最后一条跳转语句
+        }
+        return lAndBB; // 返回的基本块都是需要在最后的brInst指令重新setFalseBlock的
+    }
+
+    private ArrayList<IRBasicBlock> visitLAndExpAfterOr(LAndExp lAndExp, IRBasicBlock trueBlock) {
+        ArrayList<IRBasicBlock> lAndBB = new ArrayList<>();
+        IRBasicBlock tmpBlock = cur_basicBlock;
+        BinaryInst condInst;
+        if (lAndExp.isAndEqExpsEmpty()) {
+            // 没有&&
+            condInst = visitEqExp(lAndExp.getEqExp());
+            lAndBB.add(cur_basicBlock);
+            builder.buildBrInst(tmpBlock, trueBlock, true, condInst); // 最后一个EqExp所在的最后一条跳转语句
+        } else {
+            // 为真才跳到下一个EqExp（就是分析第二个开始的Exp之前都要newBB，第一个EqExp结束的时候就有br）
+            condInst = visitEqExp(lAndExp.getEqExp());
+            lAndBB.add(cur_basicBlock);
+            // 此时是第一个EqExp，还未添加br语句，下面添加br语句，但是br中的falseBlock需要后面才能回填
+
+            for (EqExp eqExp: lAndExp.getAndEqExps()) {
+                newBasicBlock();
+                builder.buildBrInst(tmpBlock, cur_basicBlock, true, condInst); // 还没给tmpB赋新值，术语上一个EqExp的BB
+                tmpBlock = cur_basicBlock; // 记录本次EqExp所在的基本块
+                condInst = visitEqExp(eqExp);
+                lAndBB.add(cur_basicBlock);
+            }
+            builder.buildBrInst(tmpBlock, trueBlock, true, condInst); // 最后一个EqExp所在的最后一条跳转语句
+        }
+        return lAndBB; // 返回的基本块都是需要在最后的brInst指令重新setFalseBlock的
+    }
+
+    public void refillLogicalBlock(IRBasicBlock block, IRBasicBlock nextBlock, boolean isLAnd) {
+        BrInst brInst = (BrInst) block.getLastInst(); // 基本块的结束位br语句的
+        if (isLAnd) {
+            brInst.setFalseBlock(nextBlock);
+        } else {
+            brInst.setTrueBlock(nextBlock);
+        }
+    }
+
+    private BinaryInst visitEqExp(EqExp eqExp) {
+        IRValue res;
+        // 添加一系列指令，包括icmp（但是最后icmp的%num要返回，给br做condInst）
+        if (eqExp.isEqOpRelExpsEmpty()) {
+            // 如果只有一个RelExp组成
+//            System.out.println("only 1 eqExp: eqExp didn't have RelExp??:" + (eqExp.getRelExp() == null)); // 全true，没有这种情况
+            res = visitRelExp(eqExp.getRelExp());
+//            System.out.println("only 1 eqExp: " + (res == null));
+//            return visitRelExp(eqExp.getRelExp());
+        } else {
+            // 获取的首先是i1的需要conv
+            IRValue tmp = visitRelExp(eqExp.getRelExp()); // 获取一个i1
+//            System.out.println("multi eqExps: " + (tmp == null));
+            IRValue icmp4rel;
+            for (EqExp.EqOp_RelExp eqOp_relExp: eqExp.getEqOp_relExp_list()) {
+                icmp4rel = visitRelExp(eqOp_relExp.getRelExp());
+                tmp = builder.buildIcmpInst(tmp, eqOp_relExp.getEqOp(), icmp4rel);
+            }
+            res = tmp;
+//            return (BinaryInst) tmp;
+        }
+        return dealWithConstIntInCond(res);
+    }
+
+    private BinaryInst dealWithConstIntInCond(IRValue cond) {
+        IcmpInst icmpInst;
+        // Add->Mul->Unary(CallInst函数调用；UnaryInst正负号开头；Primary[LVal左值，ConstInt])
+//        if (cond instanceof IRConstInt) {
+        if (!(cond instanceof BinaryInst)) {
+            // 等于0为false
+            /* test 为啥IcmpInst的left是null */
+//            System.out.println("in dealWithConstIntInCond: " + (cond == null));
+            icmpInst = (IcmpInst) builder.buildIcmpInst(cond, Operator.Ne, IRConstInt.zeroConstInt);
+//            icmpInst = new IcmpInst(Operator.Ne, cond, IRConstInt.zeroConstInt);
+//            cur_basicBlock.addInst(icmpInst);
+            // 不知道会不会出现其他情况（AddExp buildInst出来不是BinaryInst的情况？
+            return icmpInst;
+        } /*else if (cond instanceof CallInst) {
+
+        }*/
+        return (BinaryInst) cond;
+    }
+
+    /*private BinaryInst visitRelExp(RelExp relExp) {
+        if (relExp.isRelOpAddExpsEmpty()) {
+            // 只有AddExp组成
+            // 因为AddExp有可能得到常数结果，所以不能直接cast
+//            return (BinaryInst) builder.buildAddExp4Rel(relExp.getAddExp());
+            return (BinaryInst) builder.buildAddExp(relExp.getAddExp()); // 如何面对是IRConstInt的情况
+        } else {
+            // 有RelOp连接，需返回RelOp计算后结果
+            IRValue tmp = builder.buildAddExp(relExp.getAddExp()); // 对于初始的AddExp
+            for (RelExp.RelOp_AddExp relOp_addExp: relExp.getRelOp_addExp_list()) {
+                tmp = builder.buildIcmpInst(tmp, relOp_addExp.getRelOp(), relOp_addExp.getAddExp());
+            }
+            return (BinaryInst) tmp;
+        }
+    }*/
+
+    private IRValue visitRelExp(RelExp relExp) {
+        if (relExp.isRelOpAddExpsEmpty()) {
+            // 只有AddExp组成
+            // 因为AddExp有可能得到常数结果，所以不能直接cast
+//            return (BinaryInst) builder.buildAddExp4Rel(relExp.getAddExp());
+//            return builder.buildAddExp(relExp.getAddExp()); // 如何面对是IRConstInt的情况
+            IRValue irValue1 = builder.buildAddExp(relExp.getAddExp());
+//            System.out.println("only 1 eqExp: visitRelExp??:" + (irValue1 == null));
+            return irValue1;
+        } else {
+            // 有RelOp连接，需返回RelOp计算后结果
+            IRValue tmp = builder.buildAddExp(relExp.getAddExp()); // 对于初始的AddExp
+            for (RelExp.RelOp_AddExp relOp_addExp: relExp.getRelOp_addExp_list()) {
+                tmp = builder.buildIcmpInst(tmp, relOp_addExp.getRelOp(), relOp_addExp.getAddExp());
+            }
+            return tmp;
+        }
+    }
+
+    /*private IRBasicBlock visitEqExp(EqExp eqExp) {
+        return cur_basicBlock;
+    }
+    private BinaryInst visitCond(Cond cond) {
+        // 看是否需要短路求值（出现||或者&&）
+        return builder.buildLOrExpInIf(cond.getlOrExp());
+    }*/
 
     private void visitFuncDef(FuncDef funcDef) {
         // 先把函数名加入外层符号表
@@ -394,11 +724,15 @@ public class IRGenerator {
         }
     }
 
-    public void newBasicBlock() {
+    public static void newBasicBlock() { // 1206代码生成2：改为static方便builder调用
         cur_basicBlock = new IRBasicBlock(cur_func);
 //        cur_func.addReg_num(); // 这个应该是因为基本块的label占了，所以加1，没有一定要求（SSA不重复即可）
         cur_func.addBasicBlock(cur_basicBlock);
     }
+
+    // 为了跳转和循环
+//    private Block curBlock;
+//    private int curBlockItem_index; // 便于遍历下一个item块
 
     private void visitBlockInFunc(Block block) { // 已经新建符号表并加入形参，但是形参还需要alloca和load
         if (cur_func == null)
@@ -418,6 +752,17 @@ public class IRGenerator {
         for (BlockItem blockItem: blockItem_list) {
             visitBlockItem(blockItem);
         }
+        /*BlockItem tmpBlockItem;
+        for (int i = 0; i < blockItem_list.size(); i++) {
+            tmpBlockItem = blockItem_list.get(i);
+            curBlock = block; // 当前genIR的block
+            curBlockItem_index = i; // 代表最后一次遍历的BlockItem（如果if_else是所在的block中的最后一个？怎么去上一级？？）
+            // TODO: 2024/12/5 无法解决跨都是Block的BlockItem的问题（block item list的边界）
+            if (tmpBlockItem.getIRGen()) {
+                continue; // 已经遍历过
+            }
+            visitBlockItem(tmpBlockItem);
+        }*/
 //        cur_func.addBasicBlock(cur_basicBlock); // 在newBasicBlock()方法中已经添加了
         exitCurScope();
     }

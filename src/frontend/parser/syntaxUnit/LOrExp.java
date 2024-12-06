@@ -94,4 +94,33 @@ public class LOrExp extends SyntaxNode {
                 or_lAndExp.lAndExp.visit();
         }
     }
+
+    public ArrayList<LAndExp> getLAndExpList() {
+        ArrayList<LAndExp> lAndExps = new ArrayList<>();
+        lAndExps.add(lAndExp);
+        if (!or_lAndExp_list.isEmpty()) {
+            for (Or_LAndExp or_lAndExp: or_lAndExp_list) {
+                lAndExps.add(or_lAndExp.lAndExp);
+            }
+        }
+        return lAndExps;
+    }
+
+    public boolean isOrLAndExpsEmpty() {
+        return or_lAndExp_list.isEmpty();
+    }
+
+    public ArrayList<LAndExp> getOrLAndExps() {
+        ArrayList<LAndExp> lAndExps = new ArrayList<>();
+        if (!or_lAndExp_list.isEmpty()) {
+            for (Or_LAndExp or_lAndExp: or_lAndExp_list) {
+                lAndExps.add(or_lAndExp.lAndExp);
+            }
+        }
+        return lAndExps;
+    }
+
+    public LAndExp getlAndExp() {
+        return lAndExp;
+    }
 }

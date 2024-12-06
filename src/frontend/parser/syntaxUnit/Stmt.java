@@ -742,4 +742,20 @@ public class Stmt extends SyntaxNode {
             }
         }
     }
+
+    public Boolean getHasElse() {
+        return hasElse;
+    }
+
+    public Cond getCond() {
+        return cond;
+    }
+
+    public Stmt getIfStmt() {
+        return ifStmt;
+    }
+
+    public Stmt getElseStmt() {
+        return elseStmt;
+    }
 }

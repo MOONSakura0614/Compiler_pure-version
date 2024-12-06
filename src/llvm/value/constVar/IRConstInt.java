@@ -10,6 +10,7 @@ import llvm.value.IRValue;
  * @date 2024/11/15 22:51
  */
 public class IRConstInt extends IRConst {
+    public static final IRConstInt zeroConstInt = new IRConstInt(0);
 
     public IRConstInt() {
         super();

@@ -75,4 +75,15 @@ public class BlockItem extends SyntaxNode {
             return Boolean.FALSE;
         return stmt.isReturn0();
     }
+
+    // for llvm gen
+    private Boolean isIRGen = Boolean.FALSE;
+
+    public void setIRGenTrue() {
+        isIRGen = Boolean.TRUE;
+    }
+
+    public Boolean getIRGen() {
+        return isIRGen;
+    }
 }

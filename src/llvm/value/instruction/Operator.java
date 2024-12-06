@@ -65,6 +65,5 @@ public enum Operator {
         opMap.put(LexType.NEQ, Ne);
 
         opMap.put(LexType.NOT, Not);
-
     }
 }

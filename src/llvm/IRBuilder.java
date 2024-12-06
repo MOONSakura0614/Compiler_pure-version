@@ -5,25 +5,19 @@ import frontend.lexer.Token;
 import frontend.parser.syntaxUnit.*;
 import frontend.symbol.Symbol;
 import llvm.type.*;
-import llvm.value.IRArgument;
-import llvm.value.IRFunction;
-import llvm.value.IRGlobalVar;
-import llvm.value.IRValue;
+import llvm.value.*;
 import llvm.value.constVar.IRConst;
 import llvm.value.constVar.IRConstChar;
 import llvm.value.constVar.IRConstInt;
-import llvm.value.instruction.BinaryInst;
-import llvm.value.instruction.ConvInst;
-import llvm.value.instruction.Operator;
-import llvm.value.instruction.UnaryInst;
+import llvm.value.instruction.*;
 import llvm.value.instruction.memory.AllocaInst;
 import llvm.value.instruction.memory.LoadInst;
 import llvm.value.instruction.memory.StoreInst;
+import llvm.value.instruction.terminator.BrInst;
 import llvm.value.instruction.terminator.CallInst;
 import llvm.value.instruction.terminator.RetInst;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -515,8 +509,12 @@ public class IRBuilder {
                 case PLUS, MINU -> {
                     return buildUnaryInst(unaryExp.getUnaryOp(), unaryValue); // 单目操作数（但双目操作符，所以左值补0）
                 }
-                case NOT -> { // 暂时还没写到跳转
-//                    return buildUnaryInst();
+                case NOT -> { // UnaryOp + UnaryExp(已在进入UnaryOp开头的情况中转化为unaryValue)
+                    // 观察是否需要类型转化
+//                    icmpInst = new IcmpInst(Operator.Eq, unaryValue, IRConstInt.zeroConstInt); // 因为是取非,unaryValue等0才能跳trueBlock
+//                    cur_basicBlock.addInst(icmpInst);
+                    icmpInst = (IcmpInst) builder.buildIcmpInst(unaryValue, Operator.Eq, IRConstInt.zeroConstInt);
+                    return icmpInst;
                 }
                 default -> {
                     return null;
@@ -659,39 +657,93 @@ public class IRBuilder {
         cur_basicBlock.addInst(storeInst);
     }
 
-    public static void main(String[] args) {
+    // 跳转和循环
+    private BrInst brInst;
 
-        // 输入字符串
-        String input = "\\nThis is a test\\n\\n string with\\n\\n";
-        System.out.println("---逐字符打印开始---");
-        for (int i = 0; i < input.length(); i++) {
-            System.out.println(input.charAt(i));
-        }
-        System.out.println("---逐字符打印结束---");
-
-        // 定义正则模式，匹配 %c 和 %d（大小写敏感）
-        String pattern = "\\\\n";
-        System.out.println(pattern.length()); // 一个字符
-
-        // 编译正则表达式
-        Pattern compiledPattern = Pattern.compile(pattern);
-
-        // 使用 split 方法分割字符串
-        String[] parts = compiledPattern.split(input);
-
-        int res = 0;
-        Matcher matcher = compiledPattern.matcher(input);
-        while (matcher.find()) {
-            res++;
-        }
-        System.out.println(res);
-
-        for (String str: parts) {
-            if (str.isEmpty()) {
-                System.out.println(str+" 长度："+str.length());
-            }
-        }
-
-        System.out.println(Arrays.toString(parts));
+    public void buildBrInst(IRBasicBlock condBlock, IRBasicBlock trueBlock, IRBasicBlock falseBlock, BinaryInst condInst) {
+        brInst = new BrInst(condBlock, trueBlock, falseBlock, condInst);
+//        condBlock.addInst(brInst); // ————在BrInst的constructor中统一构建了
     }
+
+    public void buildBrInst(IRBasicBlock curBlock, IRBasicBlock finalBlock) {
+        brInst = new BrInst(curBlock, finalBlock);
+//        curBlock.addInst(brInst);
+    }
+
+    public void buildBrInst(IRBasicBlock curBlock, IRBasicBlock branchBlock, boolean isLAnd, BinaryInst condInst) {
+        brInst = new BrInst(curBlock, branchBlock, isLAnd, condInst);
+//        curBlock.addInst(brInst);
+    }
+
+    IcmpInst icmpInst;
+    public IRValue buildIcmpInst(IRValue tmp, Operator relOp, AddExp addExp) {
+        // binaryInst(icmpInst) = tmp relOp addExp
+        // tmp是AddExp的结果：i32类型
+//        binaryInst = (BinaryInst) buildAddExp4Rel(addExp); // build的时候加入过基本块了
+//        binaryInst = buildAddExp(addExp); // build的时候加入过基本块了
+        // icmp允许%10 = icmp sgt i32 %9, 0 和常数比较，所以不需要非得是binaryInst的虚拟寄存器名称
+        IRValue irValue = buildAddExp(addExp); // build的时候加入过基本块了
+        // 注意传过来的tmp是否为i32类型，可能是IcmpInst relOp addExp（所以要类型转化）
+        if (tmp.getIrType() instanceof IRBoolType) {
+            tmp = buildConvInst(Operator.Zext, tmp);
+        }
+        if (!(irValue.getIrType() instanceof IRIntType)) {
+            irValue = buildConvInst(Operator.Zext, irValue);
+        }
+        /* test 为啥IcmpInst的left是null */
+//        System.out.println("in buildIcmpInst with addExp: " + (tmp == null));
+        icmpInst = new IcmpInst(relOp, tmp, irValue); // 两个i32得到一个i1的结果
+        // new而不是调用builder方法（除了BrInst）都要手动加入当前基本块
+        cur_basicBlock.addInst(icmpInst);
+        return icmpInst;
+    }
+
+    public IRValue buildIcmpInst(IRValue tmp, Operator eqOp, IRValue rel) {
+        if (tmp.getIrType() instanceof IRBoolType) {
+            tmp = buildConvInst(Operator.Zext, tmp);
+        }
+        if (rel.getIrType() instanceof IRBoolType) {
+            rel = buildConvInst(Operator.Zext, rel);
+        }
+        /* test 为啥IcmpInst的left是null */
+//        System.out.println("in buildIcmpInst: " + (tmp == null));
+        icmpInst = new IcmpInst(eqOp, tmp, rel); // 两个i32得到一个i1的结果
+        // new而不是调用builder方法（除了BrInst）都要手动加入当前基本块
+        cur_basicBlock.addInst(icmpInst);
+        return icmpInst;
+    }
+
+    /*public BinaryInst buildLOrExpInIf(LOrExp lOrExp) { // 为了短路求值，这个改成*仅在if中用*的LOrExpBuilder
+        // lAndExp1 || lAndExp2 || ...
+        // || 的短路求值：lAndExp1=true时直接br，不求lAndExp2（不能进行lAndExp2的解析）
+        IRBasicBlock curBlock = cur_basicBlock;
+        // 返回icmpInst给外面的BasicBlock？
+//        for (LAndExp lAndExp: lOrExp.getLAndExpList()) {
+//            binaryInst = buildLAndExp(lAndExp);
+//        }
+        // 先构建必有的第一个lAndExp
+        binaryInst = buildLAndExp(lOrExp.getlAndExp());
+        if (lOrExp.isOrLAndExpsEmpty()) {
+            return binaryInst;
+        }
+        IRValue tmp;
+        IRBasicBlock nextCondBlock;
+        // 还有||后面的要判断
+        for (LAndExp lAndExp: lOrExp.getOrLAndExps()) {
+            // 这时要加入短路判断
+            // TODO: 2024/12/6 短路判断会不会影响IRGenerator中的跳转到true或false块（但是final块的跳转不会影响，因为true和false是固定的）
+            // 加入关于上面的binaryInst代表的icmp为真或假的情况
+            tmp = binaryInst;
+            IRGenerator.newBasicBlock();
+            nextCondBlock = curBlock; // 为这个新的LAndExp新建的BasicBlock（但是为真要跳到trueBlock怎么做，为假才判断||连接的nextBlock）
+            brInst = buildBrInst(curBlock, ); // 为真
+            binaryInst = buildLAndExp(lAndExp);
+        }
+    }
+
+    private BinaryInst buildLAndExp(LAndExp lAndExp) {
+        // LAndExp → EqExp | LAndExp '&&' EqExp
+        // && 的短路求值，在eqExp1 && eqExp2中，若eqExp1为真还需要求eqExp2；但是eqExp1为假可以直接回
+        
+    }*/
 }

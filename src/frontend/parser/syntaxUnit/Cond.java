@@ -36,8 +36,7 @@ public class Cond extends SyntaxNode {
             lOrExp.visit();
     }
 
-    public static void main(String[] args) {
-        int scope = 10;
-        System.out.println(scope); // 直接的int和数组都是正常打印
+    public LOrExp getlOrExp() {
+        return lOrExp;
     }
 }

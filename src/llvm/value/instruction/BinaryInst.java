@@ -13,8 +13,6 @@ import llvm.value.constVar.IRConstInt;
  */
 public class BinaryInst extends Instruction {
     // 补充操作符的左操作数
-//    IRValue default_value = new
-
 
     public BinaryInst(Operator operator, String name) {
         super(operator, name);

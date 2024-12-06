@@ -143,11 +143,12 @@ public class IRFunction extends IRGlobalValue {
 //            argument.setName("%" + (++this.reg_num)); // 虚拟寄存器从0开始
             funcDeclare.append(irArguments_list.get(i).toString()); // 从%0开始？
         }
-        funcDeclare.append(") {\n"); // 形参结束
+//        funcDeclare.append(") {\n"); // 形参结束，BasicBlock自带前面的换行
+        funcDeclare.append(") {"); // 形参结束
         for (IRBasicBlock basicBlock: irBasicBlock_list) {
             funcDeclare.append(basicBlock.toString());
         }
-        funcDeclare.append("}\n"); // 形参结束
+        funcDeclare.append("}\n\n"); // 形参结束
         // '{\n'留给BasicBlock？和‘}\n’？
         return funcDeclare.toString();
     }

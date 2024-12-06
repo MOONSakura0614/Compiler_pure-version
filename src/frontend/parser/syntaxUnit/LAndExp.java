@@ -92,4 +92,20 @@ public class LAndExp extends SyntaxNode {
                 and_eqExp.eqExp.visit();
         }
     }
+
+    public EqExp getEqExp() {
+        return eqExp;
+    }
+
+    public boolean isAndEqExpsEmpty() {
+        return and_eqExp_list.isEmpty();
+    }
+
+    public ArrayList<EqExp> getAndEqExps() { // 返回&&连接的那些EqExp——这步构建也需要短路求值（添加br跳转）
+        ArrayList<EqExp> andExps = new ArrayList<>();
+        for (And_EqExp and_eqExp: and_eqExp_list) {
+            andExps.add(and_eqExp.eqExp);
+        }
+        return andExps;
+    }
 }

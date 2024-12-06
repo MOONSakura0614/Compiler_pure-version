@@ -1,6 +1,7 @@
 package frontend.parser.syntaxUnit;
 
 import frontend.lexer.Token;
+import llvm.value.instruction.Operator;
 import utils.IOUtils;
 
 import java.util.ArrayList;
@@ -78,6 +79,14 @@ public class EqExp extends SyntaxNode {
             if (relExp != null)
                 relExp.print();
         }
+
+        public RelExp getRelExp() {
+            return relExp;
+        }
+
+        public Operator getEqOp() {
+            return Operator.opMap.get(eq_token.getTokenType());
+        }
     }
 
     @Override
@@ -89,5 +98,26 @@ public class EqExp extends SyntaxNode {
             if (eqOp_relExp.relExp != null)
                 eqOp_relExp.relExp.visit();
         }
+    }
+
+    public boolean isEqOpRelExpsEmpty() {
+        return eqOp_relExp_list.isEmpty();
+    }
+
+    public RelExp getRelExp() {
+        return relExp;
+    }
+
+    /* 仅返回EqOp( == | != )后的RelExp的List */
+    public ArrayList<RelExp> getEqOpRelExps() {
+        ArrayList<RelExp> relExps = new ArrayList<>();
+        for (EqOp_RelExp eqOp_relExp: eqOp_relExp_list) {
+            relExps.add(eqOp_relExp.relExp);
+        }
+        return relExps;
+    }
+
+    public ArrayList<EqOp_RelExp> getEqOp_relExp_list() {
+        return eqOp_relExp_list;
     }
 }
