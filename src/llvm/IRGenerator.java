@@ -304,7 +304,7 @@ public class IRGenerator {
                 // 'break' ';' | 'continue' ';'
                 // break和continue一定位于循环体内部，但是如何确定exitBlock？？-->一建立循环就全局保存exitBlock和circleBlock
                 // （主要是changeBlock，continue之后也是再执行change再判断是否符合进入循环的cond才能进入circleBlock
-//                builder.buildControlBrInst(stmt.getBreak_continue_token(), changeBlock_global, exitBlock_global);
+                builder.buildControlBrInst(stmt.getBreak_continue_token(), changeBlock_global, exitBlock_global);
             }
             case 7 -> {
                 // 'return' [Exp] ';' ret指令
@@ -326,11 +326,9 @@ public class IRGenerator {
         }
     }
 
-    private IRBasicBlock circleBlock_global; // TODO: 2024/12/7 观察思考是否出现循环内套循环就会失效？？
+    // TODO: 2024/12/7 观察思考是否出现循环内套循环就会失效？？
     private IRBasicBlock changeBlock_global;
     private IRBasicBlock exitBlock_global;
-    private IRBasicBlock continueBlock;
-    private IRBasicBlock breakBlock;
 
     /* 'for' '(' [ForStmt] ';' [Cond] ';' [ForStmt] ')' Stmt */
     private void visitCircle(Stmt stmt) {
@@ -339,15 +337,12 @@ public class IRGenerator {
         // 上面初始化完变量后下面进入条件判断块[ 注意Cond也可以缺省 ]
         IRBasicBlock condBlock;
         IRBasicBlock circleBlock; // label为真跳转到的基本块
-        /* 提前new好，到时候只能把build到对应的基本块 */
-        IRBasicBlock changeBlock;
-        IRBasicBlock exitBlock; // 结束循环块，跳出的部分 --- 已经在cond构建的时候赋好值了
-        if (stmt.getCond() != null) {
-            IRBasicBlock curBlock = cur_basicBlock; // 从当前的基本块进入是否运行进入循环的条件判断块
-            newBasicBlock(); // 新建条件判断块
-            builder.buildBrInst(curBlock, cur_basicBlock);
 
-            // 下面处理条件判断块（主要是cond的表示
+        IRBasicBlock curBlock = cur_basicBlock; // 从当前的基本块进入是否运行进入循环的条件判断块
+        newBasicBlock(); // 新建条件判断块 --- cond缺省时就是circle块
+        builder.buildBrInst(curBlock, cur_basicBlock);
+
+        if (stmt.getCond() != null) {// 下面处理条件判断块（主要是cond的表示
             Cond cond = stmt.getCond();
             LOrExp lOrExp = cond.getlOrExp(); // 由||连接的
             condBlock = cur_basicBlock; // 当前块：条件判断，需要加第一个icmp判断，每次循环块内容结束需要重新进来判断
@@ -356,34 +351,63 @@ public class IRGenerator {
                 ArrayList<IRBasicBlock> lAndBB;
                 lAndBB = visitLAndExp(lAndExp);
                 circleBlock = cur_basicBlock; // visitLAndExp中已经新建基本块，即循环块
+
+                // todo: 为了实现break和continue，选择在最开始的时候把要用的基本块创建完，然后更改每一部分的curBB
+                if (stmt.getForStmt2() != null) { // todo: 循环变量改变句不为空才有对应的basicBlock
+                    newBasicBlock();
+                    changeBlock_global = cur_basicBlock;
+                }
+                newBasicBlock();
+                exitBlock_global = cur_basicBlock;
+
+                // todo: 下面要遍历循环体内部，因此复原curBB
+                cur_basicBlock = circleBlock;
+
                 // 分析for-stmt，循环体内语句
                 // TODO: 2024/12/7 为了支持break和continue，应该在分析循环体之前，考虑循环体内部的这俩控制语句，提前设好changeBlock和exitBlock？
                 //  ForStmt2 == null时，不用改变，就直接进入cond判断；若cond再等于null，就直接进入循环体？
                 visitStmt(stmt.getStmt()); // 构建true要跳转到BB（在visitLAndExp时已经加上trueBlock了）
                 // TODO: 2024/12/7 由于builder中基本是通过调用IRGenerator的cur_BB确定指令存储的对应基本块位置，可以提前new出，
                 //  但是改变这个cur_BB成员变量来实现（不想新增传入结点所在的基本块的各种visit和build方法所以想到让成员变量的值改变这样）
+
                 // 处理每个循环都执行一次的语句：通常是递增变量控制等
-                if (stmt.getForStmt2() != null) { // 改变循环变量类似的语句加入CircleBlock（就是当前的cur_BB---不行！自己新建一个，再跳回条件判断
+                /*if (stmt.getForStmt2() != null) { // 改变循环变量类似的语句加入CircleBlock（就是当前的cur_BB---不行！自己新建一个，再跳回条件判断
                     visitChangeForStmt(stmt.getForStmt2(), condBlock);
+                }*/
+                // todo: 下面处理循环变量，注意复原之前new过的
+                if (stmt.getForStmt2() != null) { // 改变循环变量类似的语句加入CircleBlock（就是当前的cur_BB---不行！自己新建一个，再跳回条件判断
+                    cur_basicBlock = changeBlock_global;
+                    visitChangeForStmt(stmt.getForStmt2(), circleBlock, changeBlock_global, condBlock);
                 }
 
-                // lAndBB里每个基本块最后的br已经确定了lAndExp为真的跳转方向trueBlock，缺少为假的赋值:refill
-                /*newBasicBlock();
-                exitBlock = cur_basicBlock; // 留给下面的BlockItem解读
+                // todo: exitBB为了满足break语句也提前new过了
+                cur_basicBlock = exitBlock_global;
                 for (IRBasicBlock block: lAndBB) {
-                    refillLogicalBlock(block, exitBlock, true);
-                }*/
-                exitCircle(lAndBB);
+                    refillLogicalBlock(block, cur_basicBlock, true);
+                }
             } else {
                 // 有||连接的多个lOrExp
                 LAndExp lAndExp = lOrExp.getlAndExp();
                 ArrayList<IRBasicBlock> lAndBB;
                 lAndBB = visitLAndExp(lAndExp); // 第一个LAndExp-->true跳到下个&&后的eqExp，最后一个eqExp为真则跳circleBlock-->circleBlock基本块已新建
                 circleBlock = cur_basicBlock;
-                // TODO: 2024/12/7 continue和break的控制流
+
+                // todo: 为了实现break和continue，选择在最开始的时候把要用的基本块创建完，然后更改每一部分的curBB
+                if (stmt.getForStmt2() != null) { // todo: 循环变量改变句不为空才有对应的basicBlock
+                    newBasicBlock();
+                    changeBlock_global = cur_basicBlock;
+                }
+                newBasicBlock();
+                exitBlock_global = cur_basicBlock;
+
+                // todo: 下面要遍历循环体内部，因此复原curBB
+                cur_basicBlock = circleBlock;
                 visitStmt(stmt.getStmt()); // 此时最后一条EqExp成立时跳转到就是真的
+
+                // todo: 下面处理循环变量，注意复原之前new过的
                 if (stmt.getForStmt2() != null) { // 改变循环变量类似的语句加入CircleBlock（就是当前的cur_BB---不行！自己新建一个，再跳回条件判断
-                    visitChangeForStmt(stmt.getForStmt2(), condBlock);
+                    cur_basicBlock = changeBlock_global;
+                    visitChangeForStmt(stmt.getForStmt2(), circleBlock, changeBlock_global, condBlock);
                 }
                 for (LAndExp lAnd: lOrExp.getOrLAndExps()) {
                     // 上面newBB用于circleBodyStmt了，所以进入新的LAndExp之前要再次newBB
@@ -395,8 +419,37 @@ public class IRGenerator {
                     lAndBB = visitLAndExpAfterOr(lAnd, circleBlock); // 如果当前的lAndExp为真，就直接进入circleBlock
                 }
                 // 最后一组的每个block的falseBlock还没有正确设置（&&中遇到false要直接跳转，因为没有新的||，所以只能跳转到exitBlock）
-                exitCircle(lAndBB);
+//                exitCircle(lAndBB);
+                // todo: exitBB为了满足break语句也提前new过了
+                cur_basicBlock = exitBlock_global;
+                for (IRBasicBlock block: lAndBB) {
+                    refillLogicalBlock(block, cur_basicBlock, true);
+                }
             }
+        } else {
+            // cond缺省: 自动进入for循环
+            circleBlock = cur_basicBlock; // visitLAndExp中已经新建基本块，即循环块
+
+            // todo: 为了实现break和continue，选择在最开始的时候把要用的基本块创建完，然后更改每一部分的curBB
+            if (stmt.getForStmt2() != null) { // todo: 循环变量改变句不为空才有对应的basicBlock
+                newBasicBlock();
+                changeBlock_global = cur_basicBlock;
+            }
+            newBasicBlock();
+            exitBlock_global = cur_basicBlock;
+
+            // todo: 下面要遍历循环体内部，因此复原curBB
+            cur_basicBlock = circleBlock;
+            visitStmt(stmt.getStmt());
+
+            // todo: 下面处理循环变量，注意复原之前new过的
+            if (stmt.getForStmt2() != null) { // 改变循环变量类似的语句加入CircleBlock（就是当前的cur_BB---不行！自己新建一个，再跳回条件判断
+                cur_basicBlock = changeBlock_global;
+                visitChangeForStmt(stmt.getForStmt2(), circleBlock, changeBlock_global, circleBlock); // 因为没有cond，所以直接跳过circle块
+            }
+
+            // todo: exitBB为了满足break语句也提前new过了
+            cur_basicBlock = exitBlock_global; // 没有cond，所以不用setFalseBlock，直接把cur_BB留给循环体外的世界~
         }
     }
 
@@ -405,6 +458,18 @@ public class IRGenerator {
         IRBasicBlock circleBlock = cur_basicBlock;
         newBasicBlock();
         IRBasicBlock changeBlock = cur_basicBlock;
+        // 在新建循环改变块之前，应该让循环体每次都无条件进入改变块，在执行完改变块之后，再通过改变块去进入cond判读
+        builder.buildBrInst(circleBlock, changeBlock);
+        // 改变块（主要是ForStmt2的赋值语句生成对应的指令）
+        visitInitForStmt(forStmt2); // 类似forStmt1的操作其实
+        builder.buildBrInst(changeBlock, condBlock);
+    }
+
+    private void visitChangeForStmt(ForStmt forStmt2, IRBasicBlock circleBlock, IRBasicBlock changeBlock, IRBasicBlock condBlock) {
+        // 此时循环体对应的基本块已经构建好了（循环体内部不会出现很多基本块捣蛋？？？-->有可能，所以干脆新建一个block
+//        IRBasicBlock circleBlock = cur_basicBlock;
+//        newBasicBlock(); // 都是已提供的 --> 对于cond和change为空的，就是空块？（没有指令）
+//        IRBasicBlock changeBlock = cur_basicBlock;
         // 在新建循环改变块之前，应该让循环体每次都无条件进入改变块，在执行完改变块之后，再通过改变块去进入cond判读
         builder.buildBrInst(circleBlock, changeBlock);
         // 改变块（主要是ForStmt2的赋值语句生成对应的指令）

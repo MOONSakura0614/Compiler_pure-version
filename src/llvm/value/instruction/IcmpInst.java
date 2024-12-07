@@ -44,8 +44,16 @@ public class IcmpInst extends BinaryInst {
     }
 
     public static void main(String[] args) {
-        IRGenerator.cur_func = new IRFunction(); // 按实例化创建体来决定动态调用的toString类型
+        /*IRGenerator.cur_func = new IRFunction(); // 按实例化创建体来决定动态调用的toString类型
         BinaryInst binaryInst = new IcmpInst(Operator.Eq, new IRConstInt(1), new IRConstInt(2));
-        System.out.println(binaryInst);
+        System.out.println(binaryInst);*/
+        int o = 0, i = 1;
+        for (;;) {
+            o ++;
+            if (o>i) {
+                break;
+            }
+            System.out.println(o);
+        }
     }
 }

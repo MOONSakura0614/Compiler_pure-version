@@ -719,6 +719,18 @@ public class IRBuilder {
         return icmpInst;
     }
 
+    public void buildControlBrInst(Token breakContinueToken, IRBasicBlock changeBlockGlobal, IRBasicBlock exitBlockGlobal) {
+        // 处于循环内部
+        switch (breakContinueToken.getTokenType()) {
+            case BREAKTK -> {
+                brInst = new BrInst(cur_basicBlock, exitBlockGlobal);
+            }
+            case CONTINUETK -> {
+                brInst = new BrInst(cur_basicBlock, changeBlockGlobal);
+            }
+        }
+    }
+
     /*public BinaryInst buildLOrExpInIf(LOrExp lOrExp) { // 为了短路求值，这个改成*仅在if中用*的LOrExpBuilder
         // lAndExp1 || lAndExp2 || ...
         // || 的短路求值：lAndExp1=true时直接br，不求lAndExp2（不能进行lAndExp2的解析）
