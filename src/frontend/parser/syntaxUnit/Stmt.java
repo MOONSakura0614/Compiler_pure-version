@@ -758,4 +758,22 @@ public class Stmt extends SyntaxNode {
     public Stmt getElseStmt() {
         return elseStmt;
     }
+
+    /* for 句型获取相关成员变量 */
+
+    public ForStmt getForStmt1() {
+        return forStmt1;
+    }
+
+    public ForStmt getForStmt2() {
+        return forStmt2;
+    }
+
+    public Stmt getStmt() {
+        return stmt;
+    }
+
+    public Token getBreak_continue_token() {
+        return break_continue_token;
+    }
 }

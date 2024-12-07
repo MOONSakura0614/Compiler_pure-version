@@ -66,4 +66,12 @@ public class ForStmt extends SyntaxNode {
         if (lVal != null)
             lVal.handleConstAssignError();
     }
+
+    public LVal getlVal() {
+        return lVal;
+    }
+
+    public Exp getExp() {
+        return exp;
+    }
 }

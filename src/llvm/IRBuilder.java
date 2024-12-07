@@ -636,12 +636,18 @@ public class IRBuilder {
 //        System.out.println(retInst);
     }
 
-    public void buildAssignInsts(IRValue lValIrValue, IRValue irValue) {
+    public StoreInst buildAssignInst(IRValue lValIrValue, IRValue irValue) {
         // 前者为alloca的pointer，后者为右值（Exp）
-        loadInst = buildLoadInst(lValIrValue); // 把pointer对应的内存加载到寄存器中
-//        cur_basicBlock.addInst(loadInst); --> 有build方法的，在build方法中加入基本快，不是像下面的new出来的
+        // 注意类型转化
+        if (!irValue.getIrType().equals(((IRPointerType) lValIrValue.getIrType()).getElement_type())) {
+            if (irValue.getIrType().equals(IRIntType.intType)) {
+                irValue = buildConvInst(Operator.Trunc, irValue);
+            } else if (irValue.getIrType().equals(IRCharType.charType)) {
+                irValue = buildConvInst(Operator.Zext, irValue);
+            }
+        }
         storeInst = new StoreInst(irValue, lValIrValue);
-        cur_basicBlock.addInst(storeInst);
+        return storeInst;
     }
 
     public void buildStoreInst(IRValue irValue, IRValue lValIrValue) {
