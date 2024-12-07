@@ -12,39 +12,44 @@ declare void @putstr(i8*)
 @azaz2 = dso_local global i32 200
 define dso_local void @func1() {
 0:
-    br label %1 ; 进入for句型中的cond
+    br label %1
 
 1:
     %2 = icmp ne i32 1, 0
-    br i1 %2, label %3, label %20
+    br i1 %2, label %3, label %4
 
 3:
-    %4 = alloca i32
-    store i32 0, i32* %4
-    store i32 0, i32* %4
-    %5 = load i32, i32* %4
-    %6 = mul i32 %5, 8
-    %7 = load i32, i32* %4
-    %8 = icmp ne i32 %7, 0
-    br i1 %8, label %9, label %10
+    %5 = alloca i32
+    store i32 0, i32* %5
+    store i32 0, i32* %5
+    %6 = load i32, i32* %5
+    %7 = mul i32 %6, 8
+    %8 = load i32, i32* %5
+    %9 = icmp ne i32 %8, 0
+    br i1 %9, label %10, label %11
 
-9:
-    br label %10
+4:
+    %21 = icmp ne i32 1, 0
+    br i1 %21, label %22, label %23
 
 10:
-    %11 = load i32, i32* %4
-    %12 = icmp ne i32 %11, 0
-    br i1 %12, label %13, label %14
+    br label %3
+    br label %11
 
-13:
-    br label %15
+11:
+    %12 = load i32, i32* %5
+    %13 = icmp ne i32 %12, 0
+    br i1 %13, label %14, label %15
 
 14:
-    br label %15
+    br label %16
 
 15:
-    %16 = call i32 @getint()
-    store i32 %16, i32* %4
+    br label %16
+
+16:
+    %17 = call i32 @getint()
+    store i32 %17, i32* %5
     call void @putch(i32 104)
     call void @putch(i32 101)
     call void @putch(i32 108)
@@ -52,19 +57,16 @@ define dso_local void @func1() {
     call void @putch(i32 111)
     call void @putch(i32 63)
     call void @putch(i32 32)
-    %17 = load i32, i32* %4
-    call void @putint(i32 %17)
-    call void @putch(i32 32)
-    %18 = load i32, i32* %4
-    %19 = load i32, i32* %4
+    %18 = load i32, i32* %5
     call void @putint(i32 %18)
     call void @putch(i32 32)
+    %19 = load i32, i32* %5
+    %20 = load i32, i32* %5
     call void @putint(i32 %19)
+    call void @putch(i32 32)
+    call void @putint(i32 %20)
     call void @putch(i32 10)
-
-20:
-    %21 = icmp ne i32 1, 0
-    br i1 %21, label %22, label %23
+    br label %4
 
 22:
     br label %23
