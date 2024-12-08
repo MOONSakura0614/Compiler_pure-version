@@ -357,7 +357,7 @@ public class IRGenerator {
                     newBasicBlock();
                     continueBlock = cur_basicBlock;
                 } else {
-                    continueBlock = circleBlock; // 如果没有changeBlock，就直接跳回circleBlock
+                    continueBlock = condBlock; // 如果没有changeBlock，就直接跳到condBlock的判断
                 }
                 newBasicBlock();
                 breakBlock = cur_basicBlock;
@@ -377,7 +377,7 @@ public class IRGenerator {
                     cur_basicBlock = continueBlock;
                     visitChangeForStmt(stmt.getForStmt2(), circleBlock, continueBlock, condBlock);
                 } else {
-                    continueBlock = circleBlock;
+                    continueBlock = condBlock;
                 }
 
                 // todo: exitBB为了满足break语句也提前new过了
@@ -397,7 +397,7 @@ public class IRGenerator {
                     newBasicBlock();
                     continueBlock = cur_basicBlock;
                 } else {
-                    continueBlock = circleBlock;
+                    continueBlock = condBlock;
                 }
                 newBasicBlock();
                 breakBlock = cur_basicBlock;
@@ -437,7 +437,7 @@ public class IRGenerator {
                 newBasicBlock();
                 continueBlock = cur_basicBlock;
             } else {
-                continueBlock = circleBlock;
+                continueBlock = circleBlock; // 由于cond缺省，只能直接跳circle内部
             }
             newBasicBlock();
             breakBlock = cur_basicBlock;
@@ -913,7 +913,7 @@ public class IRGenerator {
             fParam.insertSymbol(cur_ir_symTable);
             symbol = fParam.getSymbol(cur_ir_symTable); // 依次插入
             // 把生成的Args返回 -->  不在irFunc初始化创建的时候赋值Arg
-            argument = new IRArgument(irType, "%" + cur_func.getLocalValRegNum()); // 一开始就给arg加入reg_num
+            argument = new IRArgument(irType, "%" + cur_func.getLocalValRegNumName()); // 一开始就给arg加入reg_num
             symbol.setIrValue(argument);
             argument.setIdent_name(symbol.getIdentName());
             // zy:test

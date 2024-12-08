@@ -15,7 +15,7 @@ public class UnaryInst extends Instruction {
     Boolean isBiInst = Boolean.FALSE;
 
     public UnaryInst(Token op_token, IRValue unaryValue) {
-        super(Operator.getOperator(op_token), "%" + IRGenerator.cur_func.getLocalValRegNum());
+        super(Operator.getOperator(op_token), "%" + IRGenerator.cur_func.getLocalValRegNumName());
         addOperand(unaryValue);
         setIrType(IRIntType.intType);
     }

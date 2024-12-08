@@ -1,8 +1,6 @@
 package llvm.value.instruction;
 
-import com.sun.jdi.Value;
 import llvm.IRGenerator;
-import llvm.type.IRBoolType;
 import llvm.type.IRCharType;
 import llvm.type.IRIntType;
 import llvm.value.IRValue;
@@ -16,7 +14,7 @@ public class ConvInst extends Instruction {
 
     // TODO: 2024/11/26 还没写到基本块：没用跳转和循环语句（除了ret
     public ConvInst(Operator op, IRValue irValue) {
-        super(op, "%" + IRGenerator.cur_func.getLocalValRegNum());
+        super(op, "%" + IRGenerator.cur_func.getLocalValRegNumName());
 //        System.out.println(IRGenerator.cur_func.getName());
 //        System.out.println(getName());
         if (op == Operator.Zext) {

@@ -26,7 +26,7 @@ public class BinaryInst extends Instruction {
     }
 
     public BinaryInst(Token op_token, IRValue unaryValue) {
-        super(Operator.getOperator(op_token), "%" + IRGenerator.cur_func.getLocalValRegNum());
+        super(Operator.getOperator(op_token), "%" + IRGenerator.cur_func.getLocalValRegNumName());
         addOperand(unaryValue);
     }
 

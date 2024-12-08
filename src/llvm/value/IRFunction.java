@@ -184,6 +184,12 @@ public class IRFunction extends IRGlobalValue {
         return tmp;
     }
 
+    public String getLocalValRegNumName() {
+        int tmp = reg_num;
+        reg_num++;
+        return "reg_" + tmp;
+    }
+
     public IRType getRetType() {
         return ((IRFunctionType) irType).getRet_type();
     }

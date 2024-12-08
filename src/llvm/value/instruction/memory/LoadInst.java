@@ -2,7 +2,6 @@ package llvm.value.instruction.memory;
 
 import llvm.IRGenerator;
 import llvm.type.IRPointerType;
-import llvm.value.IRGlobalVar;
 import llvm.value.IRValue;
 import llvm.value.instruction.Instruction;
 import llvm.value.instruction.Operator;
@@ -16,7 +15,7 @@ public class LoadInst extends Instruction {
     public LoadInst(IRValue pointer) {
         super(((IRPointerType) pointer.getIrType()).getElement_type(), Operator.Load);
 //        setName("%" + ++valNumber);
-        setName("%" + IRGenerator.cur_func.getLocalValRegNum());
+        setName("%" + IRGenerator.cur_func.getLocalValRegNumName());
         addOperand(pointer);
     }
 

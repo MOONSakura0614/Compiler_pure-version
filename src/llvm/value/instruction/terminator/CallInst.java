@@ -1,13 +1,9 @@
 package llvm.value.instruction.terminator;
 
-import com.sun.jdi.VoidType;
-import frontend.parser.syntaxUnit.FuncRParams;
 import llvm.IRGenerator;
 import llvm.type.IRFunctionType;
-import llvm.type.IRIntType;
 import llvm.type.IRType;
 import llvm.type.IRVoidType;
-import llvm.value.IRArgument;
 import llvm.value.IRFunction;
 import llvm.value.IRValue;
 import llvm.value.instruction.Instruction;
@@ -31,7 +27,7 @@ public class CallInst extends Instruction {
         super(((IRFunctionType) function.getIrType()).getRet_type(), Operator.Call);
         IRFunctionType functionType = (IRFunctionType) (function.getIrType());
         if (!(functionType.getRet_type() instanceof IRVoidType)) {
-            setName("%" + IRGenerator.cur_func.getLocalValRegNum()); // 有返回值
+            setName("%" + IRGenerator.cur_func.getLocalValRegNumName()); // 有返回值
         }
         setIrType(functionType.getRet_type()); // void 或者 具体的返回值类型
 //        System.out.println(functionType.getRet_type());
@@ -45,7 +41,7 @@ public class CallInst extends Instruction {
         super(((IRFunctionType) function.getIrType()).getRet_type(), Operator.Call);
         IRFunctionType functionType = (IRFunctionType) (function.getIrType());
         if (!(functionType.getRet_type() instanceof IRVoidType)) {
-            setName("%" + IRGenerator.cur_func.getLocalValRegNum()); // 有返回值
+            setName("%" + IRGenerator.cur_func.getLocalValRegNumName()); // 有返回值
         }
         setIrType(functionType.getRet_type()); // void 或者 具体的返回值类型
 //        System.out.println(functionType.getRet_type());

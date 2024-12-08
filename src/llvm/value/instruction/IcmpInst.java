@@ -1,12 +1,9 @@
 package llvm.value.instruction;
 
-import com.sun.jdi.Value;
 import llvm.IRGenerator;
 import llvm.type.IRBoolType;
 import llvm.type.IRIntType;
-import llvm.value.IRFunction;
 import llvm.value.IRValue;
-import llvm.value.constVar.IRConstInt;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,7 +25,7 @@ public class IcmpInst extends BinaryInst {
     }};
 
     public IcmpInst(Operator op, IRValue left, IRValue right) { // 加入的左右操作数为i32类型，如果是RelExp需先进行ConvInst
-        super(op, "%" + IRGenerator.cur_func.getLocalValRegNum(), left, right);
+        super(op, "%" + IRGenerator.cur_func.getLocalValRegNumName(), left, right);
         setIrType(IRBoolType.boolType);
     }
 

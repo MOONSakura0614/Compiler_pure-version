@@ -94,7 +94,7 @@ public class IRBuilder {
         // 给符号表里的对应形参ident存上上面获得的内存地址
         String ident_name = argument.getIdent_name();
         allocaInst.setIdent_name(ident_name);
-        allocaInst.setName("%" + cur_func.getLocalValRegNum());
+        allocaInst.setName("%" + cur_func.getLocalValRegNumName());
         Symbol symbol = cur_ir_symTable.findInCurSymTable(ident_name);
         if (symbol != null) {
 //            System.out.println(allocaInst);
@@ -147,7 +147,7 @@ public class IRBuilder {
         // 完善指令:因为是常量，可以直接计算出constInit的值，所以就不用提前load赋值Exp中用到的变量
         allocaInst = new AllocaInst(value.getIrType());
         allocaInst.setIdent_name(ident_name);
-        allocaInst.setName("%" + cur_func.getLocalValRegNum());
+        allocaInst.setName("%" + cur_func.getLocalValRegNumName());
         symbol.setPointerReg(allocaInst.getName());
 
         symbol.setIrValue(allocaInst);
@@ -178,7 +178,7 @@ public class IRBuilder {
         // 完善指令:因为是常量，可以直接计算出constInit的值，所以就不用提前load赋值Exp中用到的变量
         allocaInst = new AllocaInst(type);
         allocaInst.setIdent_name(ident_name);
-        allocaInst.setName("%" + cur_func.getLocalValRegNum());
+        allocaInst.setName("%" + cur_func.getLocalValRegNumName());
         symbol.setIrValue(allocaInst); // 局部变量
         symbol.setPointerReg(allocaInst.getName());
         cur_basicBlock.addInst(allocaInst);
@@ -275,7 +275,7 @@ public class IRBuilder {
         if (irValue_right.getIrType() instanceof IRCharType) {
             irValue_right = buildConvInst(Operator.Zext, irValue_right);
         }
-        return new BinaryInst(op, "%" + cur_func.getLocalValRegNum(), irValue_left, irValue_right);
+        return new BinaryInst(op, "%" + cur_func.getLocalValRegNumName(), irValue_left, irValue_right);
     }
 
     public IRValue buildMulExp(MulExp mulExp) {

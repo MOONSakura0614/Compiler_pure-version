@@ -1,6 +1,5 @@
 package llvm.value;
 
-import frontend.symbol.Symbol;
 import llvm.IRGenerator;
 import llvm.value.instruction.Instruction;
 
@@ -24,7 +23,7 @@ public class IRBasicBlock extends IRValue {
 //        reg_num = function.getReg_num() + 1;
         instructions = new ArrayList<>();
 //        setName("%" + IRGenerator.cur_func.getLocalValRegNum());
-        setName(String.valueOf(IRGenerator.cur_func.getLocalValRegNum())); // 换行符要加吗？
+        setName(String.valueOf(IRGenerator.cur_func.getLocalValRegNumName())); // 换行符要加吗？
         // TODO: 2024/11/29 虽然暂时没整跳转，但是唯一一个label还是拥有一下自己的虚拟寄存器编号吧~
     }
 
@@ -42,6 +41,9 @@ public class IRBasicBlock extends IRValue {
 
     @Override
     public String toString() {
+        if (instructions.isEmpty()) {
+            return ""; // 如果基本块内部为空，label也可以不用打印！
+        }
 //        StringBuilder sb = new StringBuilder();
         // label要用basicBlock的编号就是name（但不能带冒号！
         StringBuilder sb = new StringBuilder("\n" + getName() + ":\n");
