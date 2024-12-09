@@ -380,6 +380,8 @@ public class IRGenerator {
                 visitStmt(stmt.getStmt()); // 构建true要跳转到BB（在visitLAndExp时已经加上trueBlock了）
                 // TODO: 2024/12/7 由于builder中基本是通过调用IRGenerator的cur_BB确定指令存储的对应基本块位置，可以提前new出，
                 //  但是改变这个cur_BB成员变量来实现（不想新增传入结点所在的基本块的各种visit和build方法所以想到让成员变量的值改变这样）
+                // todo: circleStmt分析完之后可能会有很多新block
+                circleBlock = cur_basicBlock;
                 builder.buildBrInst(circleBlock, continueBlock);
 
                 // todo: 下面处理循环变量，注意复原之前new过的
@@ -413,6 +415,8 @@ public class IRGenerator {
                 // todo: 下面要遍历循环体内部，因此复原curBB
                 cur_basicBlock = circleBlock;                
                 visitStmt(stmt.getStmt()); // 此时最后一条EqExp成立时跳转到就是真的
+                // todo: circleStmt分析完之后可能会有很多新block
+                circleBlock = cur_basicBlock;
                 builder.buildBrInst(circleBlock, continueBlock);
 
                 // todo: 下面处理循环变量，注意复原之前new过的
@@ -456,6 +460,8 @@ public class IRGenerator {
             visitStmt(stmt.getStmt());
             // 注意circleBlock的最后都要跳会cond判断
             // 此时要是处于if-else里的？也会有对应的finalBlock被new出来吧，不会说接到br后面去了
+            // todo: circleStmt分析完之后可能会有很多新block
+            circleBlock = cur_basicBlock;
             builder.buildBrInst(circleBlock, continueBlock);
 
             // todo: 下面处理循环变量，注意复原之前new过的
@@ -592,7 +598,7 @@ public class IRGenerator {
             /*// todo: ifStmt的TrueBlock可能还有很多个if，所以trueBlock不是一开始存的那个了，在visitIfStmt的时候，得到的当前的curBB才是TrueBlock统一跳到的结尾
             trueBlock = cur_basicBlock;*/ // 不能加这，会被||后面的LAndExp创建的block影响
             // 最后一组的每个block的falseBlock还没有正确设置（&&中遇到false要直接跳转，因为没有新的||，所以只能跳转到else或者final）
-            visitElseAndNextBlockItem(stmt, trueBlock, lAndBB);
+            visitElseAndNextBlockItem(stmt, trueBlock, lAndBB); // 传trueBB只是为了给trueBB最后加跳出去的指令
         }
 
         /*// 解析完本层if-else后进行全局if-else要跳转块的还原
@@ -608,16 +614,17 @@ public class IRGenerator {
             falseBlock = cur_basicBlock;
             visitStmt(stmt.getElseStmt());
 
-            // todo: ElseStmt的visit和上述的IfStmt中的trueBlock类似，应该找到真正的最后一个falseBlock（前面的都会跳到最后一个）
-            //  而且这样也可以防止多条br
-            falseBlock = cur_basicBlock;
-
-            for (IRBasicBlock block: lAndBB) {
+            for (IRBasicBlock block: lAndBB) { // 需要false的第一条！
                 refillLogicalBlock(block, falseBlock, true);
             }
+
+            // todo: ElseStmt的visit和上述的IfStmt中的trueBlock类似，应该找到真正的最后一个falseBlock（前面的都会跳到最后一个）
+            //  而且这样也可以防止多条br
+            falseBlock = cur_basicBlock; // 有else的时候，cond=false自动就跳到第一条else，就是上面预存的，【对于lAndBB里的回填另存
+//            就是结束else，给else跳出if-else块的时候需要curBB一下
             newBasicBlock();
             builder.buildBrInst(trueBlock, cur_basicBlock);
-            builder.buildBrInst(falseBlock, cur_basicBlock);
+            builder.buildBrInst(falseBlock, cur_basicBlock); // 对于falseB的跳出需要是else的最后一条
         } else {
             newBasicBlock();
             for (IRBasicBlock block: lAndBB) {

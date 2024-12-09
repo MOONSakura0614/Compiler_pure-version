@@ -16,7 +16,6 @@ reg_2:
 
 reg_5:
     br label %reg_7
-    br label %reg_2
 
 reg_6:
     ret i32 0
@@ -32,8 +31,7 @@ reg_10:
     store i32 %reg_13, i32* %reg_1
     %reg_14 = load i32, i32* %reg_1
     %reg_15 = icmp ne i32 %reg_14, 6
-    br i1 %reg_15, label %reg_16, label %reg_22
-    br label %reg_7
+    br i1 %reg_15, label %reg_16, label %reg_17
 
 reg_11:
     %reg_24 = load i32, i32* %reg_1
@@ -58,11 +56,13 @@ reg_22:
     br label %reg_23
 
 reg_23:
+    br label %reg_7
 
 reg_26:
     br label %reg_6
     br label %reg_27
 
 reg_27:
+    br label %reg_2
 }
 
