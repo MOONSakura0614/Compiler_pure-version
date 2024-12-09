@@ -3,189 +3,66 @@ declare i32 @getchar()
 declare void @putint(i32)
 declare void @putch(i32)
 declare void @putstr(i8*)
-@a = dso_local global i32 1
-@b = dso_local global i32 2
-@c = dso_local global i32 3
-@d = dso_local global i32 0
-@e = dso_local global i32 3
-@f = dso_local global i32 0
-define dso_local i32 @double2(i32 %0) {
-reg_1:
-    %reg_2 = alloca i32
-    store i32 %0, i32* %reg_2
-    %reg_3 = load i32, i32* %reg_2
-    %reg_4 = icmp eq i32 %reg_3, 0
-    br i1 %reg_4, label %reg_5, label %reg_8
-
-reg_5:
-    %reg_6 = load i32, i32* %reg_2
-    %reg_7 = mul i32 2, %reg_6
-    ret i32 %reg_7
-    br label %reg_12
-
-reg_8:
-    %reg_9 = load i32, i32* %reg_2
-    %reg_10 = sub i32 0, %reg_9
-    %reg_11 = mul i32 2, %reg_10
-    ret i32 %reg_11
-    br label %reg_12
-
-reg_12:
-    ret i32 0
-}
-
-define dso_local i32 @add(i32 %0, i32 %1) {
-reg_2:
-    %reg_3 = alloca i32
-    store i32 %0, i32* %reg_3
-    %reg_4 = alloca i32
-    store i32 %1, i32* %reg_4
-    %reg_5 = alloca i32
-    store i32 0, i32* %reg_5
-    %reg_6 = load i32, i32* %reg_3
-    %reg_7 = load i32, i32* %reg_4
-    %reg_8 = add i32 %reg_6, %reg_7
-    store i32 %reg_8, i32* %reg_5
-    %reg_9 = load i32, i32* %reg_5
-    ret i32 %reg_9
-}
-
-define dso_local i32 @sub(i32 %0, i32 %1) {
-reg_2:
-    %reg_3 = alloca i32
-    store i32 %0, i32* %reg_3
-    %reg_4 = alloca i32
-    store i32 %1, i32* %reg_4
-    %reg_5 = alloca i32
-    store i32 0, i32* %reg_5
-    %reg_6 = load i32, i32* %reg_3
-    %reg_7 = load i32, i32* %reg_4
-    %reg_8 = sub i32 %reg_6, %reg_7
-    store i32 %reg_8, i32* %reg_5
-    %reg_9 = load i32, i32* %reg_5
-    %reg_10 = icmp sge i32 %reg_9, 0
-    br i1 %reg_10, label %reg_11, label %reg_13
-
-reg_11:
-    %reg_12 = load i32, i32* %reg_5
-    ret i32 %reg_12
-    br label %reg_13
-
-reg_13:
-    %reg_14 = load i32, i32* %reg_5
-    %reg_15 = icmp sle i32 %reg_14, 0
-    br i1 %reg_15, label %reg_16, label %reg_17
-
-reg_16:
-    ret i32 0
-    br label %reg_17
-
-reg_17:
-    ret i32 0
-}
-
-define dso_local void @print_none() {
-reg_0:
-    ret void
-}
-
 define dso_local i32 @main() {
 reg_0:
     %reg_1 = alloca i32
     store i32 0, i32* %reg_1
-    %reg_2 = alloca i32
-    %reg_3 = alloca i32
-    %reg_4 = alloca i32
-    %reg_5 = alloca i32
-    br label %reg_6
+    br label %reg_2
+
+reg_2:
+    %reg_3 = load i32, i32* %reg_1
+    %reg_4 = icmp slt i32 %reg_3, 4
+    br i1 %reg_4, label %reg_5, label %reg_6
+
+reg_5:
+    br label %reg_7
+    br label %reg_2
 
 reg_6:
-    %reg_7 = load i32, i32* %reg_1
-    %reg_8 = icmp slt i32 %reg_7, 4
-    br i1 %reg_8, label %reg_9, label %reg_10
-
-reg_9:
-    %reg_11 = load i32, i32* %reg_1
-    %reg_12 = icmp ne i32 %reg_11, 4
-    br i1 %reg_12, label %reg_13, label %reg_16
-
-reg_10:
     ret i32 0
 
-reg_13:
+reg_7:
+    %reg_8 = load i32, i32* %reg_1
+    %reg_9 = icmp ne i32 %reg_8, 4
+    br i1 %reg_9, label %reg_10, label %reg_11
+
+reg_10:
+    %reg_12 = load i32, i32* %reg_1
+    %reg_13 = add i32 %reg_12, 1
+    store i32 %reg_13, i32* %reg_1
     %reg_14 = load i32, i32* %reg_1
-    %reg_15 = add i32 %reg_14, 1
-    store i32 %reg_15, i32* %reg_1
-    br label %reg_17
+    %reg_15 = icmp ne i32 %reg_14, 6
+    br i1 %reg_15, label %reg_16, label %reg_22
+    br label %reg_7
+
+reg_11:
+    %reg_24 = load i32, i32* %reg_1
+    %reg_25 = icmp eq i32 %reg_24, 4
+    br i1 %reg_25, label %reg_26, label %reg_27
 
 reg_16:
-    br label %reg_10
-    br label %reg_17
+    br label %reg_7
+    br label %reg_23
 
 reg_17:
-    %reg_18 = call i32 @getint()
-    store i32 %reg_18, i32* %reg_2
-    %reg_19 = load i32, i32* %reg_2
-    %reg_20 = icmp eq i32 %reg_19, 0
-    br i1 %reg_20, label %reg_21, label %reg_32
+    %reg_18 = load i32, i32* %reg_1
+    %reg_19 = sub i32 %reg_18, 1
+    %reg_20 = icmp eq i32 %reg_19, 4
+    br i1 %reg_20, label %reg_21, label %reg_22
 
 reg_21:
-    %reg_22 = call i32 @getint()
-    store i32 %reg_22, i32* %reg_4
-    %reg_23 = load i32, i32* %reg_4
-    %reg_24 = call i32 @double2(i32 %reg_23)
-    %reg_25 = srem i32 %reg_24, 1
-    store i32 %reg_25, i32* %reg_3
-    %reg_26 = load i32, i32* %reg_3
-    call void @putint(i32 %reg_26)
-    call void @putch(i32 32)
-    %reg_27 = load i32, i32* %reg_4
-    %reg_28 = call i32 @double2(i32 %reg_27)
-    %reg_29 = add i32 0, 1
-    %reg_30 = sdiv i32 %reg_28, %reg_29
-    store i32 %reg_30, i32* %reg_3
-    %reg_31 = load i32, i32* %reg_3
-    call void @putint(i32 %reg_31)
-    call void @putch(i32 10)
+    br label %reg_11
+    br label %reg_22
+
+reg_22:
+    br label %reg_23
+
+reg_23:
+
+reg_26:
     br label %reg_6
-    br label %reg_32
+    br label %reg_27
 
-reg_32:
-    %reg_33 = load i32, i32* %reg_2
-    %reg_34 = icmp sgt i32 %reg_33, 0
-    br i1 %reg_34, label %reg_35, label %reg_41
-
-reg_35:
-    %reg_36 = call i32 @getint()
-    store i32 %reg_36, i32* %reg_4
-    %reg_37 = call i32 @getint()
-    store i32 %reg_37, i32* %reg_5
-    %reg_38 = load i32, i32* %reg_4
-    %reg_39 = load i32, i32* %reg_5
-    %reg_40 = call i32 @add(i32 %reg_38, i32 %reg_39)
-    call void @putint(i32 %reg_40)
-    call void @putch(i32 10)
-    br label %reg_6
-    br label %reg_41
-
-reg_41:
-    %reg_42 = load i32, i32* %reg_2
-    %reg_43 = icmp slt i32 %reg_42, 0
-    br i1 %reg_43, label %reg_44, label %reg_50
-
-reg_44:
-    %reg_45 = call i32 @getint()
-    store i32 %reg_45, i32* %reg_4
-    %reg_46 = call i32 @getint()
-    store i32 %reg_46, i32* %reg_5
-    %reg_47 = load i32, i32* %reg_4
-    %reg_48 = load i32, i32* %reg_5
-    %reg_49 = call i32 @sub(i32 %reg_47, i32 %reg_48)
-    call void @putint(i32 %reg_49)
-    call void @putch(i32 10)
-    br label %reg_6
-    br label %reg_50
-
-reg_50:
+reg_27:
 }
 

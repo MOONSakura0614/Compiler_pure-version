@@ -41,9 +41,9 @@ public class IRBasicBlock extends IRValue {
 
     @Override
     public String toString() {
-        if (instructions.isEmpty()) {
+        /*if (instructions.isEmpty()) {
             return ""; // 如果基本块内部为空，label也可以不用打印！
-        }
+        }*/
 //        StringBuilder sb = new StringBuilder();
         // label要用basicBlock的编号就是name（但不能带冒号！
         StringBuilder sb = new StringBuilder("\n" + getName() + ":\n");

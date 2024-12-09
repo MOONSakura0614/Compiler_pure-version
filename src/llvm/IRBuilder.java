@@ -672,11 +672,17 @@ public class IRBuilder {
     }
 
     public void buildBrInst(IRBasicBlock curBlock, IRBasicBlock finalBlock) {
+        /*if (curBlock.getLastInst() instanceof BrInst) {
+            return; // 防止连续两条跳转，第二条一定是无效的
+        }*/
         brInst = new BrInst(curBlock, finalBlock);
 //        curBlock.addInst(brInst);
     }
 
     public void buildBrInst(IRBasicBlock curBlock, IRBasicBlock branchBlock, boolean isLAnd, BinaryInst condInst) {
+        /*if (curBlock.getLastInst() instanceof BrInst) {
+            return;
+        }*/
         brInst = new BrInst(curBlock, branchBlock, isLAnd, condInst);
 //        curBlock.addInst(brInst);
     }

@@ -19,6 +19,7 @@ import llvm.value.instruction.terminator.BrInst;
 import llvm.value.instruction.terminator.RetInst;
 
 import java.util.ArrayList;
+import java.util.TreeMap;
 
 /**
  * @author 郑悦
@@ -327,8 +328,12 @@ public class IRGenerator {
     }
 
     // TODO: 2024/12/7 观察思考是否出现循环内套循环就会失效？？
-    private IRBasicBlock continueBlock;
-    private IRBasicBlock breakBlock;
+    // todo: Circle & Branch
+    private IRBasicBlock continueBlock = null;
+    private IRBasicBlock breakBlock = null;
+    /*private IRBasicBlock TrueBlock = null;
+    private IRBasicBlock FalseBlock = null;
+    private IRBasicBlock exitBlock = null; // break跳转？*/
 
     /* 'for' '(' [ForStmt] ';' [Cond] ';' [ForStmt] ')' Stmt */
     private void visitCircle(Stmt stmt) {
@@ -337,6 +342,10 @@ public class IRGenerator {
         // 上面初始化完变量后下面进入条件判断块[ 注意Cond也可以缺省 ]
         IRBasicBlock condBlock;
         IRBasicBlock circleBlock; // label为真跳转到的基本块
+
+        // todo: 维护全局的continue和break：需要复原（防止for中套for出错）
+        IRBasicBlock cntContinueBlock = continueBlock;
+        IRBasicBlock cntBreakBlock = breakBlock;
 
         IRBasicBlock curBlock = cur_basicBlock; // 从当前的基本块进入是否运行进入循环的条件判断块
         newBasicBlock(); // 新建条件判断块 --- cond缺省时就是circle块
@@ -371,13 +380,12 @@ public class IRGenerator {
                 visitStmt(stmt.getStmt()); // 构建true要跳转到BB（在visitLAndExp时已经加上trueBlock了）
                 // TODO: 2024/12/7 由于builder中基本是通过调用IRGenerator的cur_BB确定指令存储的对应基本块位置，可以提前new出，
                 //  但是改变这个cur_BB成员变量来实现（不想新增传入结点所在的基本块的各种visit和build方法所以想到让成员变量的值改变这样）
+                builder.buildBrInst(circleBlock, continueBlock);
 
                 // todo: 下面处理循环变量，注意复原之前new过的
                 if (stmt.getForStmt2() != null) { // 改变循环变量类似的语句加入CircleBlock（就是当前的cur_BB---不行！自己新建一个，再跳回条件判断
                     cur_basicBlock = continueBlock;
                     visitChangeForStmt(stmt.getForStmt2(), circleBlock, continueBlock, condBlock);
-                } else {
-                    continueBlock = condBlock;
                 }
 
                 // todo: exitBB为了满足break语句也提前new过了
@@ -405,7 +413,8 @@ public class IRGenerator {
                 // todo: 下面要遍历循环体内部，因此复原curBB
                 cur_basicBlock = circleBlock;                
                 visitStmt(stmt.getStmt()); // 此时最后一条EqExp成立时跳转到就是真的
-                
+                builder.buildBrInst(circleBlock, continueBlock);
+
                 // todo: 下面处理循环变量，注意复原之前new过的
                 if (stmt.getForStmt2() != null) { // 改变循环变量类似的语句加入CircleBlock（就是当前的cur_BB---不行！自己新建一个，再跳回条件判断
                     cur_basicBlock = continueBlock;
@@ -445,6 +454,9 @@ public class IRGenerator {
             // todo: 下面要遍历循环体内部，因此复原curBB
             cur_basicBlock = circleBlock;
             visitStmt(stmt.getStmt());
+            // 注意circleBlock的最后都要跳会cond判断
+            // 此时要是处于if-else里的？也会有对应的finalBlock被new出来吧，不会说接到br后面去了
+            builder.buildBrInst(circleBlock, continueBlock);
 
             // todo: 下面处理循环变量，注意复原之前new过的
             if (stmt.getForStmt2() != null) { // 改变循环变量类似的语句加入CircleBlock（就是当前的cur_BB---不行！自己新建一个，再跳回条件判断
@@ -455,6 +467,9 @@ public class IRGenerator {
             // todo: exitBB为了满足break语句也提前new过了
             cur_basicBlock = breakBlock; // 没有cond，所以不用setFalseBlock，直接把cur_BB留给循环体外的世界~
         }
+        // 复原之前全局的break和continue（因为此时当前的 for 已经分析完成）
+        continueBlock = cntContinueBlock;
+        breakBlock = cntBreakBlock;
     }
 
     private void visitChangeForStmt(ForStmt forStmt2, IRBasicBlock condBlock) {
@@ -507,26 +522,12 @@ public class IRGenerator {
         builder.buildStoreInst(irValue, lVal_irValue);
     }
 
-    /*private IRValue getForStmtChangeInst(ForStmt stmt) { // 每次只要new一个store就好？addExp对应的reg可以重复调用？
-//        ArrayList<IRValue> changeInsts = new ArrayList<>();
-        // forStmt如果存在，只有赋值的情况：赋值需要的指令严格来说只有buildExp得到的，和store
-        // 先确定要store的lVal所处的内存位置（IRPointer），然后确定Exp对应的指令reg（build），最后把reg给到IRPointer，完成store
-        // TODO: 2024/11/26 数组未实现
-        LVal lVal = stmt.getlVal();
-        Symbol lVal_sym = cur_ir_symTable.findInCurSymTable(lVal.getIdentName());
-        Exp exp = stmt.getExp();
-        // 生成对应的赋值一系列操作的指令语句
-        IRValue operation = builder.buildExp(exp);
-        // changeInsts.add(); // TODO: 2024/12/6 这样的好处是不用每次构建Exp，但是坏处是提前会exp build出的指令到基本块中？但是for内部的就是有，只是在内部的block结束之后再add
-        IRValue lVal_irValue = lVal_sym.irValue; // alloca语句
-        // 暂时不store到对应位置就行
-        builder.buildStoreInst(operation, lVal_irValue);
-        // 不用把指令马上加入基本块（每次遍历一次的时候做一遍buildExp（可能是AddExp对应的binaryExp
-        // TODO: 2024/12/6 在builder的buildExp方法中的buildMulExp方法中可能会添加到当前基本块，但是无影响，因为没store，只是单纯增加了四则运算的条数（
-    }*/
-
     /* 单独处理分支语句 */
     public void visitBranch(Stmt stmt) {
+        /*// 处理if里面套if，套很多层stmt，需要全局的true和false的基本块
+        IRBasicBlock cntTrueBlock = TrueBlock;
+        IRBasicBlock cntFalseBlock = FalseBlock;*/
+
         // 为了Cond相关
         // 处理Cond
         Cond cond = stmt.getCond();
@@ -545,8 +546,12 @@ public class IRGenerator {
             // 处理完仅有的一个lAndExp
 //            newBasicBlock(); // 在处理lAndExp的最后已经newBB了
             trueBlock = cur_basicBlock;
+//            TrueBlock = trueBlock;
             // 分析if-stmt
             visitStmt(stmt.getIfStmt()); // 构建true要跳转到BB（在visitLAndExp时已经加上trueBlock了）
+
+            // todo: ifStmt的TrueBlock可能还有很多个if，所以trueBlock不是一开始存的那个了，在visitIfStmt的时候，得到的当前的curBB才是TrueBlock统一跳到的结尾
+            trueBlock = cur_basicBlock;
 
             // 如果有else
             visitElseAndNextBlockItem(stmt, trueBlock, lAndBB);
@@ -565,6 +570,9 @@ public class IRGenerator {
             visitStmt(stmt.getIfStmt()); // 此时最后一条EqExp成立时跳转到就是真的
             // llvm ir虚拟寄存器的number没有说按出现顺序严格递增，只要不重复就行
 
+            // todo: ifStmt的TrueBlock可能还有很多个if，所以trueBlock不是一开始存的那个了，在visitIfStmt的时候，得到的当前的curBB才是TrueBlock统一跳到的结尾
+            trueBlock = cur_basicBlock;
+
             // 处理||后面的多个LAndExps
 //            ArrayList<ArrayList<IRBasicBlock>> lOrBB_lAndBBs = new ArrayList<>();
             // 每个元素是lAndBBs,然后lAndBB中的最后一个为真要跳if，为假跳下一个lOrExp（前面的为假也跳下一个lOrExp，没有下一个就跳else或者final）
@@ -580,9 +588,16 @@ public class IRGenerator {
                 // 保证lAndBB中最后一条br指令的trueBlock都是正确设置的，只需改造falseBlock的跳转即可
                 lAndBB = visitLAndExpAfterOr(lAnd, trueBlock);
             }
+
+            /*// todo: ifStmt的TrueBlock可能还有很多个if，所以trueBlock不是一开始存的那个了，在visitIfStmt的时候，得到的当前的curBB才是TrueBlock统一跳到的结尾
+            trueBlock = cur_basicBlock;*/ // 不能加这，会被||后面的LAndExp创建的block影响
             // 最后一组的每个block的falseBlock还没有正确设置（&&中遇到false要直接跳转，因为没有新的||，所以只能跳转到else或者final）
             visitElseAndNextBlockItem(stmt, trueBlock, lAndBB);
         }
+
+        /*// 解析完本层if-else后进行全局if-else要跳转块的还原
+        TrueBlock = cntTrueBlock;
+        FalseBlock = cntFalseBlock;*/
     }
 
     /* refill lAndExp */
@@ -592,6 +607,11 @@ public class IRGenerator {
             newBasicBlock();
             falseBlock = cur_basicBlock;
             visitStmt(stmt.getElseStmt());
+
+            // todo: ElseStmt的visit和上述的IfStmt中的trueBlock类似，应该找到真正的最后一个falseBlock（前面的都会跳到最后一个）
+            //  而且这样也可以防止多条br
+            falseBlock = cur_basicBlock;
+
             for (IRBasicBlock block: lAndBB) {
                 refillLogicalBlock(block, falseBlock, true);
             }
@@ -617,7 +637,8 @@ public class IRGenerator {
             lAndBB.add(cur_basicBlock);
             // 注意刚建立lAndExp，对于第一个eqExp的指令建立都是在当前基本块的（没有跳转，分支和ret就不用newBB）
 //            lAndBB.add(visitEqExp(lAndExp.getEqExp()));
-            // 为真跳到if【或者是||后的】，为假跳到else【都会new一次block代表下一个判断语句或者是if】
+            // 为真跳到if，为假跳到else【或者是||后的】
+            // 【都会new一次block代表下一个判断语句或者是if】
             newBasicBlock(); // 给下面要跳转的
             builder.buildBrInst(tmpBlock, cur_basicBlock, true, condInst); // 最后一个EqExp所在的最后一条跳转语句
         } else {
