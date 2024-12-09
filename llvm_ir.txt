@@ -3,7 +3,9 @@ declare i32 @getchar()
 declare void @putint(i32)
 declare void @putch(i32)
 declare void @putstr(i8*)
-define dso_local i32 @main() {
+@c = dso_local global i32 10
+@x = dso_local global i32 0
+define dso_local void @f1() {
 reg_0:
     %reg_1 = alloca i32
     store i32 0, i32* %reg_1
@@ -11,58 +13,391 @@ reg_0:
 
 reg_2:
     %reg_3 = load i32, i32* %reg_1
-    %reg_4 = icmp slt i32 %reg_3, 4
-    br i1 %reg_4, label %reg_5, label %reg_6
+    %reg_4 = icmp slt i32 %reg_3, 5
+    br i1 %reg_4, label %reg_5, label %reg_7
 
 reg_5:
-    br label %reg_7
+    %reg_8 = load i32, i32* @x
+    %reg_9 = add i32 %reg_8, 1
+    store i32 %reg_9, i32* @x
+    br label %reg_6
 
 reg_6:
-    ret i32 0
+    %reg_10 = load i32, i32* %reg_1
+    %reg_11 = add i32 %reg_10, 1
+    store i32 %reg_11, i32* %reg_1
+    br label %reg_2
 
 reg_7:
-    %reg_8 = load i32, i32* %reg_1
-    %reg_9 = icmp ne i32 %reg_8, 4
-    br i1 %reg_9, label %reg_10, label %reg_11
+    ret void
+}
+
+define dso_local i32 @f2() {
+reg_0:
+    %reg_1 = load i32, i32* @x
+    %reg_2 = icmp sgt i32 %reg_1, 0
+    br i1 %reg_2, label %reg_3, label %reg_5
+
+reg_3:
+    %reg_4 = sub i32 0, 1
+    ret i32 %reg_4
+    br label %reg_6
+
+reg_5:
+    ret i32 1
+    br label %reg_6
+
+reg_6:
+    %reg_7 = load i32, i32* @x
+    ret i32 %reg_7
+}
+
+define dso_local void @f3(i32 %0) {
+reg_1:
+    %reg_2 = alloca i32
+    store i32 %0, i32* %reg_2
+    %reg_3 = load i32, i32* %reg_2
+    store i32 %reg_3, i32* @x
+    ret void
+}
+
+define dso_local i32 @f4(i32 %0) {
+reg_1:
+    %reg_2 = alloca i32
+    store i32 %0, i32* %reg_2
+    %reg_3 = load i32, i32* %reg_2
+    %reg_4 = icmp sgt i32 %reg_3, 0
+    br i1 %reg_4, label %reg_5, label %reg_8
+
+reg_5:
+    %reg_6 = load i32, i32* %reg_2
+    %reg_7 = add i32 0, %reg_6
+    ret i32 %reg_7
+    br label %reg_8
+
+reg_8:
+    %reg_9 = load i32, i32* %reg_2
+    %reg_10 = sub i32 0, %reg_9
+    ret i32 %reg_10
+}
+
+define dso_local i32 @f5(i32 %0, i32 %1, i32 %2) {
+reg_3:
+    %reg_4 = alloca i32
+    store i32 %0, i32* %reg_4
+    %reg_5 = alloca i32
+    store i32 %1, i32* %reg_5
+    %reg_6 = alloca i32
+    store i32 %2, i32* %reg_6
+    %reg_7 = load i32, i32* %reg_4
+    %reg_8 = load i32, i32* %reg_5
+    %reg_9 = icmp sgt i32 %reg_7, %reg_8
+    br i1 %reg_9, label %reg_10, label %reg_19
 
 reg_10:
-    %reg_12 = load i32, i32* %reg_1
-    %reg_13 = add i32 %reg_12, 1
-    store i32 %reg_13, i32* %reg_1
-    %reg_14 = load i32, i32* %reg_1
-    %reg_15 = icmp ne i32 %reg_14, 6
-    br i1 %reg_15, label %reg_16, label %reg_17
+    %reg_11 = load i32, i32* %reg_4
+    %reg_12 = load i32, i32* %reg_6
+    %reg_13 = icmp sgt i32 %reg_11, %reg_12
+    br i1 %reg_13, label %reg_14, label %reg_16
 
-reg_11:
-    %reg_24 = load i32, i32* %reg_1
-    %reg_25 = icmp eq i32 %reg_24, 4
-    br i1 %reg_25, label %reg_26, label %reg_27
+reg_14:
+    %reg_15 = load i32, i32* %reg_4
+    ret i32 %reg_15
+    br label %reg_18
 
 reg_16:
-    br label %reg_7
-    br label %reg_23
+    %reg_17 = load i32, i32* %reg_6
+    ret i32 %reg_17
+    br label %reg_18
 
-reg_17:
-    %reg_18 = load i32, i32* %reg_1
-    %reg_19 = sub i32 %reg_18, 1
-    %reg_20 = icmp eq i32 %reg_19, 4
-    br i1 %reg_20, label %reg_21, label %reg_22
+reg_18:
+    br label %reg_19
 
-reg_21:
-    br label %reg_11
-    br label %reg_22
-
-reg_22:
-    br label %reg_23
+reg_19:
+    %reg_20 = load i32, i32* %reg_5
+    %reg_21 = load i32, i32* %reg_6
+    %reg_22 = icmp sgt i32 %reg_20, %reg_21
+    br i1 %reg_22, label %reg_23, label %reg_32
 
 reg_23:
-    br label %reg_7
-
-reg_26:
-    br label %reg_6
-    br label %reg_27
+    %reg_24 = load i32, i32* %reg_5
+    %reg_25 = load i32, i32* %reg_4
+    %reg_26 = icmp sgt i32 %reg_24, %reg_25
+    br i1 %reg_26, label %reg_27, label %reg_29
 
 reg_27:
-    br label %reg_2
+    %reg_28 = load i32, i32* %reg_5
+    ret i32 %reg_28
+    br label %reg_31
+
+reg_29:
+    %reg_30 = load i32, i32* %reg_4
+    ret i32 %reg_30
+    br label %reg_31
+
+reg_31:
+    br label %reg_32
+
+reg_32:
+    %reg_33 = load i32, i32* %reg_6
+    %reg_34 = load i32, i32* %reg_4
+    %reg_35 = icmp sgt i32 %reg_33, %reg_34
+    br i1 %reg_35, label %reg_36, label %reg_45
+
+reg_36:
+    %reg_37 = load i32, i32* %reg_6
+    %reg_38 = load i32, i32* %reg_5
+    %reg_39 = icmp sgt i32 %reg_37, %reg_38
+    br i1 %reg_39, label %reg_40, label %reg_42
+
+reg_40:
+    %reg_41 = load i32, i32* %reg_6
+    ret i32 %reg_41
+    br label %reg_44
+
+reg_42:
+    %reg_43 = load i32, i32* %reg_5
+    ret i32 %reg_43
+    br label %reg_44
+
+reg_44:
+    br label %reg_45
+
+reg_45:
+    %reg_46 = load i32, i32* %reg_4
+    %reg_47 = call i32 @f4(i32 %reg_46)
+    ret i32 %reg_47
+}
+
+define dso_local i32 @f6(i32 %0) {
+reg_1:
+    %reg_2 = alloca i32
+    store i32 %0, i32* %reg_2
+    %reg_3 = load i32, i32* @x
+    %reg_4 = load i32, i32* %reg_2
+    %reg_5 = add i32 %reg_3, %reg_4
+    store i32 %reg_5, i32* @x
+    %reg_6 = load i32, i32* %reg_2
+    %reg_7 = icmp eq i32 %reg_6, 0
+    br i1 %reg_7, label %reg_8, label %reg_9
+
+reg_8:
+    ret i32 0
+    br label %reg_9
+
+reg_9:
+    %reg_10 = load i32, i32* %reg_2
+    %reg_11 = sub i32 %reg_10, 1
+    %reg_12 = call i32 @f6(i32 %reg_11)
+    ret i32 %reg_12
+}
+
+define dso_local i32 @main() {
+reg_0:
+    %reg_1 = alloca i32
+    %reg_2 = alloca i32
+    store i32 5, i32* %reg_2
+    %reg_3 = alloca i32
+    br label %reg_4
+
+reg_4:
+    %reg_5 = load i32, i32* %reg_1
+    %reg_6 = icmp slt i32 %reg_5, 5
+    br i1 %reg_6, label %reg_7, label %reg_9
+
+reg_7:
+    %reg_10 = load i32, i32* %reg_1
+    %reg_11 = icmp slt i32 %reg_10, 5
+    br i1 %reg_11, label %reg_12, label %reg_13
+
+reg_8:
+    %reg_16 = load i32, i32* %reg_1
+    %reg_17 = add i32 %reg_16, 1
+    store i32 %reg_17, i32* %reg_1
+    br label %reg_4
+
+reg_9:
+    store i32 5, i32* %reg_1
+    br label %reg_18
+
+reg_12:
+    br label %reg_8
+
+reg_13:
+    %reg_14 = load i32, i32* %reg_1
+    %reg_15 = add i32 %reg_14, 2
+    store i32 %reg_15, i32* %reg_1
+    br label %reg_8
+
+reg_18:
+    %reg_20 = load i32, i32* %reg_1
+    %reg_21 = add i32 %reg_20, 1
+    store i32 %reg_21, i32* %reg_1
+    %reg_22 = load i32, i32* %reg_1
+    %reg_23 = icmp eq i32 %reg_22, 6
+    br i1 %reg_23, label %reg_24, label %reg_25
+
+reg_19:
+    br label %reg_26
+
+reg_24:
+    br label %reg_19
+
+reg_25:
+    br label %reg_18
+
+reg_26:
+    %reg_27 = load i32, i32* %reg_1
+    %reg_28 = icmp slt i32 %reg_27, 7
+    br i1 %reg_28, label %reg_29, label %reg_30
+
+reg_29:
+    %reg_31 = load i32, i32* %reg_1
+    %reg_32 = add i32 %reg_31, 1
+    store i32 %reg_32, i32* %reg_1
+    br label %reg_26
+
+reg_30:
+    br label %reg_33
+
+reg_33:
+    %reg_36 = load i32, i32* %reg_1
+    %reg_37 = icmp eq i32 %reg_36, 8
+    br i1 %reg_37, label %reg_38, label %reg_39
+
+reg_34:
+    %reg_40 = load i32, i32* %reg_1
+    %reg_41 = add i32 %reg_40, 1
+    store i32 %reg_41, i32* %reg_1
+    br label %reg_33
+
+reg_35:
+    br label %reg_42
+
+reg_38:
+    br label %reg_35
+
+reg_39:
+    br label %reg_34
+
+reg_42:
+    %reg_44 = load i32, i32* %reg_1
+    %reg_45 = add i32 %reg_44, 1
+    store i32 %reg_45, i32* %reg_1
+    %reg_46 = load i32, i32* %reg_1
+    %reg_47 = icmp eq i32 %reg_46, 10
+    br i1 %reg_47, label %reg_48, label %reg_49
+
+reg_43:
+    call void @f1()
+    %reg_50 = load i32, i32* @x
+    %reg_51 = icmp eq i32 %reg_50, 5
+    br i1 %reg_51, label %reg_52, label %reg_58
+
+reg_48:
+    call void @putch(i32 79)
+    br label %reg_43
+
+reg_49:
+    br label %reg_42
+
+reg_52:
+    %reg_53 = call i32 @f2()
+    %reg_54 = sub i32 0, 1
+    %reg_55 = icmp eq i32 %reg_53, %reg_54
+    br i1 %reg_55, label %reg_56, label %reg_57
+
+reg_56:
+    call void @putch(i32 66)
+    br label %reg_57
+
+reg_57:
+    br label %reg_58
+
+reg_58:
+    call void @putch(i32 80)
+    %reg_59 = sub i32 0, 1
+    store i32 %reg_59, i32* @x
+    store i32 0, i32* %reg_1
+    br label %reg_60
+
+reg_60:
+    %reg_61 = load i32, i32* %reg_1
+    %reg_62 = load i32, i32* %reg_1
+    %reg_63 = mul i32 %reg_61, %reg_62
+    %reg_64 = load i32, i32* %reg_2
+    %reg_65 = load i32, i32* %reg_2
+    %reg_66 = sub i32 5, 4
+    %reg_67 = mul i32 %reg_64, %reg_65
+    %reg_68 = sdiv i32 %reg_67, %reg_66
+    %reg_69 = icmp slt i32 %reg_63, %reg_68
+    br i1 %reg_69, label %reg_70, label %reg_72
+
+reg_70:
+    %reg_73 = call i32 @getint()
+    store i32 %reg_73, i32* %reg_3
+    %reg_74 = load i32, i32* %reg_3
+    %reg_75 = call i32 @f4(i32 %reg_74)
+    call void @f3(i32 %reg_75)
+    %reg_76 = load i32, i32* @x
+    %reg_77 = icmp slt i32 %reg_76, 0
+    br i1 %reg_77, label %reg_78, label %reg_79
+
+reg_71:
+    %reg_86 = load i32, i32* %reg_1
+    %reg_87 = add i32 %reg_86, 1
+    store i32 %reg_87, i32* %reg_1
+    br label %reg_60
+
+reg_72:
+    %reg_88 = load i32, i32* @x
+    %reg_89 = icmp sge i32 %reg_88, 0
+    br i1 %reg_89, label %reg_90, label %reg_91
+
+reg_78:
+    br label %reg_72
+
+reg_79:
+    %reg_80 = load i32, i32* @x
+    %reg_81 = icmp sgt i32 %reg_80, 0
+    br i1 %reg_81, label %reg_82, label %reg_83
+
+reg_82:
+    br label %reg_71
+
+reg_83:
+    %reg_84 = load i32, i32* %reg_1
+    %reg_85 = add i32 %reg_84, 1
+    store i32 %reg_85, i32* %reg_1
+    br label %reg_71
+
+reg_90:
+    call void @putch(i32 66)
+    br label %reg_91
+
+reg_91:
+    store i32 10, i32* %reg_1
+    store i32 5, i32* %reg_2
+    store i32 7, i32* %reg_3
+    %reg_92 = load i32, i32* %reg_1
+    %reg_93 = load i32, i32* %reg_2
+    %reg_94 = load i32, i32* %reg_3
+    %reg_95 = call i32 @f5(i32 %reg_92, i32 %reg_93, i32 %reg_94)
+    %reg_96 = load i32, i32* %reg_1
+    %reg_97 = icmp eq i32 %reg_95, %reg_96
+    br i1 %reg_97, label %reg_98, label %reg_99
+
+reg_98:
+    call void @putch(i32 66)
+    br label %reg_99
+
+reg_99:
+    store i32 0, i32* @x
+    %reg_100 = call i32 @f6(i32 10)
+    %reg_101 = load i32, i32* @x
+    call void @putch(i32 82)
+    call void @putch(i32 61)
+    call void @putint(i32 %reg_101)
+    ret i32 0
 }
 

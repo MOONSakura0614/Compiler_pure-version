@@ -380,9 +380,10 @@ public class IRGenerator {
                 visitStmt(stmt.getStmt()); // 构建true要跳转到BB（在visitLAndExp时已经加上trueBlock了）
                 // TODO: 2024/12/7 由于builder中基本是通过调用IRGenerator的cur_BB确定指令存储的对应基本块位置，可以提前new出，
                 //  但是改变这个cur_BB成员变量来实现（不想新增传入结点所在的基本块的各种visit和build方法所以想到让成员变量的值改变这样）
-                // todo: circleStmt分析完之后可能会有很多新block
-                circleBlock = cur_basicBlock;
-                builder.buildBrInst(circleBlock, continueBlock);
+                // todo: circleStmt分析完之后可能会有很多新block-->但是还是不能变局部circle，不然下面处理changeStmt会出问题
+//                circleBlock = cur_basicBlock;
+//                builder.buildBrInst(circleBlock, continueBlock);
+                builder.buildBrInst(cur_basicBlock, continueBlock);
 
                 // todo: 下面处理循环变量，注意复原之前new过的
                 if (stmt.getForStmt2() != null) { // 改变循环变量类似的语句加入CircleBlock（就是当前的cur_BB---不行！自己新建一个，再跳回条件判断
@@ -416,8 +417,9 @@ public class IRGenerator {
                 cur_basicBlock = circleBlock;                
                 visitStmt(stmt.getStmt()); // 此时最后一条EqExp成立时跳转到就是真的
                 // todo: circleStmt分析完之后可能会有很多新block
-                circleBlock = cur_basicBlock;
-                builder.buildBrInst(circleBlock, continueBlock);
+//                circleBlock = cur_basicBlock;
+//                builder.buildBrInst(circleBlock, continueBlock);
+                builder.buildBrInst(cur_basicBlock, continueBlock);
 
                 // todo: 下面处理循环变量，注意复原之前new过的
                 if (stmt.getForStmt2() != null) { // 改变循环变量类似的语句加入CircleBlock（就是当前的cur_BB---不行！自己新建一个，再跳回条件判断
@@ -461,8 +463,9 @@ public class IRGenerator {
             // 注意circleBlock的最后都要跳会cond判断
             // 此时要是处于if-else里的？也会有对应的finalBlock被new出来吧，不会说接到br后面去了
             // todo: circleStmt分析完之后可能会有很多新block
-            circleBlock = cur_basicBlock;
-            builder.buildBrInst(circleBlock, continueBlock);
+//            circleBlock = cur_basicBlock;
+//            builder.buildBrInst(circleBlock, continueBlock);
+            builder.buildBrInst(cur_basicBlock, continueBlock);
 
             // todo: 下面处理循环变量，注意复原之前new过的
             if (stmt.getForStmt2() != null) { // 改变循环变量类似的语句加入CircleBlock（就是当前的cur_BB---不行！自己新建一个，再跳回条件判断
