@@ -270,7 +270,7 @@ public class IRGenerator {
 //                Symbol lVal_sym = lVal.getIdentSymbol();
                 Symbol lVal_sym = cur_ir_symTable.findInCurSymTable(lVal.getIdentName());
                 Exp exp = stmt.getExp();
-                // TODO: 2024/11/29 Exp普通的(非const，非global)应该都不能乱求值；：谨防除零陷阱
+                // Exp普通的(非const，非global)应该都不能乱求值；：谨防除零陷阱
 //                int val = exp.getIntValue();
 //                lVal_sym.setIntValue(val); // 下面符号改变的value不需要重复声明（只要对应语句
 //                Symbol symbol = cur_ir_symTable.findInCurSymTable(lVal.)
@@ -298,7 +298,7 @@ public class IRGenerator {
                 visitBranch(stmt);
             }
             case 5 -> {
-                // todo:循环 'for' '(' [ForStmt] ';' [Cond] ';' [ForStmt] ')' Stmt
+                // 循环 'for' '(' [ForStmt] ';' [Cond] ';' [ForStmt] ')' Stmt
                 visitCircle(stmt);
             }
             case 6 -> {
@@ -327,13 +327,9 @@ public class IRGenerator {
         }
     }
 
-    // TODO: 2024/12/7 观察思考是否出现循环内套循环就会失效？？
     // todo: Circle & Branch
     private IRBasicBlock continueBlock = null;
     private IRBasicBlock breakBlock = null;
-    /*private IRBasicBlock TrueBlock = null;
-    private IRBasicBlock FalseBlock = null;
-    private IRBasicBlock exitBlock = null; // break跳转？*/
 
     /* 'for' '(' [ForStmt] ';' [Cond] ';' [ForStmt] ')' Stmt */
     private void visitCircle(Stmt stmt) {
@@ -375,10 +371,10 @@ public class IRGenerator {
                 cur_basicBlock = circleBlock;
 
                 // 分析for-stmt，循环体内语句
-                // TODO: 2024/12/7 为了支持break和continue，应该在分析循环体之前，考虑循环体内部的这俩控制语句，提前设好changeBlock和exitBlock？
+                // 为了支持break和continue，应该在分析循环体之前，考虑循环体内部的这俩控制语句，提前设好changeBlock和exitBlock？
                 //  ForStmt2 == null时，不用改变，就直接进入cond判断；若cond再等于null，就直接进入循环体？
                 visitStmt(stmt.getStmt()); // 构建true要跳转到BB（在visitLAndExp时已经加上trueBlock了）
-                // TODO: 2024/12/7 由于builder中基本是通过调用IRGenerator的cur_BB确定指令存储的对应基本块位置，可以提前new出，
+                // 由于builder中基本是通过调用IRGenerator的cur_BB确定指令存储的对应基本块位置，可以提前new出，
                 //  但是改变这个cur_BB成员变量来实现（不想新增传入结点所在的基本块的各种visit和build方法所以想到让成员变量的值改变这样）
                 // todo: circleStmt分析完之后可能会有很多新block-->但是还是不能变局部circle，不然下面处理changeStmt会出问题
 //                circleBlock = cur_basicBlock;
@@ -481,35 +477,11 @@ public class IRGenerator {
         breakBlock = cntBreakBlock;
     }
 
-    private void visitChangeForStmt(ForStmt forStmt2, IRBasicBlock condBlock) {
-        // 此时循环体对应的基本块已经构建好了（循环体内部不会出现很多基本块捣蛋？？？-->有可能，所以干脆新建一个block
-        IRBasicBlock circleBlock = cur_basicBlock;
-        newBasicBlock();
-        IRBasicBlock changeBlock = cur_basicBlock;
-        // 在新建循环改变块之前，应该让循环体每次都无条件进入改变块，在执行完改变块之后，再通过改变块去进入cond判读
-        builder.buildBrInst(circleBlock, changeBlock);
-        // 改变块（主要是ForStmt2的赋值语句生成对应的指令）
-        visitInitForStmt(forStmt2); // 类似forStmt1的操作其实
-        builder.buildBrInst(changeBlock, condBlock);
-    }
-
     private void visitChangeForStmt(ForStmt forStmt2, IRBasicBlock circleBlock, IRBasicBlock changeBlock, IRBasicBlock condBlock) {
-        // 此时循环体对应的基本块已经构建好了（循环体内部不会出现很多基本块捣蛋？？？-->有可能，所以干脆新建一个block
-//        IRBasicBlock circleBlock = cur_basicBlock;
-//        newBasicBlock(); // 都是已提供的 --> 对于cond和change为空的，就是空块？（没有指令）
-//        IRBasicBlock changeBlock = cur_basicBlock;
-        // 在新建循环改变块之前，应该让循环体每次都无条件进入改变块，在执行完改变块之后，再通过改变块去进入cond判读
         builder.buildBrInst(circleBlock, changeBlock);
         // 改变块（主要是ForStmt2的赋值语句生成对应的指令）
         visitInitForStmt(forStmt2); // 类似forStmt1的操作其实
         builder.buildBrInst(changeBlock, condBlock);
-    }
-
-    private void exitCircle(ArrayList<IRBasicBlock> lAndBB) {
-        newBasicBlock(); // 是在循环体和改变块之外的新的外界的基本块
-        for (IRBasicBlock block: lAndBB) {
-            refillLogicalBlock(block, cur_basicBlock, true);
-        }
     }
 
     /* ForStmt → LVal '=' Exp */
@@ -533,10 +505,6 @@ public class IRGenerator {
 
     /* 单独处理分支语句 */
     public void visitBranch(Stmt stmt) {
-        /*// 处理if里面套if，套很多层stmt，需要全局的true和false的基本块
-        IRBasicBlock cntTrueBlock = TrueBlock;
-        IRBasicBlock cntFalseBlock = FalseBlock;*/
-
         // 为了Cond相关
         // 处理Cond
         Cond cond = stmt.getCond();
@@ -603,10 +571,6 @@ public class IRGenerator {
             // 最后一组的每个block的falseBlock还没有正确设置（&&中遇到false要直接跳转，因为没有新的||，所以只能跳转到else或者final）
             visitElseAndNextBlockItem(stmt, trueBlock, lAndBB); // 传trueBB只是为了给trueBB最后加跳出去的指令
         }
-
-        /*// 解析完本层if-else后进行全局if-else要跳转块的还原
-        TrueBlock = cntTrueBlock;
-        FalseBlock = cntFalseBlock;*/
     }
 
     /* refill lAndExp */
@@ -809,49 +773,6 @@ public class IRGenerator {
             // 其他类型会显示return，但是void有可能没有
             Instruction inst = new RetInst();
 //            System.out.println("in IR Generator:visitFuncDef(FuncDef funcDef), 缺少void ret");
-            cur_basicBlock.addInst(inst);
-        }
-    }
-
-    private void visitFuncDef_FArgsAfterF(FuncDef funcDef) {
-        // 先把函数名加入外层符号表
-        funcDef.insertSymbol(cur_ir_symTable);
-        newIRSymTable();
-//        ArrayList<IRType> arg_types = visitFuncFParams(funcDef.getFuncFParams());
-        IRType ret_type = IRVoidType.voidType;
-        switch (funcDef.getFuncType()) {
-            case INTTK -> {
-                ret_type = IRIntType.intType;
-            }
-            case CHARTK -> {
-                ret_type = IRCharType.charType;
-            }
-            case VOIDTK -> {
-//                ret_type = IRVoidType.voidType; // 其实这里可以省略啦
-            }
-        }
-//        IRFunction irFunction = new IRFunction(funcDef.getFuncName(), ret_type, arg_types);
-        IRFunction irFunction = new IRFunction(funcDef.getFuncName(), ret_type);
-        cur_func = irFunction;
-        getArgsFromFParams(funcDef.getFuncFParams());
-//        ArrayList<IRArgument> args = getArgsFromFParams(funcDef.getFuncFParams());
-        // TODO: 2024/11/26 每次使用都load？下面暂时在IRValue中保留标识符（indent_name），不是寄存器（name） => 便于在符号表中找symbol和对应值（后序使用的寄存器）
-        // TODO: 2024/11/26 还是说在符号表中维持reg_name，但是指导书不认可?？
-        // 就形参而言，arg的name需要保留，但是如果arg有ident_name，可从symbolTable中更新最后load的reg_name
-        /* 符号表的存储格式同学们可以自己设计，下面给出符号表的简略示例，同学们在实验中可以根据自己需要自行设计。其中需要注意作用域与符号表的对应关系，以及必要信息的保存。 */
-        // 函数形参加载
-//        irFunction.addFParamsInst();
-//        IRBasicBlock basicBlock = new IRBasicBlock(irFunction);
-//        cur_basicBlock = basicBlock;
-//        cur_func = irFunction;
-//        for (IRArgument argument: args) {
-//            // 先alloc，再store，
-//        }
-        visitBlockInFunc(funcDef.getBlock()); // InFunc表明此时无需新建符号表和基本块
-        functions.add(irFunction);
-        if (ret_type instanceof IRVoidType && !(irFunction.getLastInst() instanceof RetInst)) {
-            // 其他类型会显示return，但是void有可能没有
-            Instruction inst = new RetInst();
             cur_basicBlock.addInst(inst);
         }
     }
