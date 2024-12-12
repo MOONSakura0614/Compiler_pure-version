@@ -1,0 +1,88 @@
+int main() {
+    {
+        int x = 0;
+            if (x==4) { // br labelx=4 , label true, label falsebaisicblock
+                break; // br:
+            }
+        for(;x < 4;) {
+            for (;x != 4;) {
+                x = x + 1;
+                if(x != 6) {
+                    continue;
+                } else {
+                    if (x -1 == 4) {
+                        break;
+                    }
+                }
+            }
+            if (x==4) {
+                break;
+            }
+        }
+    }
+    return 0;
+}
+
+
+declare i32 @getint()
+declare i32 @getchar()
+declare void @putint(i32)
+declare void @putch(i32)
+declare void @putstr(i8*)
+define dso_local i32 @main() {
+reg_0:
+    %reg_1 = alloca i32
+    store i32 0, i32* %reg_1
+    br label %reg_2
+
+reg_2:
+    %reg_3 = load i32, i32* %reg_1
+    %reg_4 = icmp slt i32 %reg_3, 4
+    br i1 %reg_4, label %reg_5, label %reg_6
+
+reg_5:
+    br label %reg_7
+
+reg_6:
+    ret i32 0
+
+reg_7:
+    %reg_8 = load i32, i32* %reg_1
+    %reg_9 = icmp ne i32 %reg_8, 4
+    br i1 %reg_9, label %reg_10, label %reg_11
+
+reg_10:
+    %reg_12 = load i32, i32* %reg_1
+    %reg_13 = add i32 %reg_12, 1
+    store i32 %reg_13, i32* %reg_1
+    %reg_14 = load i32, i32* %reg_1
+    %reg_15 = icmp ne i32 %reg_14, 6
+    br i1 %reg_15, label %reg_16, label %reg_17
+
+reg_11:
+    %reg_24 = load i32, i32* %reg_1
+    %reg_25 = icmp eq i32 %reg_24, 4
+    br i1 %reg_25, label %reg_26, label %reg_27
+
+reg_16:
+    br label %reg_7
+
+reg_17:
+    %reg_18 = load i32, i32* %reg_1
+    %reg_19 = sub i32 %reg_18, 1
+    %reg_20 = icmp eq i32 %reg_19, 4
+    br i1 %reg_20, label %reg_21, label %reg_22
+
+reg_21:
+    br label %reg_11
+
+reg_22:
+
+reg_23:
+
+reg_26:
+    br label %reg_6
+
+reg_27:
+}
+

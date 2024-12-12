@@ -2,9 +2,11 @@ package frontend.parser.syntaxUnit;
 
 import frontend.lexer.LexType;
 import frontend.lexer.Token;
+import frontend.symbol.Symbol;
 import utils.IOUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static frontend.parser.Parser.lexIterator;
 
@@ -158,5 +160,46 @@ public class ConstInitVal extends SyntaxNode {
 
             return 0;
         }
+    }
+
+    public ArrayList<ConstExp> getInitConstExps() {
+        ArrayList<ConstExp> constExps = new ArrayList<>();
+        constExps.add(constExp);
+        for (Comma_ConstExp comma_constExp: comma_constExp_list) {
+            constExps.add(comma_constExp.constExp);
+        }
+        return constExps;
+    }
+
+    public int[] getArrayValue(int length) { // 初始化的值不一定满足length，其他元素默认初始化为0
+        int[] res = new int[length]; // 其他应该默认为0
+        ArrayList<ConstExp> constExps = getInitConstExps();
+        int i;
+        for (i = 0; i < constExps.size(); i++) {
+            res[i] = constExps.get(i).getIntValue(); // todo: 数组取值完善【仅限常量数组 --> 变量数组还是通过GEP
+        }
+        return res;
+    }
+
+    public int[] getArrayCharValue(int length) { // 字符数组，不超过128（计算过程i32，结构i8
+        int[] res = new int[length]; // 其他应该默认为0
+        if (isStringInit) {
+            // todo:StringCon待实现
+        }
+        ArrayList<ConstExp> constExps = getInitConstExps();
+        int i;
+        for (i = 0; i < constExps.size(); i++) {
+            res[i] = (constExps.get(i).getIntValue() % 128);
+        }
+        return res;
+    }
+
+    public static void main(String[] args) {
+        int length = 10;
+        int[] res = new int[length];
+        res[0] = 8;
+        res[1] = 18;
+        System.out.println(res); // 直接print只能得到地址hash：[I@41629346
+        System.out.println(Arrays.toString(res)); // 可以观察到默认赋值为0
     }
 }

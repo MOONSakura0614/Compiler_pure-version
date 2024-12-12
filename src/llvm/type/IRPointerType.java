@@ -29,4 +29,15 @@ public class IRPointerType implements IRType {
     public String toString() {
         return element_type.toString() + "*";
     }
+
+    private Boolean isString = Boolean.FALSE; // 是字符串常量
+
+    public IRPointerType(IRType element_type, boolean isString) {
+        this.element_type = element_type;
+        this.isString = isString;
+    }
+
+    public boolean isString() {
+        return isString;
+    }
 }

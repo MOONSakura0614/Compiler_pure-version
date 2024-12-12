@@ -8,6 +8,7 @@ import llvm.type.IRFunctionType;
 import llvm.type.IRIntType;
 import llvm.type.IRType;
 import llvm.value.IRValue;
+import llvm.value.constVar.IRConstArray;
 
 /**
  * @author 郑悦
@@ -21,7 +22,7 @@ public class Symbol {
     protected Token identToken;
     // 注意，作为父类给子类继承使用的话，只能protect
     protected Boolean isConst;
-    protected Boolean isArray; // 注意SysY最多数组只支持一维
+    protected Boolean isArray = Boolean.FALSE; // 注意SysY最多数组只支持一维
     protected SymbolType symbolType;
     // TODO: 2024/10/26 是否需要将Exp表示的值计算出来，防止数组越界？
 
@@ -99,8 +100,15 @@ public class Symbol {
         return isArray;
     }
 
+    /* 加入数组维护 */
+    public IRConstArray initArray;
+
     public void setIrValue(IRValue irValue) {
         this.irValue = irValue;
+        if (irValue instanceof IRConstArray) {
+            initArray = (IRConstArray) irValue;
+            // 大概不维护，只用常量不变，变量数组不好维护（运行时决定值
+        }
 //        System.out.println(irValue);
     }
 
@@ -110,6 +118,7 @@ public class Symbol {
     }
 
     public int getIntValue() {
+        isArray = Boolean.FALSE;
         return intValue;
     }
 
@@ -127,5 +136,19 @@ public class Symbol {
 
     public void setRetType(IRType type) {
         ((IRFunctionType) irValue.getIrType()).setRet_type(type);
+    }
+
+    private int[] arrayValue;
+    public void setIntArrayValue(int[] vals) {
+        isArray = Boolean.TRUE;
+        // 设置数组值
+        arrayValue = vals;
+    }
+    public int getArrayElementValueByIndex(int index) {
+        if (index < arrayValue.length) {
+            return arrayValue[index];
+        } else {
+            throw new RuntimeException("超出数组边界");
+        }
     }
 }

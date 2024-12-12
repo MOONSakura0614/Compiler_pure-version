@@ -138,9 +138,14 @@ public class LVal extends SyntaxNode {
         if (isArrayElement) {
             // 如果是数组元素--从内存里load？
             // TODO: 2024/11/25 数组相关-中间代码设置
+            Symbol symbol = IRGenerator.cur_ir_symTable.findInCurSymTable(ident_token.getTokenValue());
+            // todo: 如何获取，initArray单独存在symbol的成员变量【arrayValue的int数组】中（∵有点忘记symbol中的irValue会不会影响load指令，好像用的是irValue，没用pointerReg
+            //  数组元素取值，只在数组是常数的时候吗？（好像不一定，getIntValue纯用来简化计算，和GEP指令无关 【如果只用于给constArray取值，那应该Exp（Ident[Exp]中的Exp）也是能找到对应intVal的】
+            int index = exp.getIntValue();
+            return symbol.getArrayElementValueByIndex(index);
         } else {
             // 是int还是char，求intValue的话，说明需要i32
-            // 或者统一成i32计算，最后判断是否需要类型转换？
+            // 或者统一成i32计算，最后判断是否需要类型转换？ YES
             if (ident_token != null) {
                 if (IRGenerator.cur_ir_symTable != null) {
                     // 在符号表中查找变量的值
@@ -158,5 +163,9 @@ public class LVal extends SyntaxNode {
 
     public String getIdentName() {
         return ident_token.getTokenValue();
+    }
+
+    public Exp getExp() {
+        return exp;
     }
 }

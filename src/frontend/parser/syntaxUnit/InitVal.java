@@ -178,4 +178,36 @@ public class InitVal extends SyntaxNode {
     public Boolean getStringInit() {
         return isStringInit;
     }
+
+    public ArrayList<Exp> getInitExps() {
+        ArrayList<Exp> exps = new ArrayList<>();
+        exps.add(exp);
+        for (Comma_Exp comma_exp: comma_exp_list) {
+            exps.add(comma_exp.exp);
+        }
+        return exps;
+    }
+
+    public int[] getArrayValue(int len) {
+        int[] res = new int[len]; // 其他应该默认为0
+        ArrayList<Exp> exps = getInitExps(); // 调用这个方法的只有能求出初始化值的！（比如局部常量数组，或者全局
+        int i;
+        for (i = 0; i < exps.size(); i++) {
+            res[i] = exps.get(i).getIntValue(); // todo: 数组取值完善【仅限常量数组 --> 变量数组还是通过GEP
+        }
+        return res;
+    }
+
+    public int[] getArrayCharValue(int len) {
+        int[] res = new int[len]; // 其他应该默认为0
+        if (isStringInit) {
+            // todo:StringCon待实现
+        }
+        ArrayList<Exp> exps = getInitExps(); // 调用这个方法的只有能求出初始化值的！（比如局部常量数组，或者全局
+        int i;
+        for (i = 0; i < exps.size(); i++) {
+            res[i] = (exps.get(i).getIntValue() % 128);
+        }
+        return res;
+    }
 }

@@ -19,7 +19,6 @@ import llvm.value.instruction.terminator.BrInst;
 import llvm.value.instruction.terminator.RetInst;
 
 import java.util.ArrayList;
-import java.util.TreeMap;
 
 /**
  * @author 郑悦
@@ -191,7 +190,11 @@ public class IRGenerator {
         // 局部变量声明：主要是instruction使用
         varDefType = varDecl.getVarType();
         for (VarDef varDef: varDecl.getVarDefs()) {
-            builder.buildVarLocal(varDefType, varDef);
+            if (varDef.getIsArray()) {
+                builder.buildArrayLocal(varDefType, varDef);
+            } else {
+                builder.buildVarLocal(varDefType, varDef);
+            }
         }
     }
 
@@ -206,7 +209,11 @@ public class IRGenerator {
         varDefType = constDecl.getVarType(); // 传给下面value定义和symbol插入
         // 构建ConstValue--在上面的insert过程添加
         for (ConstDef constDef: constDecl.getConstDefs()) {
-            builder.buildConstLocal(varDefType, constDef);
+            if (constDef.getIsArray()) {
+                builder.buildConstArrayLocal(varDefType, constDef);
+            } else {
+                builder.buildConstLocal(varDefType, constDef);
+            }
         }
     }
 
@@ -250,7 +257,7 @@ public class IRGenerator {
             // 全局才加GlobalVar
             // 下面是局部变量声明
             visitDecl(decl);
-            AllocaInst localVarDef = builder.buildLocalVar();
+//            AllocaInst localVarDef = builder.buildLocalVar();
         } else {
             Stmt stmt = blockItem.getStmt();
             if (stmt != null)
@@ -278,8 +285,14 @@ public class IRGenerator {
                 // 生成对应的赋值一系列操作的指令语句
                 irValue = builder.buildExp(exp);
                 IRValue lVal_irValue = lVal_sym.irValue; // alloca语句
+                /* 注意lVal为数组元素的情况 */
+                /*if (lVal.getExp() != null) {
+                    IRValue index = builder.buildExp(lVal.getExp());
+                    lVal_irValue = builder.buildGEPInst(lVal_irValue, index);
+                }*/
                 // 只要store到对应位置就行
-                builder.buildStoreInst(irValue, lVal_irValue);
+//                builder.buildStoreInst(irValue, lVal_irValue);
+                builder.buildStoreInst(irValue, getLValIRValue(lVal));
 //                builder.buildAssignInsts(lVal_irValue, irValue);
             }
             case 2 -> {
@@ -500,7 +513,19 @@ public class IRGenerator {
         irValue = builder.buildExp(exp);
         IRValue lVal_irValue = lVal_sym.irValue; // alloca语句
         // 只要store到对应位置就行
-        builder.buildStoreInst(irValue, lVal_irValue);
+//        builder.buildStoreInst(irValue, lVal_irValue);
+        builder.buildStoreInst(irValue, getLValIRValue(lVal));
+    }
+
+    /* todo：实现左值是数组元素的情况 */
+    public IRValue getLValIRValue(LVal lVal) {
+        Symbol lVal_sym = cur_ir_symTable.findInCurSymTable(lVal.getIdentName());
+        IRValue lVal_irValue = lVal_sym.irValue; // alloca语句
+        if (lVal.getExp() != null) {
+            IRValue index = builder.buildExp(lVal.getExp());
+            lVal_irValue = builder.buildGEPInst(lVal_irValue, index);
+        }
+        return lVal_irValue;
     }
 
     /* 单独处理分支语句 */

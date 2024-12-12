@@ -5,6 +5,7 @@ import frontend.symbol.SymbolTable;
 import llvm.IRModule;
 import llvm.type.*;
 import llvm.value.constVar.IRConst;
+import llvm.value.constVar.IRConstArray;
 
 import java.util.ArrayList;
 
@@ -15,13 +16,14 @@ import java.util.ArrayList;
  */
 //public class GlobalVariable extends IRValue { // 下面的父类继承IRUser
 public class IRGlobalVar extends IRGlobalValue {
-    private Boolean isConst = Boolean.FALSE;
-    private Boolean isArray = Boolean.FALSE;
-    private IRValue irValue;
-    private int int_value;
-    private char char_value;
-    private ArrayList<Integer> int_array_value;
-    private ArrayList<Character> char_array_value;
+    protected Boolean isConst = Boolean.FALSE;
+    protected Boolean isArray = Boolean.FALSE;
+    protected IRValue irValue;
+    protected int int_value;
+//    protected char char_value;
+    protected ArrayList<Integer> int_array_value;
+    protected ArrayList<Character> char_array_value;
+    protected IRConstArray initArray;
 
     public IRGlobalVar() {
         super();
@@ -37,15 +39,21 @@ public class IRGlobalVar extends IRGlobalValue {
         if (irValue instanceof IRConst) {
             isConst = Boolean.TRUE;
         }
+        if (irValue instanceof IRConstArray) {
+            initArray = (IRConstArray) irValue; // 用于打印@array_name = dso_local global 后面的那些部分
+            isArray = Boolean.TRUE;
+        }
         if (irValue.getIrType().equals(IRIntType.intType)) {
             irType = IRPointerType.i32PointType;
-        } else {
+        } else if (irValue.getIrType().equals(IRCharType.charType)) {
             irType = IRPointerType.i8PointType;
+        } else {
+            irType = new IRPointerType(irValue.getIrType()); // 给arrayType再封装一层pointer
         }
 //        IRModule.getInstance().addGlobalVar(this);
         // 重设全局变量的名称
         setName("@"+irValue.getName());
-        irValue.setName("@"+irValue.getName());
+//        irValue.setName("@"+irValue.getName());
     }
 
     public IRGlobalVar(String name, IRValue irValue) {
@@ -79,14 +87,14 @@ public class IRGlobalVar extends IRGlobalValue {
         // stringConst -> i8*  --->   pointer
     }
 
-    public String getGlobalVarName() {
+    /*public String getGlobalVarName() {
         if (irValue == null)
             return null;
 
         return irValue.getName(); // 直接判断类型 instanceOf
         // int, constInt, intArray, char, constChar, charArray
         // stringConst -> i8*  --->   pointer
-    }
+    }*/
 
     public void setInt_value(int int_value) {
         this.int_value = int_value;
@@ -116,10 +124,11 @@ public class IRGlobalVar extends IRGlobalValue {
         if (isArray) {
             // 注意要用0-padding
             if (getGlobalVarIrType() instanceof IRArrayType) {
-                IRArrayType arrayType = (IRArrayType) type;
+//                IRArrayType arrayType = (IRArrayType) type;
+                return getName() + " = dso_local global " + initArray;
 //                return "@" + getGlobalVarName() + " = dso_local global " + '[' + arrayType.getElementType().toString()
-                return getName() + " = dso_local global " + '[' + arrayType.getElementType().toString()
-                        + " x " + arrayType.getLength() + ']' + " " + getArrayContent(); // char也改成int输出
+                /*return getName() + " = dso_local global " + '[' + arrayType.getElementType().toString()
+                        + " x " + arrayType.getLength() + ']' + " " + getArrayContent(); // char也改成int输出*/
             }
         }
         return getName() + " = dso_local global " + getGlobalVarIrType() +" " + int_value; // char也改成int输出
@@ -155,8 +164,7 @@ public class IRGlobalVar extends IRGlobalValue {
         return sb.toString();
     }
 
-    public static void main(String[] args) {
-        Integer i = 10;
-        System.out.println(i);
+    public IRValue getIrValue() {
+        return irValue;
     }
 }

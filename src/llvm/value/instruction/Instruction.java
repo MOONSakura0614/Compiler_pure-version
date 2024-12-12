@@ -26,6 +26,11 @@ public class Instruction extends IRUser {
         this.operator = operator;
     }
 
+    public Instruction(IRType type, Operator operator, String name) {
+        super(type, name);
+        this.operator = operator;
+    }
+
     public Instruction(IRType type, Operator operator) {
         // 每个指令操作也占一个虚拟寄存器:%2 = load i32, i32* @x, align 4
         // 或者是存储指令结果：%10 = zext i1 %9 to i32  ；%1 = alloca i32, align 4   ；%6 = icmp ne i32 %5, 0
@@ -38,8 +43,4 @@ public class Instruction extends IRUser {
         return operator;
     }
 
-    public static void main(String[] args) {
-//        Instruction i = new Instruction(); // 如果没有空参数的构造体，就算父类有，也是用不了的！
-        // 如果父类没有直接写空参的构造体，super会去找父类的父类！
-    }
 }

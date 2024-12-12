@@ -7,16 +7,19 @@ import frontend.symbol.Symbol;
 import llvm.type.*;
 import llvm.value.*;
 import llvm.value.constVar.IRConst;
+import llvm.value.constVar.IRConstArray;
 import llvm.value.constVar.IRConstChar;
 import llvm.value.constVar.IRConstInt;
 import llvm.value.instruction.*;
 import llvm.value.instruction.memory.AllocaInst;
+import llvm.value.instruction.memory.GEPInst;
 import llvm.value.instruction.memory.LoadInst;
 import llvm.value.instruction.memory.StoreInst;
 import llvm.value.instruction.terminator.BrInst;
 import llvm.value.instruction.terminator.CallInst;
 import llvm.value.instruction.terminator.RetInst;
 
+import java.awt.geom.CubicCurve2D;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -110,16 +113,16 @@ public class IRBuilder {
         // 注意随用随load，在要用到这个值（查询调用的ident_name之类的再生成load指令）
     }
 
-    public AllocaInst buildLocalVar() {
+    /*public AllocaInst buildLocalVar() {
         return null;
-    }
+    }*/
 
     public void buildConstLocal(LexType varDefType, ConstDef constDef) {
-        // TODO: 2024/11/26 没完成数组
+        // TODO: 2024/11/26 没完成数组  --->  12.10改成数组单开，这个专门处理普通变量
         ident_name = constDef.getIdentName();
-        if (constDef.getIsArray()) {
+        /*if (constDef.getIsArray()) {
             return;
-        }
+        }*/
         IRType type = IRIntType.intType;
         // 插入符号表
         if (varDefType.equals(LexType.CHARTK)) {
@@ -160,11 +163,11 @@ public class IRBuilder {
 
     // TODO: 2024/11/28 这里暂时没有区分局部变量，在initVal可以直接求取，和不能计算出需要store和load，这两种情况（统一当作一步步处理） 
     public void buildVarLocal(LexType varDefType, VarDef varDef) {
-        // TODO: 2024/11/26 没完成数组
+        // TODO: 2024/11/26 没完成数组 --->  12.10改成数组单开，这个专门处理普通变量
         ident_name = varDef.getIdentName();
-        if (varDef.getIsArray()) {
+        /*if (varDef.getIsArray()) {
             return;
-        }
+        }*/
         IRType type = IRIntType.intType;
         // 插入符号表
         if (varDefType.equals(LexType.CHARTK)) {
@@ -556,13 +559,21 @@ public class IRBuilder {
         // 注意区分全局和局部变量
         // TODO: 2024/11/28 尚未实现getElement指令，无法操作数组
         symbol = cur_ir_symTable.findInCurSymTable(lVal.getIdentName());
-        value = symbol.irValue;
+        value = symbol.irValue; // 传回去的是IRPointer代表元素在内存中的位置
         /*if (symbol.isConstSymbol()) { // 源程序保证正确，所以不会出现常量再赋值
             // 关于局部变量在符号表中对应的IRValue的设置:Const肯定有对应的值不用愁，直接用val
             return new IRConstInt(symbol.getIntValue()); // 初始值，i32
         } else {
             return value;
         }*/
+        /* 关于数组 */
+        if (symbol.getIsArray()) {
+            /*todo 目前的usage只有 LVal = getint() 的时候？*/
+            Symbol tmpSymbol = symbol;
+            IRValue index = buildExp(lVal.getExp()); // 由于是数组，数组不能直接作为左值，需要有
+            /*todo 当前文法：当 LVal 表示数组时，方括号个数必须和数组变量的维数相同（即定位到元素）。*/
+            return buildGEPInst(tmpSymbol.irValue, index);
+        }
         return value;
     }
 
@@ -571,13 +582,36 @@ public class IRBuilder {
         // TODO: 2024/11/28 尚未实现getElement指令，无法操作数组
         symbol = cur_ir_symTable.findInCurSymTable(lVal.getIdentName());
         value = symbol.irValue;
+        /*System.out.println(lVal.getIdentName());
+        System.out.println(symbol);
+        System.out.println(symbol.getIsArray());*/
+        Symbol tmpSym = symbol;
+        IRValue tmpValue = value;
+
+        /* todo: 处理调用的左值是数组的情况 */
+        if (symbol.getIsArray()) { // 此时value存的是对应的数组地址
+            /*System.out.println(symbol.getIsArray());
+            // 取值赋值：首先找对应的index（进行exp求值）
+            System.out.println(value);*/
+            IRValue index = buildExp(lVal.getExp()); // 若此时exp是lVal【应该得到对应的@或者alloca进行load
+            // 取对应的数组元素
+//            System.out.println(tmpValue);
+            /*System.out.println(value);
+            System.out.println(symbol.irValue);*/
+            // TODO: 2024/12/10 都叫你不要用全局的成员变量了吧！进了上一个buildExp的分析函数，symbol和value都乱套了！
+            gepInst = buildGEPInst(tmpValue, index); // 取出对应元素的地址
+            // load出来
+            return buildLoadInst(gepInst);
+        }
+
+//        System.out.println(value);
         if (symbol.isConstSymbol()) {
             // 关于局部变量在符号表中对应的IRValue的设置:Const肯定有对应的值不用愁，直接用val
             return new IRConstInt(symbol.getIntValue()); // 初始值，i32
 //            return symbol.irValue; // 初始值，i32
         } else {
             // 全局变量：直接用@
-            // GlobalVar也是指针形式，徐亚先load再使用
+            // GlobalVar也是指针形式，需要先load再使用
             /*if (value instanceof IRGlobalVar) {
                 return value;
             } else {
@@ -587,6 +621,13 @@ public class IRBuilder {
             return buildLoadInst(value); // 这个是左值在右边，给其他人赋值的情况?
         }
 //        return value;
+    }
+
+    public GEPInst buildGEPInst(IRValue value, IRValue index) {
+        // 得到index
+        gepInst = new GEPInst(value, index);
+        cur_basicBlock.addInst(gepInst);
+        return gepInst;
     }
 
     public LoadInst buildLoadInst(IRValue value) {
@@ -633,7 +674,6 @@ public class IRBuilder {
             retInst = new RetInst(); // 返回空
         }
         cur_basicBlock.addInst(retInst); // 每条ret语句也是属于自己对应的基本块的（函数可能被划分-->有多条return
-//        System.out.println(retInst);
     }
 
     public StoreInst buildAssignInst(IRValue lValIrValue, IRValue irValue) {
@@ -702,8 +742,6 @@ public class IRBuilder {
         if (!(irValue.getIrType() instanceof IRIntType)) {
             irValue = buildConvInst(Operator.Zext, irValue);
         }
-        /* test 为啥IcmpInst的left是null */
-//        System.out.println("in buildIcmpInst with addExp: " + (tmp == null));
         icmpInst = new IcmpInst(relOp, tmp, irValue); // 两个i32得到一个i1的结果
         // new而不是调用builder方法（除了BrInst）都要手动加入当前基本块
         cur_basicBlock.addInst(icmpInst);
@@ -717,8 +755,6 @@ public class IRBuilder {
         if (rel.getIrType() instanceof IRBoolType) {
             rel = buildConvInst(Operator.Zext, rel);
         }
-        /* test 为啥IcmpInst的left是null */
-//        System.out.println("in buildIcmpInst: " + (tmp == null));
         icmpInst = new IcmpInst(eqOp, tmp, rel); // 两个i32得到一个i1的结果
         // new而不是调用builder方法（除了BrInst）都要手动加入当前基本块
         cur_basicBlock.addInst(icmpInst);
@@ -737,37 +773,110 @@ public class IRBuilder {
         }
     }
 
-    /*public BinaryInst buildLOrExpInIf(LOrExp lOrExp) { // 为了短路求值，这个改成*仅在if中用*的LOrExpBuilder
-        // lAndExp1 || lAndExp2 || ...
-        // || 的短路求值：lAndExp1=true时直接br，不求lAndExp2（不能进行lAndExp2的解析）
-        IRBasicBlock curBlock = cur_basicBlock;
-        // 返回icmpInst给外面的BasicBlock？
-//        for (LAndExp lAndExp: lOrExp.getLAndExpList()) {
-//            binaryInst = buildLAndExp(lAndExp);
-//        }
-        // 先构建必有的第一个lAndExp
-        binaryInst = buildLAndExp(lOrExp.getlAndExp());
-        if (lOrExp.isOrLAndExpsEmpty()) {
-            return binaryInst;
+    /* 处理全局数组：以及初始化 */
+    public IRConstArray buildConstArray(String arrayName_global, int[] vals, IRType elementType) {
+        IRArrayType arrayType = new IRArrayType(elementType, vals.length);
+        return new IRConstArray(arrayType, arrayName_global, vals);
+    }
+
+    /* 处理局部数组 */
+    int array_length;
+    GEPInst gepInst;
+    public void buildArrayLocal(LexType varDefType, VarDef varDef) { // 此时进过IRGenerator中的筛选已经确保是数组了
+        ident_name = varDef.getIdentName();
+        array_length = varDef.getArrayLen();
+        IRType elementType = IRIntType.intType;
+        // 插入符号表
+        if (varDefType.equals(LexType.CHARTK)) {
+            elementType = IRCharType.charType;
+            varDef.insertCharSymbol(cur_ir_symTable);
+        } else {
+            varDef.insertSymbol(cur_ir_symTable);
         }
-        IRValue tmp;
-        IRBasicBlock nextCondBlock;
-        // 还有||后面的要判断
-        for (LAndExp lAndExp: lOrExp.getOrLAndExps()) {
-            // 这时要加入短路判断
-            // TODO: 2024/12/6 短路判断会不会影响IRGenerator中的跳转到true或false块（但是final块的跳转不会影响，因为true和false是固定的）
-            // 加入关于上面的binaryInst代表的icmp为真或假的情况
-            tmp = binaryInst;
-            IRGenerator.newBasicBlock();
-            nextCondBlock = curBlock; // 为这个新的LAndExp新建的BasicBlock（但是为真要跳到trueBlock怎么做，为假才判断||连接的nextBlock）
-            brInst = buildBrInst(curBlock, ); // 为真
-            binaryInst = buildLAndExp(lAndExp);
+        IRArrayType arrayType = new IRArrayType(elementType, array_length);
+        // 构建IRValue
+        symbol = cur_ir_symTable.findInCurSymTable(ident_name);
+        // 完善指令:因为是常量，可以直接计算出constInit的值，所以就不用提前load赋值Exp中用到的变量
+        allocaInst = new AllocaInst(arrayType);
+        allocaInst.setIdent_name(ident_name);
+        allocaInst.setName("%" + cur_func.getLocalValRegNumName());
+        symbol.setIrValue(allocaInst); // 局部数组是用alloca指令对应的寄存器存数组位置的
+        symbol.setPointerReg(allocaInst.getName());
+        cur_basicBlock.addInst(allocaInst);
+
+        // 注意普通的局部变量不一定有init
+        if (varDef.getInitVal() != null) { // 如果有初始值
+            // 获取计算的最终结果
+            buildArrayInitVal(allocaInst, varDef.getInitVal()); // --> 获取最后存储结果的寄存器（load出来的）
         }
     }
 
-    private BinaryInst buildLAndExp(LAndExp lAndExp) {
-        // LAndExp → EqExp | LAndExp '&&' EqExp
-        // && 的短路求值，在eqExp1 && eqExp2中，若eqExp1为真还需要求eqExp2；但是eqExp1为假可以直接回
-        
-    }*/
+    public void buildArrayInitVal(AllocaInst allocaInst, InitVal initVal) { // '{' [ Exp { ',' Exp } ] '}' | StringConst
+        /* 要不IRConstString还是提上日常，不然要处理很多转移？ */
+        // TODO: 2024/12/10 字符串转移未处理，暂时处理{}赋值的int和char数组
+        if (initVal.getStringInit()) {
+            // 待实现
+        }
+        if (initVal.getArrayInit()) {
+            ArrayList<Exp> exps = initVal.getInitExps();
+            for (int i = 0; i < exps.size(); i++) {
+                // 按序初始化赋值数组元素
+                // 首先获取要赋值的数组元素的指针
+                gepInst = buildGEPInst(allocaInst, i);
+                // 获取对应元素的irValue，处理exp
+                value = buildExp(exps.get(i)); // 如果exp是数组元素
+                // 赋值
+                buildStoreInst(value, gepInst);
+            }
+        }
+    }
+
+    public GEPInst buildGEPInst(IRValue arrayPointer, int i) {
+        gepInst = new GEPInst(allocaInst, i);
+        cur_basicBlock.addInst(gepInst);
+        return gepInst;
+    }
+
+    public void buildConstArrayLocal(LexType varDefType, ConstDef constDef) {
+        // TODO: 2024/11/26 没完成数组  --->  12.10改成数组单开，这个专门处理普通变量
+        ident_name = constDef.getIdentName();
+        array_length = constDef.getArrayLen();
+        IRType elementType = IRIntType.intType;
+        // 插入符号表
+        if (varDefType.equals(LexType.CHARTK)) {
+            elementType = IRCharType.charType;
+            constDef.insertCharSymbol(cur_ir_symTable);
+        } else {
+            constDef.insertSymbol(cur_ir_symTable);
+        }
+        IRArrayType arrayType = new IRArrayType(elementType, array_length);
+        // 构建IRValue
+        // 局部变量是在函数内的
+        int val = constDef.getConstInitVal().getIntValue();
+        /*if (elementType.equals(IRCharType.charType)) {
+            // todo: 常量数组应该也可以用常量数组中的某个元素赋值，所以不能直接取值？（或者？常量数组值不会变直接存第一次的initArray（IRConstArray类型，中的值int[]数组取
+                常量数组不用像变量数组一样，需要时刻维护值（而且不一定能在编译时计算，如函数调用等
+            // char要模ascii码
+            val %= 256;
+        }*/
+        // const一定有初始值
+        value = new IRConst(elementType, "" + val, val);
+//        value = new IRConst(type, "%" + cur_func.getLocalValRegNum(), val);
+        value.setIdent_name(ident_name);
+        symbol = cur_ir_symTable.findInCurSymTable(ident_name);
+        symbol.setIrValue(value);
+        symbol.setIntValue(val);
+        // 完善指令:因为是常量，可以直接计算出constInit的值，所以就不用提前load赋值Exp中用到的变量
+        allocaInst = new AllocaInst(value.getIrType());
+        allocaInst.setIdent_name(ident_name);
+        allocaInst.setName("%" + cur_func.getLocalValRegNumName());
+        symbol.setPointerReg(allocaInst.getName());
+
+        symbol.setIrValue(allocaInst);
+
+        cur_basicBlock.addInst(allocaInst);
+
+        storeInst = new StoreInst(value, allocaInst); // 因为是直接用数值，不是寄存器，所以不区分类型（不用进buildStore去类型转化
+        cur_basicBlock.addInst(storeInst);
+    }
 }

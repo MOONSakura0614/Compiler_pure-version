@@ -1,0 +1,271 @@
+testfile.txt:
+const int a = 1, b = 2;
+const int c = 3;
+int d, e = 1 + 2;
+int f;
+
+
+int double2(int x1) {
+    if (!x1) {
+        return 2*x1;
+    }
+    else {
+        return (2*-x1);
+    }
+    return 0;
+}
+
+int add(int x1, int x2) {
+    int sum = 0;
+    sum = x1 + x2;
+    return sum;
+}
+
+int sub(int x1, int x2) {
+    int sum = 0;
+    sum = x1 - x2;
+    if (sum >= 0) {
+        return sum;
+    }
+    if (sum <= 0) {
+        return 0;
+    }
+    return 0;
+}
+
+void print_none() {
+    return;
+}
+
+int main() {
+    {
+        int x = 0;
+        int flag;
+        int temp;
+        int x1, x2;
+        for(;x < 4;) {
+            if (x != 4) {
+                x = x + 1;
+            } else {
+                break;
+            }
+	        flag = getint();
+            if (flag == 0) {
+		        x1 = getint();
+                temp = double2(x1) % 1;
+                printf("%d ", temp);
+                temp = double2(x1) / +1;
+                printf("%d\n", temp);
+                continue;
+            }
+            if (flag > 0) {
+		        x1 = getint();
+		        x2 = getint();
+                printf("%d\n", add(x1, x2));
+                continue;
+            }
+            if (flag < 0) {
+		        x1 = getint();
+		        x2 = getint();
+                printf("%d\n", sub(x1, x2));
+                continue;
+            }
+
+        }
+    }
+    return 0;
+}
+
+
+llvm_ir.txt:
+declare i32 @getint()
+declare i32 @getchar()
+declare void @putint(i32)
+declare void @putch(i32)
+declare void @putstr(i8*)
+@a = dso_local global i32 1
+@b = dso_local global i32 2
+@c = dso_local global i32 3
+@d = dso_local global i32 0
+@e = dso_local global i32 3
+@f = dso_local global i32 0
+define dso_local i32 @double2(i32 %0) {
+reg_1:
+    %reg_2 = alloca i32
+    store i32 %0, i32* %reg_2
+    %reg_3 = load i32, i32* %reg_2
+    %reg_4 = icmp eq i32 %reg_3, 0
+    br i1 %reg_4, label %reg_5, label %reg_8
+
+reg_5:
+    %reg_6 = load i32, i32* %reg_2
+    %reg_7 = mul i32 2, %reg_6
+    ret i32 %reg_7
+    br label %reg_12
+
+reg_8:
+    %reg_9 = load i32, i32* %reg_2
+    %reg_10 = sub i32 0, %reg_9
+    %reg_11 = mul i32 2, %reg_10
+    ret i32 %reg_11
+    br label %reg_12
+
+reg_12:
+    ret i32 0
+}
+
+define dso_local i32 @add(i32 %0, i32 %1) {
+reg_2:
+    %reg_3 = alloca i32
+    store i32 %0, i32* %reg_3
+    %reg_4 = alloca i32
+    store i32 %1, i32* %reg_4
+    %reg_5 = alloca i32
+    store i32 0, i32* %reg_5
+    %reg_6 = load i32, i32* %reg_3
+    %reg_7 = load i32, i32* %reg_4
+    %reg_8 = add i32 %reg_6, %reg_7
+    store i32 %reg_8, i32* %reg_5
+    %reg_9 = load i32, i32* %reg_5
+    ret i32 %reg_9
+}
+
+define dso_local i32 @sub(i32 %0, i32 %1) {
+reg_2:
+    %reg_3 = alloca i32
+    store i32 %0, i32* %reg_3
+    %reg_4 = alloca i32
+    store i32 %1, i32* %reg_4
+    %reg_5 = alloca i32
+    store i32 0, i32* %reg_5
+    %reg_6 = load i32, i32* %reg_3
+    %reg_7 = load i32, i32* %reg_4
+    %reg_8 = sub i32 %reg_6, %reg_7
+    store i32 %reg_8, i32* %reg_5
+    %reg_9 = load i32, i32* %reg_5
+    %reg_10 = icmp sge i32 %reg_9, 0
+    br i1 %reg_10, label %reg_11, label %reg_13
+
+reg_11:
+    %reg_12 = load i32, i32* %reg_5
+    ret i32 %reg_12
+    br label %reg_13
+
+reg_13:
+    %reg_14 = load i32, i32* %reg_5
+    %reg_15 = icmp sle i32 %reg_14, 0
+    br i1 %reg_15, label %reg_16, label %reg_17
+
+reg_16:
+    ret i32 0
+    br label %reg_17
+
+reg_17:
+    ret i32 0
+}
+
+define dso_local void @print_none() {
+reg_0:
+    ret void
+}
+
+define dso_local i32 @main() {
+reg_0:
+    %reg_1 = alloca i32 ;x
+    store i32 0, i32* %reg_1 ;x=0
+    %reg_2 = alloca i32 ;flag
+    %reg_3 = alloca i32 ;temp
+    %reg_4 = alloca i32 ;x1
+    %reg_5 = alloca i32 ;x2
+    br label %reg_6 ;circle's cond: x<4
+
+reg_6: ;循环体进入前的判断句
+    %reg_7 = load i32, i32* %reg_1 ;取值x
+    %reg_8 = icmp slt i32 %reg_7, 4 ;x<4
+    br i1 %reg_8, label %reg_9, label %reg_10 ;跳循环体/exit
+
+reg_9: ;循环体内部
+    %reg_11 = load i32, i32* %reg_1 ;if条件句
+    %reg_12 = icmp ne i32 %reg_11, 4 ;x!=4
+    br i1 %reg_12, label %reg_13, label %reg_16 ;跳if或else
+
+reg_10: ;循环体外的下一句
+    ret i32 0
+
+reg_13: ;if语句块
+    %reg_14 = load i32, i32* %reg_1 ;取x
+    %reg_15 = add i32 %reg_14, 1
+    store i32 %reg_15, i32* %reg_1 ;x=x+1
+    br label %reg_17 ;for内部的if的外部块
+
+reg_16: ;else语句块
+    br label %reg_10 ;break跳到循环外：此时是不是应该判断，如果if-else语句块中后面出现br语句，则无需跳转到exit？
+    br label %reg_17
+
+reg_17: ;if-else下一句
+    %reg_18 = call i32 @getint() ;getint()
+    store i32 %reg_18, i32* %reg_2 ;flag
+    %reg_19 = load i32, i32* %reg_2 ;flag=getint()
+    %reg_20 = icmp eq i32 %reg_19, 0 ;进入if语句:flag==0
+    br i1 %reg_20, label %reg_21, label %reg_32 ;没有else直接到exit
+
+reg_21: ;if
+    %reg_22 = call i32 @getint() ;
+    store i32 %reg_22, i32* %reg_4 ;
+    %reg_23 = load i32, i32* %reg_4 ;x1=getint()
+    %reg_24 = call i32 @double2(i32 %reg_23)
+    %reg_25 = srem i32 %reg_24, 1 ;temp=double2(x1)%1
+    store i32 %reg_25, i32* %reg_3
+    %reg_26 = load i32, i32* %reg_3
+    call void @putint(i32 %reg_26) ;printf("%d ", temp)
+    call void @putch(i32 32)
+    %reg_27 = load i32, i32* %reg_4
+    %reg_28 = call i32 @double2(i32 %reg_27)
+    %reg_29 = add i32 0, 1
+    %reg_30 = sdiv i32 %reg_28, %reg_29 ;temp=double2(x1)%(+1)
+    store i32 %reg_30, i32* %reg_3
+    %reg_31 = load i32, i32* %reg_3
+    call void @putint(i32 %reg_31)
+    call void @putch(i32 10) ;printf("%d\n", temp)
+    br label %reg_6 ;if和else中油br结尾了就不加exit语句？
+    br label %reg_32
+
+reg_32: ;if之后的外部语句
+    %reg_33 = load i32, i32* %reg_2
+    %reg_34 = icmp sgt i32 %reg_33, 0
+    br i1 %reg_34, label %reg_35, label %reg_41
+
+reg_35:
+    %reg_36 = call i32 @getint()
+    store i32 %reg_36, i32* %reg_4 ;x1=getint()
+    %reg_37 = call i32 @getint()
+    store i32 %reg_37, i32* %reg_5 ;x2=getint()
+    %reg_38 = load i32, i32* %reg_4
+    %reg_39 = load i32, i32* %reg_5
+    %reg_40 = call i32 @add(i32 %reg_38, i32 %reg_39) ;add(x1,x2)
+    call void @putint(i32 %reg_40)
+    call void @putch(i32 10)
+    br label %reg_6 ;continue
+    br label %reg_41 ;if外部
+
+reg_41:
+    %reg_42 = load i32, i32* %reg_2
+    %reg_43 = icmp slt i32 %reg_42, 0
+    br i1 %reg_43, label %reg_44, label %reg_50 ;cond:flag<0 ;进入if或者进入外部
+
+reg_44:
+    %reg_45 = call i32 @getint()
+    store i32 %reg_45, i32* %reg_4
+    %reg_46 = call i32 @getint()
+    store i32 %reg_46, i32* %reg_5
+    %reg_47 = load i32, i32* %reg_4
+    %reg_48 = load i32, i32* %reg_5
+    %reg_49 = call i32 @sub(i32 %reg_47, i32 %reg_48) ;sub(x1,x2)
+    call void @putint(i32 %reg_49)
+    call void @putch(i32 10)
+    br label %reg_6 ;continue
+    br label %reg_50 ;因为if外部for内部，没有新的语句
+
+reg_50: ;由于处于循环内部，循环内部的空block，是否可以考虑无条件跳到循环外部？
+}
+

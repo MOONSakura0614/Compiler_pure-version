@@ -1,0 +1,217 @@
+int main() {
+    {
+        int x = 0;
+        for(;x < 4;) {
+            for (;x != 4;) {
+                x = x + 1;
+            }
+        }
+    }
+    return 0;
+}
+
+
+declare i32 @getint()
+declare i32 @getchar()
+declare void @putint(i32)
+declare void @putch(i32)
+declare void @putstr(i8*)
+define dso_local i32 @main() {
+reg_0:
+    %reg_1 = alloca i32
+    store i32 0, i32* %reg_1
+    br label %reg_2
+
+reg_2:
+    %reg_3 = load i32, i32* %reg_1
+    %reg_4 = icmp slt i32 %reg_3, 4
+    br i1 %reg_4, label %reg_5, label %reg_6
+
+reg_5:
+    br label %reg_7
+    br label %reg_2 ;这个永远不可达
+
+reg_6:
+    ret i32 0
+
+reg_7:
+    %reg_8 = load i32, i32* %reg_1
+    %reg_9 = icmp ne i32 %reg_8, 4
+    br i1 %reg_9, label %reg_10, label %reg_11
+    ;出for循环的exitBlock，不应该是新new的，应该是之前的breakBlock为空的时候再新new一个吧？
+
+reg_10:
+    %reg_12 = load i32, i32* %reg_1
+    %reg_13 = add i32 %reg_12, 1
+    store i32 %reg_13, i32* %reg_1
+    br label %reg_7
+
+reg_11:
+}
+
+
+int main() {
+    {
+        int x = 0;
+        for(;x < 4;) {
+            for (;x != 4;) {
+                x = x + 1;
+                if(x != 6) {
+                    continue;
+                } else {
+                    if (x -1 == 4) {
+                        break;
+                    }
+                }
+            }
+            if (x==4) {
+                break;
+            }
+        }
+    }
+    return 0;
+}
+
+
+declare i32 @getint()
+declare i32 @getchar()
+declare void @putint(i32)
+declare void @putch(i32)
+declare void @putstr(i8*)
+define dso_local i32 @main() {
+reg_0:
+    %reg_1 = alloca i32
+    store i32 0, i32* %reg_1 ;x=0
+    br label %reg_2 ;for1-cond
+
+reg_2:
+    %reg_3 = load i32, i32* %reg_1
+    %reg_4 = icmp slt i32 %reg_3, 4
+    br i1 %reg_4, label %reg_5, label %reg_6 ;for1-cond:x!=4
+
+reg_5:
+    br label %reg_7 ;circleBlock:for2(;x<4;)
+
+    ; circleB也可以有很多块组成，不是第一次进入circle分析的就是，必须在CircleBlockList的最后结果来加上最后的跳出语句
+    ; 也不是跳出，就是跳回循环判断（change或者cond
+    br label %reg_2
+
+reg_6:
+    ret i32 0 ;for1后面的退出块分析
+
+reg_7:
+    %reg_8 = load i32, i32* %reg_1 ;
+    %reg_9 = icmp ne i32 %reg_8, 4
+    br i1 %reg_9, label %reg_10, label %reg_11
+
+reg_10:
+    %reg_12 = load i32, i32* %reg_1
+    %reg_13 = add i32 %reg_12, 1
+    store i32 %reg_13, i32* %reg_1
+    %reg_14 = load i32, i32* %reg_1
+    %reg_15 = icmp ne i32 %reg_14, 6
+    br i1 %reg_15, label %reg_16, label %reg_22
+    br label %reg_7
+
+reg_11:
+    %reg_24 = load i32, i32* %reg_1
+    %reg_25 = icmp eq i32 %reg_24, 4
+    br i1 %reg_25, label %reg_26, label %reg_27
+
+reg_16:
+    br label %reg_7
+    br label %reg_23
+
+reg_17:
+    %reg_18 = load i32, i32* %reg_1
+    %reg_19 = sub i32 %reg_18, 1
+    %reg_20 = icmp eq i32 %reg_19, 4
+    br i1 %reg_20, label %reg_21, label %reg_22
+
+reg_21:
+    br label %reg_11
+    br label %reg_22
+
+reg_22:
+    br label %reg_23
+
+reg_23:
+
+reg_26:
+    br label %reg_6
+    br label %reg_27
+
+reg_27:
+}
+
+declare i32 @getint()
+declare i32 @getchar()
+declare void @putint(i32)
+declare void @putch(i32)
+declare void @putstr(i8*)
+define dso_local i32 @main() {
+reg_0:
+    %reg_1 = alloca i32
+    store i32 0, i32* %reg_1 ;x=0
+    br label %reg_2
+
+reg_2: ;for1-cond
+    %reg_3 = load i32, i32* %reg_1
+    %reg_4 = icmp slt i32 %reg_3, 4
+    br i1 %reg_4, label %reg_5, label %reg_6
+
+reg_5: ;for1-circle01 进入第一个循环的循环体的第一句：新的子for：for2
+    br label %reg_7
+
+reg_6: ;for1-out:exitB
+    ret i32 0
+
+reg_7: ;for2-cond:x!=4
+    %reg_8 = load i32, i32* %reg_1
+    %reg_9 = icmp ne i32 %reg_8, 4
+    br i1 %reg_9, label %reg_10, label %reg_11
+
+reg_10: ;for2-body
+    %reg_12 = load i32, i32* %reg_1
+    %reg_13 = add i32 %reg_12, 1
+    store i32 %reg_13, i32* %reg_1 ;x=x+1
+    %reg_14 = load i32, i32* %reg_1
+    %reg_15 = icmp ne i32 %reg_14, 6
+    br i1 %reg_15, label %reg_16, label %reg_22 ;if(x-1==4)
+    ; if回填else块出错，应该跳到reg17的
+
+reg_11: ;for2-outB
+    %reg_24 = load i32, i32* %reg_1
+    %reg_25 = icmp eq i32 %reg_24, 4 ;if(x==4)
+    br i1 %reg_25, label %reg_26, label %reg_27
+
+reg_16:
+    br label %reg_7 ;continue(for2中的if1成立
+    br label %reg_23 ;正常来说加在ifStmt的trueBB结束后跳出当前if-else的
+
+reg_17:
+    %reg_18 = load i32, i32* %reg_1
+    %reg_19 = sub i32 %reg_18, 1
+    %reg_20 = icmp eq i32 %reg_19, 4
+    br i1 %reg_20, label %reg_21, label %reg_22 ;if(x-1==4)
+
+reg_21:
+    br label %reg_11 ;break
+    br label %reg_22
+
+reg_22:
+    br label %reg_23
+
+reg_23:
+    br label %reg_7
+
+reg_26:
+    br label %reg_6
+    br label %reg_27 ;两条br的都是break和continue后之后再应原本逻辑的，只要在if-else和for都跳转正确，就可以复原buildBr的限制的
+
+reg_27:
+    br label %reg_2
+}
+
+
+

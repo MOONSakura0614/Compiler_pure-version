@@ -15,7 +15,7 @@ import java.util.ArrayList;
 public class IRFunction extends IRGlobalValue {
     private Boolean isMainFunc;
     private ArrayList<IRArgument> irArguments_list;
-    // todo 没懂为什么需要一个isLibrary的bool常量？
+    // 没懂为什么需要一个isLibrary的bool常量？-->查看是否是外联的库函数
     private ArrayList<IRBasicBlock> irBasicBlock_list;
     private int reg_num = 0; // 函数内部的
     // 还没涉及跳转，普通自定义函数，如果有args一定会先load

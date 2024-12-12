@@ -101,7 +101,7 @@ public class MulExp extends SyntaxNode {
                 } else if (opType.equals(LexType.DIV)) { // '/'
                     if (mulOp_unaryExp.unaryExp != null)
                         res /= mulOp_unaryExp.unaryExp.getIntValue();
-                } else if (opType.equals(LexType.MOD)) { // '/'
+                } else if (opType.equals(LexType.MOD)) { // '%'
                     if (mulOp_unaryExp.unaryExp != null)
                         res %= mulOp_unaryExp.unaryExp.getIntValue();
                 }

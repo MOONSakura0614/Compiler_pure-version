@@ -7,11 +7,11 @@ package llvm.type;
  */
 public class IRArrayType implements IRType {
     private final IRType elementType; // 数组元素类型
-    private int length;
+    private final int length;
 
     public IRArrayType(IRType elementType) {
         this.elementType = elementType; // 注意是final元素，数组元素类型不变
-        this.length = 1;
+        this.length = 0;
     }
 
     public IRArrayType(IRType elementType, int length) {
@@ -26,4 +26,10 @@ public class IRArrayType implements IRType {
     public int getLength() {
         return length;
     }
+
+    @Override
+    public String toString() {
+        return "[" + length + " x " + elementType.toString() + "]";
+    }
+
 }

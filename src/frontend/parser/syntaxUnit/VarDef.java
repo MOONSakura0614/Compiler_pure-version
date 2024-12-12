@@ -10,8 +10,11 @@ import frontend.symbol.SymbolTable;
 import frontend.symbol.SymbolType;
 import frontend.symbol.VarSymbol;
 import llvm.IRGenerator;
+import llvm.type.IRCharType;
+import llvm.type.IRIntType;
 import llvm.value.IRGlobalVar;
 import llvm.value.IRValue;
+import llvm.value.constVar.IRConstArray;
 import llvm.value.constVar.IRConstChar;
 import llvm.value.constVar.IRConstInt;
 import utils.IOUtils;
@@ -142,21 +145,43 @@ public class VarDef extends SyntaxNode {
 
         // 在中间代码生成阶段
         if (IRGenerator.llvm_ir_gen) {
-            int val = 0;
-            if (initVal != null) {
-                if (IRGenerator.globalVar_gen || symbol.isConstSymbol())
-                    val = initVal.getIntValue(); // 只有全局和常量才能保证一定能求出值，否则可能就不出来，很多exp是初始化0的初值
-                // TODO: 2024/11/29 可能会造成除零错误等 
-            }
-            // TODO: 2024/11/28 下面这个地方设Value的new有点莫名其妙，全局就在if中重新set了；普通的局部，也应该是用 alloca那条吧（从内存使用的时候再load
-            IRValue value = builder.buildInt(ident_token.getTokenValue());
-            symbol.setIrValue(value);
-            symbol.setIntValue(val);
-            if (IRGenerator.globalVar_gen) {
-                IRGlobalVar globalVar = builder.buildIRGlobalVar(value);
-                IRGenerator.globalVars.add(globalVar);
-                globalVar.setInt_value(val);
-                symbol.setIrValue(globalVar);
+            if (isArray) {
+                // Ident[ConstExp] （可能没有= InitVal）
+                int len = constExp.getIntValue();
+                int[] vals = new int[len]; // 先来个全零的
+                IRConstArray initArray = builder.buildConstArray(ident_token.getTokenValue(), vals, IRIntType.intType);
+                symbol.setIntArrayValue(vals);
+                symbol.setIrValue(initArray);
+                if (initVal != null) {
+                    // TODO: 2024/12/10 疑似主要保证，在全局的变量初始化的时候一定是能求出的？
+                    if (IRGenerator.globalVar_gen || symbol.isConstSymbol()) {
+                        vals = initVal.getArrayValue(len);
+                        symbol.setIntArrayValue(vals);
+                        initArray.setArrayVal(vals);
+                    }
+                }
+                if (IRGenerator.globalVar_gen) {
+                    IRGlobalVar globalVar = builder.buildIRGlobalVar(initArray); // 全局变量不用变成%的alloca指令对应的reg
+                    IRGenerator.globalVars.add(globalVar);
+                    symbol.setIrValue(globalVar);
+                }
+            } else {
+                int val = 0;
+                if (initVal != null) {
+                    if (IRGenerator.globalVar_gen || symbol.isConstSymbol())
+                        val = initVal.getIntValue(); // 只有全局和常量才能保证一定能求出值，否则可能就不出来，很多exp是初始化0的初值
+                    // TODO: 2024/11/29 可能会造成除零错误等
+                }
+                // TODO: 2024/11/28 下面这个地方设Value的new有点莫名其妙，全局就在if中重新set了；普通的局部，也应该是用 alloca那条吧（从内存使用的时候再load
+                IRValue value = builder.buildInt(ident_token.getTokenValue());
+                symbol.setIrValue(value);
+                symbol.setIntValue(val);
+                if (IRGenerator.globalVar_gen) {
+                    IRGlobalVar globalVar = builder.buildIRGlobalVar(value);
+                    IRGenerator.globalVars.add(globalVar);
+                    globalVar.setInt_value(val);
+                    symbol.setIrValue(globalVar);
+                }
             }
         }
 
@@ -179,20 +204,41 @@ public class VarDef extends SyntaxNode {
 
         // 在中间代码生成阶段
         if (IRGenerator.llvm_ir_gen) {
-            // TODO: 2024/11/26 没有完成数组的
-            int val = 0;
-            if (initVal != null) {
-                val = initVal.getIntValue();
-            }
-            IRValue value = builder.buildChar(ident_token.getTokenValue()); // 全局变量采用自己的标志符做名字？
-            symbol.setIrValue(value);
-            symbol.setIntValue(val);
-            if (IRGenerator.globalVar_gen) {
-                IRGlobalVar globalVar = builder.buildIRGlobalVar(value);
-                IRGenerator.globalVars.add(globalVar);
-                globalVar.setInt_value(val);
-                // V2:全局变量的irValue改成globalVar
-                symbol.setIrValue(globalVar);
+            if (isArray) {
+                // Ident[ConstExp] （可能没有= InitVal）
+                int len = constExp.getIntValue();
+                int[] vals = new int[len]; // 先来个全零的
+                IRConstArray initArray = builder.buildConstArray(ident_token.getTokenValue(), vals, IRCharType.charType);
+                symbol.setIntArrayValue(vals);
+                symbol.setIrValue(initArray);
+                if (initVal != null) {
+                    // TODO: 2024/12/10 疑似主要保证，在全局的变量初始化的时候一定是能求出的？
+                    if (IRGenerator.globalVar_gen || symbol.isConstSymbol()) {
+                        vals = initVal.getArrayCharValue(len);
+                        symbol.setIntArrayValue(vals);
+                        initArray.setArrayVal(vals);
+                    }
+                }
+                if (IRGenerator.globalVar_gen) {
+                    IRGlobalVar globalVar = builder.buildIRGlobalVar(initArray); // 全局变量不用变成%的alloca指令对应的reg
+                    IRGenerator.globalVars.add(globalVar);
+                    symbol.setIrValue(globalVar);
+                }
+            } else {
+                int val = 0;
+                if (initVal != null) {
+                    val = initVal.getIntValue();
+                }
+                IRValue value = builder.buildChar(ident_token.getTokenValue()); // 全局变量采用自己的标志符做名字？
+                symbol.setIrValue(value);
+                symbol.setIntValue(val);
+                if (IRGenerator.globalVar_gen) {
+                    IRGlobalVar globalVar = builder.buildIRGlobalVar(value);
+                    IRGenerator.globalVars.add(globalVar);
+                    globalVar.setInt_value(val);
+                    // V2:全局变量的irValue改成globalVar
+                    symbol.setIrValue(globalVar);
+                }
             }
         }
 
@@ -210,5 +256,9 @@ public class VarDef extends SyntaxNode {
 
     public InitVal getInitVal() {
         return initVal;
+    }
+
+    public int getArrayLen() {
+        return constExp.getIntValue();
     }
 }
