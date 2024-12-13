@@ -593,7 +593,7 @@ public class IRBuilder {
         } else if (primaryExp.getIsCharacter()) {
             return buildConstInt(primaryExp.getCharacter().getIntValue());
         } else {
-            // 左值部分：关于符号表取数（或者，取对应的虚拟寄存器号）
+            // 等号右侧部分出现左值：关于符号表取数（或者，取对应的虚拟寄存器号）
             return buildLValInRight(primaryExp.getlVal());
         }
     }
@@ -646,6 +646,9 @@ public class IRBuilder {
             }*/
             if (lVal.getIsArrayElement()) {
                 IRValue index = buildExp(lVal.getExp()); // 若此时exp是lVal【应该得到对应的@或者alloca进行load
+                System.out.println(index);
+                System.out.println(tmpValue);
+                System.out.println(tmpSym.getIdentName());
                 // 取对应的数组元素
                 // TODO: 2024/12/10 都叫你不要用全局的成员变量了吧！进了上一个buildExp的分析函数，symbol和value都乱套了！
                 gepInst = buildGEPInst(tmpValue, index); // 取出对应元素的地址
@@ -878,7 +881,6 @@ public class IRBuilder {
         IRArrayType arrayType = new IRArrayType(elementType, array_length);
         // 构建IRValue
         symbol = cur_ir_symTable.findInCurSymTable(ident_name);
-        // 完善指令:因为是常量，可以直接计算出constInit的值，所以就不用提前load赋值Exp中用到的变量
         allocaInst = new AllocaInst(arrayType);
         allocaInst.setIdent_name(ident_name);
         allocaInst.setName("%" + cur_func.getLocalValRegNumName());
@@ -939,33 +941,43 @@ public class IRBuilder {
             constDef.insertSymbol(cur_ir_symTable);
         }
         IRArrayType arrayType = new IRArrayType(elementType, array_length);
-        // 构建IRValue
-        // 局部变量是在函数内的
-        int val = constDef.getConstInitVal().getIntValue();
-        /*if (elementType.equals(IRCharType.charType)) {
-            // todo: 常量数组应该也可以用常量数组中的某个元素赋值，所以不能直接取值？（或者？常量数组值不会变直接存第一次的initArray（IRConstArray类型，中的值int[]数组取
-                常量数组不用像变量数组一样，需要时刻维护值（而且不一定能在编译时计算，如函数调用等
-            // char要模ascii码
-            val %= 256;
-        }*/
-        // const一定有初始值
-        value = new IRConst(elementType, "" + val, val);
-//        value = new IRConst(type, "%" + cur_func.getLocalValRegNum(), val);
-        value.setIdent_name(ident_name);
         symbol = cur_ir_symTable.findInCurSymTable(ident_name);
-        symbol.setIrValue(value);
-        symbol.setIntValue(val);
         // 完善指令:因为是常量，可以直接计算出constInit的值，所以就不用提前load赋值Exp中用到的变量
-        allocaInst = new AllocaInst(value.getIrType());
+        allocaInst = new AllocaInst(arrayType);
         allocaInst.setIdent_name(ident_name);
         allocaInst.setName("%" + cur_func.getLocalValRegNumName());
         symbol.setPointerReg(allocaInst.getName());
-
         symbol.setIrValue(allocaInst);
 
         cur_basicBlock.addInst(allocaInst);
 
-        storeInst = new StoreInst(value, allocaInst); // 因为是直接用数值，不是寄存器，所以不区分类型（不用进buildStore去类型转化
-        cur_basicBlock.addInst(storeInst);
+        buildConstArrayInitVal(allocaInst, constDef.getConstInitVal(), ident_name);
+    }
+
+    /* 常量不是运行时改变的，所以就是对应每个数组的值可以求出 */
+    private void buildConstArrayInitVal(AllocaInst allocaInst, ConstInitVal constInitVal, String constArrayName) {
+        // '{' [ Exp { ',' Exp } ] '}' | StringConst
+        if (constInitVal.getStringInit()) {
+            int[] chars = IRConstString.convertStrToAscii(constInitVal.getString());
+            for (int i = 0; i < chars.length; i++) {
+                gepInst = buildGEPInst(allocaInst, i);
+                buildStoreInst(chars[i], gepInst);
+            }
+            return;
+        }
+        Symbol tmpSym = cur_ir_symTable.findInCurSymTable(constArrayName);
+        if (constInitVal.getArrayInit()) {
+            ArrayList<ConstExp> exps = constInitVal.getInitConstExps();
+            int size = exps.size(); // 初始化用到的元素（不一定整个数组都赋值了，也可能初始化为全0呢）
+            for (int i = 0; i < size; i++) {
+                // 按序初始化赋值数组元素
+                // 首先获取要赋值的数组元素的指针
+                gepInst = buildGEPInst(allocaInst, i);
+                // 获取对应元素的irValue，处理exp
+                value = buildConstInt(tmpSym.getArrayElementValueByIndex(i));
+                // 赋值
+                buildStoreInst(value, gepInst);
+            }
+        }
     }
 }

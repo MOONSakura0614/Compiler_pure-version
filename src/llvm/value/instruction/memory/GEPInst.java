@@ -51,7 +51,7 @@ public class GEPInst extends Instruction {
             // 又包了一层globalVar封装，所以不是直接IRArrayType!需要通过globalVar的成员变量irValue进行索引
             elementType = ((IRArrayType) ((IRGlobalVar) pointer).getIrValue().getIrType()).getElementType();
         } else {
-            // todo: Array 是形参中的数组
+            // todo: Array 是形参中的数组 --> 使用loadInst保存的地址
             elementType = ((IRPointerType) pointer.getIrType()).getElement_type();
         }
         array_pointer = pointer;
@@ -188,15 +188,24 @@ public class GEPInst extends Instruction {
         }
         s.append(((IRPointerType) array_pointer.getIrType()).getElement_type()).append(", "); // alloca的类型也是[len x i32/i8]*，这里只需要大小
         s.append(array_pointer.getIrType()).append(" ").append(array_pointer.getName()).append(", "); // 指针元素:只需要地址的regName，所以alloca和globalVar是一样的
-        if (indice != -1) {
+        /*if (indice != -1) {
             s.append(elementType).append(" 0, "); // 如i32 0或者i8 0的第一个默认indice，偏移基准
             s.append(elementType).append(" ").append(indice); // 自身偏移取值（只有一维数组，就不冗余实现List<Int> indices了
         } else {
-            /* todo: Array 这里有可能传常量，导致少了上面的第一个i32 0，变成了取数组地址[number x i32]*类型，而不是i32*(用寄存器的时候才能只用一个) */
-            /* todo: Array 如果是从形参load出来的数组，那么得到的是指针！不是整个数组，所以GEP只需要一个索引！不需要两个 */
+            *//* todo: Array 这里有可能传常量，导致少了上面的第一个i32 0，变成了取数组地址[number x i32]*类型，而不是i32*(用寄存器的时候才能只用一个) *//*
+            *//* todo: Array 如果是从形参load出来的数组，那么得到的是指针！不是整个数组，所以GEP只需要一个索引！不需要两个 *//*
             if (indice_reg instanceof IRConst && !(array_pointer instanceof LoadInst)) {
                 s.append(elementType).append(" 0, ");
             }
+            s.append(elementType).append(" ").append(indice_reg.getName());
+        }*/
+        if (!(array_pointer instanceof LoadInst)) {
+            /* todo: 疑似不是指针的就是代表原始数组（全局或者局部alloca的）==>不是形参指针load出来的都要有最前面的i32基准 */
+            s.append(elementType).append(" 0, "); // 如i32 0或者i8 0的第一个默认indice，偏移基准
+        }
+        if (indice != -1) {
+            s.append(elementType).append(" ").append(indice); // 自身偏移取值（只有一维数组，就不冗余实现List<Int> indices了
+        } else {
             s.append(elementType).append(" ").append(indice_reg.getName());
         }
         return s.toString();

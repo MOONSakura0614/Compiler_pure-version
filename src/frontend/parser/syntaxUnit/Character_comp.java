@@ -38,6 +38,31 @@ public class Character_comp extends SyntaxNode {
     }
 
     public int getIntValue() {
-        return character_token.getTokenValue().charAt(1);
+//        return character_token.getTokenValue().charAt(1);
+        String value = character_token.getTokenValue();
+        // 去掉前后的单引号
+        String charContent = value.substring(1, value.length() - 1);
+
+        // 如果是转义字符
+        if (charContent.startsWith("\\")) {
+            if (charContent.length() == 2) {  // 普通转义字符
+                switch (charContent.charAt(1)) {
+                    case 'a': return 7;   // \a (bell)
+                    case 'b': return 8;   // \b (backspace)
+                    case 't': return 9;   // \t (tab)
+                    case 'n': return 10;  // \n (newline)
+                    case 'v': return 11;  // \v (vertical tab)
+                    case 'f': return 12;  // \f (form feed)
+                    case 'r': return 13;  // \r (carriage return)
+                    case '\\': return 92; // \\ (backslash)
+                    case '\'': return 39; // \' (single quote)
+                    case '\"': return 34; // \" (double quote)
+                    case '0': return 0;   // \0 (null character)
+                    default: return charContent.charAt(1);
+                }
+            }
+        }
+        // 普通字符
+        return charContent.charAt(0);
     }
 }

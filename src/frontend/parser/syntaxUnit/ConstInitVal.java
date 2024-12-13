@@ -211,12 +211,11 @@ public class ConstInitVal extends SyntaxNode {
         return strCon.substring(1, strCon.length() - 1);
     }
 
-    public static void main(String[] args) {
-        int length = 10;
-        int[] res = new int[length];
-        res[0] = 8;
-        res[1] = 18;
-        System.out.println(res); // 直接print只能得到地址hash：[I@41629346
-        System.out.println(Arrays.toString(res)); // 可以观察到默认赋值为0
+    public Boolean getArrayInit() {
+        return isArrayInit;
+    }
+
+    public Boolean getStringInit() {
+        return isStringInit;
     }
 }

@@ -45,13 +45,14 @@ public class InitVal extends SyntaxNode {
                 left_brace_token = lexIterator.iterator().next();
             }
             // 至少有一个Exp
+            // todo: llvm ir生成的时候发现这里有问题，数组初始化，可能一个初值都没有{} ==> 直接进入下面的右中括号填充就行
             if (isExp()) {
                 exp = new Exp();
                 exp.unitParser();
-            } else {
+            }/* else {
                 lexIterator.retract();
                 throw new RuntimeException("InitVal解析错误: Exp不能识别");
-            }
+            }*/
             Token token;
             Exp exp1;
             Comma_Exp comma_exp;
@@ -185,7 +186,7 @@ public class InitVal extends SyntaxNode {
         if (exp != null) {
             exps.add(exp);
         }
-        exps.add(exp);
+//        exps.add(exp);
         for (Comma_Exp comma_exp: comma_exp_list) {
             exps.add(comma_exp.exp);
         }
