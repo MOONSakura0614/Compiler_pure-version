@@ -9,6 +9,7 @@ public class IRArrayType implements IRType {
     private final IRType elementType; // 数组元素类型
     private final int length;
 
+    /* todo: Array-related 主要服务于函数形参是数组的情况 */
     public IRArrayType(IRType elementType) {
         this.elementType = elementType; // 注意是final元素，数组元素类型不变
         this.length = 0;

@@ -1,5 +1,6 @@
 package llvm.type;
 
+import llvm.value.IRArgument;
 import llvm.value.IRGlobalValue;
 
 import java.util.ArrayList;
@@ -13,6 +14,8 @@ public class IRFunctionType implements IRType {
     private IRType ret_type;
     private ArrayList<IRType> param_type_list;
     private ArrayList<String> param_name_list; // 函数形参分配的寄存器
+    /* todo:为了数组改造成传整个args再set param types */
+//    private ArrayList<IRArgument> param_list;
 
     public IRFunctionType(IRType retType, ArrayList<IRType> paramTypes, ArrayList<String> paramNames) {
         ret_type = retType;

@@ -19,6 +19,7 @@ import llvm.value.instruction.terminator.BrInst;
 import llvm.value.instruction.terminator.RetInst;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 /**
  * @author 郑悦
@@ -58,9 +59,6 @@ public class IRGenerator {
     }
 
     private IRGenerator() {
-//        symbolTable = new SymbolTable();
-//        globalVars = new ArrayList<>();
-//        functions = new ArrayList<>();
     }
 
     public static IRGenerator getInstance() {
@@ -530,6 +528,10 @@ public class IRGenerator {
 
     /* 单独处理分支语句 */
     public void visitBranch(Stmt stmt) {
+        /* 防止短路求值后面要求的条件无法跳到刚开始的True和Block块（因为成员变量的trueB和fB在过程中为了跳出if-else块进行过修改） */
+        IRBasicBlock trueB_end;
+        IRBasicBlock falseB_start;
+
         // 为了Cond相关
         // 处理Cond
         Cond cond = stmt.getCond();
@@ -553,10 +555,12 @@ public class IRGenerator {
             visitStmt(stmt.getIfStmt()); // 构建true要跳转到BB（在visitLAndExp时已经加上trueBlock了）
 
             // todo: ifStmt的TrueBlock可能还有很多个if，所以trueBlock不是一开始存的那个了，在visitIfStmt的时候，得到的当前的curBB才是TrueBlock统一跳到的结尾
-            trueBlock = cur_basicBlock;
+//            trueBlock = cur_basicBlock;
+            trueB_end = cur_basicBlock;
 
             // 如果有else
-            visitElseAndNextBlockItem(stmt, trueBlock, lAndBB);
+//            visitElseAndNextBlockItem(stmt, trueBlock, lAndBB);
+            visitElseAndNextBlockItem(stmt, trueB_end, lAndBB);
 
             // 结束Else之后会有总的结束块（这里唯一问题是对于void函数[只有ret void会被检查加回去]，
             // 如果if，else中都有ret语句，那ret后这俩基本块还加了无条件跳转到结束块的，
@@ -573,7 +577,8 @@ public class IRGenerator {
             // llvm ir虚拟寄存器的number没有说按出现顺序严格递增，只要不重复就行
 
             // todo: ifStmt的TrueBlock可能还有很多个if，所以trueBlock不是一开始存的那个了，在visitIfStmt的时候，得到的当前的curBB才是TrueBlock统一跳到的结尾
-            trueBlock = cur_basicBlock;
+//            trueBlock = cur_basicBlock;
+            trueB_end = cur_basicBlock;
 
             // 处理||后面的多个LAndExps
 //            ArrayList<ArrayList<IRBasicBlock>> lOrBB_lAndBBs = new ArrayList<>();
@@ -594,7 +599,8 @@ public class IRGenerator {
             /*// todo: ifStmt的TrueBlock可能还有很多个if，所以trueBlock不是一开始存的那个了，在visitIfStmt的时候，得到的当前的curBB才是TrueBlock统一跳到的结尾
             trueBlock = cur_basicBlock;*/ // 不能加这，会被||后面的LAndExp创建的block影响
             // 最后一组的每个block的falseBlock还没有正确设置（&&中遇到false要直接跳转，因为没有新的||，所以只能跳转到else或者final）
-            visitElseAndNextBlockItem(stmt, trueBlock, lAndBB); // 传trueBB只是为了给trueBB最后加跳出去的指令
+//            visitElseAndNextBlockItem(stmt, trueBlock, lAndBB); // 传trueBB只是为了给trueBB最后加跳出去的指令
+            visitElseAndNextBlockItem(stmt, trueB_end, lAndBB); // 传trueBB只是为了给trueBB最后加跳出去的指令
         }
     }
 
@@ -762,6 +768,11 @@ public class IRGenerator {
         funcDef.insertSymbol(cur_ir_symTable);
 
         newIRSymTable();
+        /* todo: 为了实现数组为参数，重构函数Def的visit方法 */
+
+        /*ArrayList<IRArgument> args = visitFuncFParams2Args(funcDef.getFuncFParams());
+        IRFunction irFunction = new IRFunction(funcDef.getFuncName(), ret_type, args);
+        cur_func = irFunction;*/
         ArrayList<IRType> arg_types = visitFuncFParams(funcDef.getFuncFParams());
         IRType ret_type = IRVoidType.voidType;
         switch (funcDef.getFuncType()) {
@@ -788,7 +799,8 @@ public class IRGenerator {
             ArrayList<IRArgument> arguments = cur_func.getIrArguments_list();
             // 没有像下面那个函数一样用getArgsFromFParams(FuncFParams)方法，所以args没有ident_name，要人为加上
             for (int i = 0; i < arg_types.size(); i++) {
-                cur_func.getArgByIndex(i).setIdent_name(names.get(i));
+//                cur_func.getArgByIndex(i).setIdent_name(names.get(i));
+                arguments.get(i).setIdent_name(names.get(i));
             }
         }
 
@@ -802,6 +814,29 @@ public class IRGenerator {
         }
     }
 
+    /*private ArrayList<IRArgument> visitFuncFParams2Args(FuncFParams funcFParams) {
+        ArrayList<IRType> types = new ArrayList<>();
+        if (funcFParams == null) {
+            // 没有参数
+            return types;
+        }
+        funcFParams.insertSymbol(cur_ir_symTable); // 插入符号表，方便下面取值
+        // 构造IRTypes
+        ArrayList<LexType> lexTypes = funcFParams.getArgTypes();
+        for (LexType lexType: lexTypes) {
+            switch (lexType) {
+                // TODO: 2024/11/26 没有考虑函数参数是数组的情况
+                case INTTK -> {
+                    types.add(IRIntType.intType);
+                }
+                case CHARTK -> {
+                    types.add(IRCharType.charType);
+                }
+            }
+        }
+        return types;
+    }*/
+
     public static void newBasicBlock() { // 1206代码生成2：改为static方便builder调用
         cur_basicBlock = new IRBasicBlock(cur_func);
 //        cur_func.addReg_num(); // 这个应该是因为基本块的label占了，所以加1，没有一定要求（SSA不重复即可）
@@ -814,11 +849,12 @@ public class IRGenerator {
         newBasicBlock();
         // 在进入InFunc的BB函数前就处理完形参（因为懒得传FParams）
         // 反驳上一行，通过irFunc的成员变量也可以
-        AllocaInst allocaInst;
+        /*AllocaInst allocaInst;
         StoreInst storeInst;
-        LoadInst loadInst;
+        LoadInst loadInst;*/
         // 处理局部变量命名：reg_num（在func中）
         for (IRArgument argument: cur_func.getIrArguments_list()) {
+            /* todo: Array 记得处理形参是数组情况的store和load */
             builder.buildFuncArgInsts(argument);
         }
         // 处理真正的语句
@@ -848,8 +884,27 @@ public class IRGenerator {
             return types;
         }
         funcFParams.insertSymbol(cur_ir_symTable); // 插入符号表，方便下面取值
+        IRType type, bType;
+        LexType lexType;
+        for (FuncFParam fParam: funcFParams.getFuncFParams()) {
+            // FuncFParam → BType Ident ['[' ']']
+            lexType = fParam.getVarType();
+            if (Objects.requireNonNull(lexType) == LexType.CHARTK) {
+                bType = IRCharType.charType;
+            } else {
+                bType = IRIntType.intType;
+            }
+            if (fParam.getIsArray()) {
+//                type = new IRArrayType(bType);
+                // 这部分是形参处理，所以不知道数组长度，直接申请指针
+                type = new IRPointerType(bType);
+            } else {
+                type = bType;
+            }
+            types.add(type);
+        }
         // 构造IRTypes
-        ArrayList<LexType> lexTypes = funcFParams.getArgTypes();
+        /*ArrayList<LexType> lexTypes = funcFParams.getArgTypes();
         for (LexType lexType: lexTypes) {
             switch (lexType) {
                 // TODO: 2024/11/26 没有考虑函数参数是数组的情况
@@ -860,7 +915,7 @@ public class IRGenerator {
                     types.add(IRCharType.charType);
                 }
             }
-        }
+        }*/
         return types;
     }
 

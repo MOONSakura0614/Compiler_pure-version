@@ -162,4 +162,8 @@ public class FuncFParams extends SyntaxNode {
         }
         return names;
     }
+
+    public ArrayList<FuncFParam> getFuncFParams() {
+        return funcFParams;
+    }
 }

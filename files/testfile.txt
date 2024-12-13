@@ -1,90 +1,125 @@
-// All Decl's forms exist in global variable decl
-const int AZ = 100;
-const int AZA1 = 200, AZA2 = 300;
-
-int az;
-int aza = 100;
-int azaz1, azaz2 = 200;
-
-// All Block's forms exist in while() in func1, except for (return exp)
-void func1() {
-    for (;1;) {
-        int i = 0;
-        i = 0;
-        i * 8;
-        { ; }
-        if (i != 0) continue;
-        if (i != 0); else;
-        i = getint();
-        printf("hello? ");
-        printf("%d ", i);
-        printf("%d %d\n", i, i);
-        break;
-    }
-    if (1) {
-	}
-    return;
+declare i32 @getint()
+declare i32 @getchar()
+declare void @putint(i32)
+declare void @putch(i32)
+declare void @putstr(i8*)
+@constIntArray = dso_local global [3 x i32] [i32 10, i32 20, i32 30]
+@constCharArray = dso_local global [5 x i8] [i8 65, i8 66, i8 67, i8 68, i8 69]
+@constCharArray2 = dso_local global [5 x i8] [i8 34, i8 97, i8 98, i8 99, i8 34]
+@intArray = dso_local global [5 x i32] zeroinitializer
+@charArray = dso_local global [5 x i8] zeroinitializer
+define dso_local i32 @func_with_param(i32 %reg_0, i8 %reg_1, i32* %reg_2, i8* %reg_3) {
+reg_4:
+    %reg_5 = alloca i32
+    store i32 %reg_0, i32* %reg_5
+    %reg_6 = alloca i8
+    store i8 %reg_1, i8* %reg_6
+    %reg_7 = alloca i32*
+    store i32* %reg_2, i32** %reg_7
+    %reg_8 = load i32*, i32** %reg_7
+    %reg_9 = alloca i8*
+    store i8* %reg_3, i8** %reg_9
+    %reg_10 = load i8*, i8** %reg_9
+    %reg_11 = alloca i32
+    %reg_12 = load i32, i32* %reg_5
+    %reg_13 = load i8, i8* %reg_6
+    %reg_14 = getelementptr i32, i32* %reg_8, i32 0, i32 0
+    %reg_15 = load i32, i32* %reg_14
+    %reg_16 = getelementptr i8, i8* %reg_10, i8 0, i8 0
+    %reg_17 = load i8, i8* %reg_16
+    %reg_18 = zext i8 %reg_13 to i32
+    %reg_19 = add i32 %reg_12, %reg_18
+    %reg_20 = add i32 %reg_19, %reg_15
+    %reg_21 = zext i8 %reg_17 to i32
+    %reg_22 = add i32 %reg_20, %reg_21
+    store i32 %reg_22, i32* %reg_11
+    %reg_23 = load i32, i32* %reg_11
+    ret i32 %reg_23
 }
 
-// All Ident's form and Other forms exist in func2
-int func2() {
-    int abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 = 43;
-    int temp;
-    temp = abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890;
-    int a;
-    int a1b3;
-    /*
-    This is annotation1
-    */
-    // This is annotation2
-    int d = 0;
-    0;
-    1234567890;
-    return 100;
+define dso_local i32 @main() {
+reg_0:
+    %reg_1 = getelementptr [3 x i32], [3 x i32]* @constIntArray, i32 0, i32 0
+    %reg_2 = load i32, i32* %reg_1
+    %reg_3 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 0
+    store i32 %reg_2, i32* %reg_3
+    %reg_4 = getelementptr [3 x i32], [3 x i32]* @constIntArray, i32 0, i32 1
+    %reg_5 = load i32, i32* %reg_4
+    %reg_6 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 1
+    store i32 %reg_5, i32* %reg_6
+    %reg_7 = getelementptr [3 x i32], [3 x i32]* @constIntArray, i32 0, i32 2
+    %reg_8 = load i32, i32* %reg_7
+    %reg_9 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 2
+    store i32 %reg_8, i32* %reg_9
+    %reg_10 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 0
+    %reg_11 = load i32, i32* %reg_10
+    %reg_12 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 1
+    %reg_13 = load i32, i32* %reg_12
+    %reg_14 = add i32 %reg_11, %reg_13
+    %reg_15 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 3
+    store i32 %reg_14, i32* %reg_15
+    %reg_16 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 3
+    %reg_17 = load i32, i32* %reg_16
+    %reg_18 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 2
+    %reg_19 = load i32, i32* %reg_18
+    %reg_20 = add i32 %reg_17, %reg_19
+    %reg_21 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 4
+    store i32 %reg_20, i32* %reg_21
+    %reg_22 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 0
+    %reg_23 = load i32, i32* %reg_22
+    %reg_24 = sub i32 0, %reg_23
+    %reg_25 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 0
+    store i32 %reg_24, i32* %reg_25
+    %reg_26 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 0
+    %reg_27 = load i32, i32* %reg_26
+    %reg_28 = add i32 0, %reg_27
+    %reg_29 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 0
+    store i32 %reg_28, i32* %reg_29
+    %reg_30 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 3
+    %reg_31 = load i32, i32* %reg_30
+    %reg_32 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 2
+    %reg_33 = load i32, i32* %reg_32
+    %reg_34 = sdiv i32 %reg_31, %reg_33
+    %reg_35 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 1
+    store i32 %reg_34, i32* %reg_35
+    %reg_36 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 3
+    %reg_37 = load i32, i32* %reg_36
+    %reg_38 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 2
+    %reg_39 = load i32, i32* %reg_38
+    %reg_40 = srem i32 %reg_37, %reg_39
+    %reg_41 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 2
+    store i32 %reg_40, i32* %reg_41
+    %reg_42 = getelementptr [5 x i8], [5 x i8]* @constCharArray, i8 0, i8 0
+    %reg_43 = load i8, i8* %reg_42
+    %reg_44 = getelementptr [5 x i8], [5 x i8]* @constCharArray, i8 0, i8 1
+    %reg_45 = load i8, i8* %reg_44
+    %reg_46 = getelementptr [5 x i8], [5 x i8]* @constCharArray, i8 0, i8 2
+    %reg_47 = load i8, i8* %reg_46
+    %reg_48 = getelementptr [5 x i8], [5 x i8]* @constCharArray, i8 0, i8 3
+    %reg_49 = load i8, i8* %reg_48
+    %reg_50 = getelementptr [5 x i8], [5 x i8]* @constCharArray, i8 0, i8 4
+    %reg_51 = load i8, i8* %reg_50
+    %reg_52 = zext i8 %reg_43 to i32
+    %reg_53 = zext i8 %reg_45 to i32
+    %reg_54 = add i32 %reg_52, %reg_53
+    %reg_55 = zext i8 %reg_47 to i32
+    %reg_56 = add i32 %reg_54, %reg_55
+    %reg_57 = zext i8 %reg_49 to i32
+    %reg_58 = add i32 %reg_56, %reg_57
+    %reg_59 = zext i8 %reg_51 to i32
+    %reg_60 = add i32 %reg_58, %reg_59
+    %reg_61 = getelementptr [5 x i8], [5 x i8]* @charArray, i8 0, i8 0
+    %reg_62 = trunc i32 %reg_60 to i8
+    store i8 %reg_62, i8* %reg_61
+    %reg_63 = alloca i32
+    %reg_64 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 0
+    %reg_65 = load i32, i32* %reg_64
+    %reg_66 = getelementptr [5 x i8], [5 x i8]* @charArray, i8 0, i8 0
+    %reg_67 = load i8, i8* %reg_66
+    %reg_68 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 0
+    %reg_69 = getelementptr [5 x i8], [5 x i8]* @charArray, i8 0, i8 0
+    %reg_70 = call i32 @func_with_param(i32 %reg_65, i8 %reg_67, i32* %reg_68, i8* %reg_69)
+    store i32 %reg_70, i32* %reg_63
+    ret i32 0
 }
 
-// All Cond's forms exist in func3
-void func3(int in) {
-    printf("func3 input = %d\n", in);
-    int a = 7;
-    int b = 8;
-    if (!(a + b));
-    if ((a + b) < (a + b));
-    if ((a + b) > (a + b));
-    if ((a + b) <= (a + b));
-    if ((a + b) >= (a + b));
-    if ((a + b) == (a + b));
-    if ((a + b) != (a + b));
-    return;
-}
-
-// All Exp's forms exist in func4
-int func4(int param1, int param2, int param3) {
-    int temp1 = (param1 * param2) / (param2) % (param1) + param3 - param3 * (param1 / param3 / param3);
-    const int temp2 = (AZ + AZA1 - AZA2) * AZ * (18 / 6) - 16 * (0);
-    int temp3;
-    temp3 = AZ * AZA1 % AZA2;
-    int a = temp3 + 4;
-    int b = (a);
-    int c = func2();
-    int d = - + - +func2();
-    int e = c * b;
-    int f = e / b;
-    int g = f % c;
-    int h = f + g;
-    int i = f - g;
-    printf("%d %d %d %d %d %d %d %d %d\n", a, b, c, d, e, f, g, h, i);
-    return 1;
-}
-
-int main() {
-    func1();
-    printf("func1 done!\n");
-    func2();
-    printf("func2 done!\n");
-    func3(az);
-    printf("func3 done!\n");
-    func4(1, 2, 3);
-    printf("func4 done!\n");
-    return 0;
-}

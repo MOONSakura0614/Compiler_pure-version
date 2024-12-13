@@ -35,11 +35,27 @@ public class IRFunction extends IRGlobalValue {
         irBasicBlock_list = new ArrayList<>();
         // 得到形参
         for (IRType arg_type: irTypes) {
-            IRArgument argument = new IRArgument(arg_type, "%" + (this.reg_num++));
+//            IRArgument argument = new IRArgument(arg_type, "%" + (this.reg_num++));
+            IRArgument argument = new IRArgument(arg_type, "%reg_" + (this.reg_num++));
             irArguments_list.add(argument);
         }
         // 符号表在build 还是 AST遍历的时候记录？
     }
+
+    /*public IRFunction(String name, IRType ret_type, ArrayList<IRArgument> arguments) {
+        // 普通自定义函数，直接传参数类型的list
+        // 合成IRFuncType
+        super(new IRFunctionType(ret_type, irTypes), name);
+//        isMainFunc = isMain; // 不需要main标注，main和普通自定义函数是一样的（只是没参数，名字固定main，返回值固定int 0）
+        irArguments_list = new ArrayList<>();
+        irBasicBlock_list = new ArrayList<>();
+        // 得到形参
+        for (IRType arg_type: irTypes) {
+            IRArgument argument = new IRArgument(arg_type, "%" + (this.reg_num++));
+            irArguments_list.add(argument);
+        }
+        // 符号表在build 还是 AST遍历的时候记录？
+    }*/
 
     public IRArgument getArgByIndex(int index) {
         return irArguments_list.get(index);
@@ -53,7 +69,7 @@ public class IRFunction extends IRGlobalValue {
         irBasicBlock_list = new ArrayList<>();
         // 得到形参
         for (IRType arg_type: irTypes) {
-            IRArgument argument = new IRArgument(arg_type, "%" + (this.reg_num++));
+            IRArgument argument = new IRArgument(arg_type, "%reg_" + (this.reg_num++));
             irArguments_list.add(argument);
         }
         // 符号表在build 还是 AST遍历的时候记录？
@@ -130,7 +146,6 @@ public class IRFunction extends IRGlobalValue {
             funcDeclare.append(((IRFunctionType) irType).getRet_type().toString()).append(" "); // void | i32 | i8
         funcDeclare.append("@" + getName() + '(');
         // 形参表
-        // TODO: 2024/11/24 疑似函数形参用的寄存器和函数体之间都要跳一个，比如4个形参0~3，但是4被跳过，下面从5开始
         // -emit-llvm结果：做library的函数和做main的函数：但是好像这里没有要求？
         // define dso_local void @play(int, int)(i32 signext %0, i32 signext %1)
         // define dso_local i32 @main(i32 signext %0)

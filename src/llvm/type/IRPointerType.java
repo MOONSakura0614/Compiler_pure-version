@@ -8,6 +8,7 @@ package llvm.type;
 public class IRPointerType implements IRType {
     public static final IRPointerType i32PointType;
     public static final IRPointerType i8PointType;
+    /* todo: Array 注意这里的ElementType也可以是一个新的IRPointerType 如数组的形参给内存就是i32* */
     private IRType element_type;
 
     public IRPointerType() {}

@@ -2,6 +2,7 @@ package frontend.parser.syntaxUnit;
 
 import frontend.lexer.LexType;
 import frontend.lexer.Token;
+import llvm.value.constVar.IRConstString;
 import utils.IOUtils;
 
 import java.util.ArrayList;
@@ -202,6 +203,8 @@ public class InitVal extends SyntaxNode {
         int[] res = new int[len]; // 其他应该默认为0
         if (isStringInit) {
             // todo:StringCon待实现
+            System.out.println(string_const_token.getTokenValue());
+            return IRConstString.convertStrToAscii(getString(), len);
         }
         ArrayList<Exp> exps = getInitExps(); // 调用这个方法的只有能求出初始化值的！（比如局部常量数组，或者全局
         int i;
@@ -209,5 +212,10 @@ public class InitVal extends SyntaxNode {
             res[i] = (exps.get(i).getIntValue() % 128);
         }
         return res;
+    }
+
+    public String getString() {
+        String strCon = string_const_token.getTokenValue();
+        return strCon.substring(1, strCon.length() - 1);
     }
 }

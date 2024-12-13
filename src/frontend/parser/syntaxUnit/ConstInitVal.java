@@ -3,10 +3,12 @@ package frontend.parser.syntaxUnit;
 import frontend.lexer.LexType;
 import frontend.lexer.Token;
 import frontend.symbol.Symbol;
+import llvm.value.constVar.IRConstString;
 import utils.IOUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static frontend.parser.Parser.lexIterator;
 
@@ -185,6 +187,8 @@ public class ConstInitVal extends SyntaxNode {
         int[] res = new int[length]; // 其他应该默认为0
         if (isStringInit) {
             // todo:StringCon待实现
+            System.out.println(getString());
+            return IRConstString.convertStrToAscii(getString(), length);
         }
         ArrayList<ConstExp> constExps = getInitConstExps();
         int i;
@@ -192,6 +196,12 @@ public class ConstInitVal extends SyntaxNode {
             res[i] = (constExps.get(i).getIntValue() % 128);
         }
         return res;
+    }
+
+    public String getString() {
+        /* todo: Array 注意此处得到的char字符串初始化是没有吧转义字符正确处理的 */
+        String strCon = string_const_token.getTokenValue();
+        return strCon.substring(1, strCon.length() - 1);
     }
 
     public static void main(String[] args) {

@@ -6,10 +6,7 @@ import frontend.parser.syntaxUnit.*;
 import frontend.symbol.Symbol;
 import llvm.type.*;
 import llvm.value.*;
-import llvm.value.constVar.IRConst;
-import llvm.value.constVar.IRConstArray;
-import llvm.value.constVar.IRConstChar;
-import llvm.value.constVar.IRConstInt;
+import llvm.value.constVar.*;
 import llvm.value.instruction.*;
 import llvm.value.instruction.memory.AllocaInst;
 import llvm.value.instruction.memory.GEPInst;
@@ -92,6 +89,20 @@ public class IRBuilder {
     String ident_name;
 
     public void buildFuncArgInsts(IRArgument argument) { // 构建和函数形参有关的指令：至少包括alloca和store
+        /* todo: Array 处理函数形参是数组的情况 */
+        /* void arrF(int a[]) {
+            a[1] = 1;
+        }
+        define dso_local void @arrF(i32*){
+            %2 = alloca i32*
+            store i32* %0, i32** %2
+            %3 = load i32*, i32** %2
+            %4 = getelementptr i32, i32* %3, i32 1
+            store i32 1, i32* %4
+            ret void
+        }*/
+//        System.out.println(argument);
+
         // alloca:申请内存地址
         allocaInst = new AllocaInst(argument.getIrType());
         // 给符号表里的对应形参ident存上上面获得的内存地址
@@ -105,12 +116,20 @@ public class IRBuilder {
             symbol.setIrValue(allocaInst); // 形参对应的irValue
         }
         cur_basicBlock.addInst(allocaInst);
+//        System.out.println(allocaInst);
 
         // store:存入对应值(store arg对应的reg 到 alloca对应的内存指针reg)
         /*storeInst = new StoreInst(argument, allocaInst);
         cur_basicBlock.addInst(storeInst);*/
+        /* todo: Array 注意数组的store */
         buildStoreInst(argument, allocaInst);
         // 注意随用随load，在要用到这个值（查询调用的ident_name之类的再生成load指令）
+        /* todo: Array 只有形参的array需要二次load，最后才是那个数组的指针（一个*不是**） */
+        if (symbol != null && symbol.getIsArray()) {
+            LoadInst tmpLoad = buildLoadInst(allocaInst);
+            symbol.setPointerReg(tmpLoad.getName());
+            symbol.setIrValue(tmpLoad);
+        }
     }
 
     /*public AllocaInst buildLocalVar() {
@@ -332,11 +351,12 @@ public class IRBuilder {
                 if (argTypes.get(i).equals(IRIntType.intType)) { // 说明形参需要的是i32
                     convInst = new ConvInst(Operator.Zext, arg);
                     cur_basicBlock.addInst(convInst);
-                } else {
+                    arg = convInst;
+                } else if (argTypes.get(i).equals(IRCharType.charType)) { // 需要说明是i8，否则会遇到数组基地址也强转成i8
                     convInst = new ConvInst(Operator.Trunc, arg);
                     cur_basicBlock.addInst(convInst);
+                    arg = convInst;
                 }
-                arg = convInst;
             }
             refinedArgs.add(arg);
         }
@@ -391,6 +411,15 @@ public class IRBuilder {
             String pattern = "(%c|%d)";
             // 编译正则表达式
             Pattern compiledPattern = Pattern.compile(pattern);
+
+            /* TODO：类型转换 有可能char数据用%d输出之类的 */
+            Matcher matcher = compiledPattern.matcher(printStr);
+            ArrayList<String> formatSpecifiers = new ArrayList<>();
+            // 收集所有占位符
+            while (matcher.find()) {
+                formatSpecifiers.add(matcher.group());
+            }
+
             // 使用 split 方法分割字符串
             String[] parts = compiledPattern.split(printStr);
             rArgs = buildPrintExps(exps);
@@ -405,16 +434,31 @@ public class IRBuilder {
                 if (i < rArgs.size()) {
                     // 除了最后一条分割出的串，其他后面总是跟着一个占位符
                     // 最后一条字符串后面可能会还有一个（结尾的不计入）--> 只需通过exp的数量判断还有没有就行
-                    buildPutSingleVar(rArgs.get(i));
+//                    buildPutSingleVar(rArgs.get(i));
+                    buildPutSingleVar(rArgs.get(i), formatSpecifiers.get(i));
                 }
             }
             while (i < rArgs.size()) {
                 // 除了最后一条分割出的串，其他后面总是跟着一个占位符
                 // 最后一条字符串后面可能会还有一个（结尾的不计入）--> 只需通过exp的数量判断还有没有就行
-                buildPutSingleVar(rArgs.get(i));
+//                buildPutSingleVar(rArgs.get(i));
+                buildPutSingleVar(rArgs.get(i), formatSpecifiers.get(i));
                 i++;
             }
         }
+    }
+
+    private void buildPutSingleVar(IRValue irValue, String s) {
+        IRFunction irFunction = (IRFunction) IOLib.PUT_INT_32.getIoFuncValue();
+        if (s.equals("%c")) {
+            irFunction = (IRFunction) IOLib.PUT_CH.getIoFuncValue(); // 如果占位符是c打印字符；反之如上初始化的，打印数字
+        }
+        if (!(irValue.getIrType() instanceof IRIntType)) {
+            irValue = buildConvInst(Operator.Zext, irValue); // 重载成i32的方便输出函数使用
+//            irFunction = (IRFunction) IOLib.PUT_CH.getIoFuncValue(); // 要根据占位符类型，而不是变量类型
+        }
+        callInst = new CallInst(irFunction, irValue);
+        cur_basicBlock.addInst(callInst);
     }
 
     public void buildPutSingleVar(IRValue irValue) {
@@ -493,7 +537,7 @@ public class IRBuilder {
         ArrayList<IRValue> rArgs = new ArrayList<>();
         ArrayList<Exp> exps = rParams.getExps(); // 获取实参的表示
         for (Exp exp: exps) {
-            rArgs.add(buildExp(exp));
+            rArgs.add(buildExp(exp)); // todo: Array 注意这里的实参可能是整个数组传递，不一定只传数组元素（所以Symbol是Array类型的也不一定有下标的exp可以求的！）
         }
         return rArgs;
     }
@@ -590,18 +634,29 @@ public class IRBuilder {
 
         /* todo: 处理调用的左值是数组的情况 */
         if (symbol.getIsArray()) { // 此时value存的是对应的数组地址
-            /*System.out.println(symbol.getIsArray());
+            /*if (lVal.getIsArrayElement()) {
             // 取值赋值：首先找对应的index（进行exp求值）
-            System.out.println(value);*/
-            IRValue index = buildExp(lVal.getExp()); // 若此时exp是lVal【应该得到对应的@或者alloca进行load
-            // 取对应的数组元素
-//            System.out.println(tmpValue);
-            /*System.out.println(value);
-            System.out.println(symbol.irValue);*/
-            // TODO: 2024/12/10 都叫你不要用全局的成员变量了吧！进了上一个buildExp的分析函数，symbol和value都乱套了！
-            gepInst = buildGEPInst(tmpValue, index); // 取出对应元素的地址
-            // load出来
-            return buildLoadInst(gepInst);
+                IRValue index = buildExp(lVal.getExp()); // 若此时exp是lVal【应该得到对应的@或者alloca进行load
+                // 取对应的数组元素
+                gepInst = buildGEPInst(tmpValue, index); // 取出对应元素的地址
+                // load出来
+                return buildLoadInst(gepInst);
+            } else {
+                // 一整个传数组，需要加载到0的数组基地址
+            }*/
+            if (lVal.getIsArrayElement()) {
+                IRValue index = buildExp(lVal.getExp()); // 若此时exp是lVal【应该得到对应的@或者alloca进行load
+                // 取对应的数组元素
+                // TODO: 2024/12/10 都叫你不要用全局的成员变量了吧！进了上一个buildExp的分析函数，symbol和value都乱套了！
+                gepInst = buildGEPInst(tmpValue, index); // 取出对应元素的地址
+                // load出来
+                return buildLoadInst(gepInst);
+            } else {
+                // todo: Array 调用一个数组的情况，应该只有数组传参（不然不做左值？）==>可以直接写，只有一维数组
+                // 一整个传数组，需要加载到0的数组基地址
+                gepInst = buildGEPInst(tmpValue, 0);
+                return gepInst; // 直接return这个数组的基地址指针
+            }
         }
 
 //        System.out.println(value);
@@ -691,6 +746,7 @@ public class IRBuilder {
     }
 
     public void buildStoreInst(IRValue irValue, IRValue lValIrValue) {
+        /* todo: Array 因为IR阶段保证源代码正确，不会出现不符合文法的不同类型数组互传 */
         // 注意类型转化
         if (!irValue.getIrType().equals(((IRPointerType) lValIrValue.getIrType()).getElement_type())) {
             if (irValue.getIrType().equals(IRIntType.intType)) {
@@ -699,8 +755,28 @@ public class IRBuilder {
                 irValue = buildConvInst(Operator.Zext, irValue);
             }
         }
+        /* store对应的内存位置在这里是lValIrValue */
         storeInst = new StoreInst(irValue, lValIrValue);
         cur_basicBlock.addInst(storeInst);
+//        System.out.println(storeInst);
+    }
+
+    /* 服务于常量直接赋值 */
+    public void buildStoreInst(int value, IRValue lValIrValue) {
+        /* todo: Array 因为IR阶段保证源代码正确，不会出现不符合文法的不同类型数组互传 */
+        // 注意类型:store是要到内存地址中，所以lVal通常是指针类
+        IRConst irConst = new IRConst();
+        IRType type = ((IRPointerType) lValIrValue.getIrType()).getElement_type();
+        if (type instanceof IRIntType) {
+            irConst = new IRConstInt(value);
+        } else if (type instanceof IRCharType) {
+            irConst = new IRConstChar(value);
+        }
+        /* store对应的内存位置在这里是lValIrValue */
+//        System.out.println(irConst);
+        storeInst = new StoreInst(irConst, lValIrValue);
+        cur_basicBlock.addInst(storeInst);
+//        System.out.println(storeInst);
     }
 
     // 跳转和循环
@@ -815,7 +891,14 @@ public class IRBuilder {
         /* 要不IRConstString还是提上日常，不然要处理很多转移？ */
         // TODO: 2024/12/10 字符串转移未处理，暂时处理{}赋值的int和char数组
         if (initVal.getStringInit()) {
-            // 待实现
+            // todo: charArray 的string“” init方式，需要注意是否替换转义字符 [ 以及原来存储的时候str还包括""前后得舍去，然后因为是字符串赋值的，最后要加一个'\0'就是ascii=0 ]
+//            System.out.println(initVal.getStringInit());
+            int[] chars = IRConstString.convertStrToAscii(initVal.getString());
+            for (int i = 0; i < chars.length; i++) {
+                gepInst = buildGEPInst(allocaInst, i);
+                buildStoreInst(chars[i], gepInst);
+            }
+            return;
         }
         if (initVal.getArrayInit()) {
             ArrayList<Exp> exps = initVal.getInitExps();
@@ -832,7 +915,7 @@ public class IRBuilder {
     }
 
     public GEPInst buildGEPInst(IRValue arrayPointer, int i) {
-        gepInst = new GEPInst(allocaInst, i);
+        gepInst = new GEPInst(arrayPointer, i);
         cur_basicBlock.addInst(gepInst);
         return gepInst;
     }

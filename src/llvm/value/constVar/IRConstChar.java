@@ -17,6 +17,7 @@ public class IRConstChar extends IRConst {
 
     public IRConstChar(int val) {
         super(IRCharType.charType);
+        setName("" + val);
         this.val = val;
     }
 
@@ -28,5 +29,10 @@ public class IRConstChar extends IRConst {
     public IRConstChar(IRType type, String name, int val) {
         super(type, name);
         this.val = val;
+    }
+
+    @Override
+    public String toString() {
+        return "i8 " + val;
     }
 }

@@ -3,48 +3,451 @@ declare i32 @getchar()
 declare void @putint(i32)
 declare void @putch(i32)
 declare void @putstr(i8*)
-@a = dso_local global [10 x i32] [i32 1, i32 2, i32 3, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32 0]
-@c0 = dso_local global [5 x i8] [i8 98, i8 1, i8 117, i8 0, i8 0]
-@ac = dso_local global [3 x i32] [i32 3, i32 -1, i32 0]
-@zero = dso_local global [12 x i32] zeroinitializer
-@aaa = dso_local global [10 x i32] zeroinitializer
-@zeroChar = dso_local global [1 x i8] zeroinitializer
-@zero_val = dso_local global i32 0
+@constIntArray = dso_local global [3 x i32] [i32 10, i32 20, i32 30]
+@constCharArray = dso_local global [5 x i8] [i8 65, i8 66, i8 67, i8 68, i8 69]
+@constCharArray2 = dso_local global [5 x i8] [i8 97, i8 98, i8 99, i8 0, i8 0]
+@intArray = dso_local global [5 x i32] zeroinitializer
+@charArray = dso_local global [5 x i8] zeroinitializer
+define dso_local i32 @func_with_param(i32 %reg_0, i8 %reg_1, i32* %reg_2, i8* %reg_3) {
+reg_4:
+    %reg_5 = alloca i32
+    store i32 %reg_0, i32* %reg_5
+    %reg_6 = alloca i8
+    store i8 %reg_1, i8* %reg_6
+    %reg_7 = alloca i32*
+    store i32* %reg_2, i32** %reg_7
+    %reg_8 = load i32*, i32** %reg_7
+    %reg_9 = alloca i8*
+    store i8* %reg_3, i8** %reg_9
+    %reg_10 = load i8*, i8** %reg_9
+    %reg_11 = load i32, i32* %reg_5
+    %reg_12 = load i8, i8* %reg_6
+    %reg_13 = getelementptr i32, i32* %reg_8, i32 0
+    %reg_14 = load i32, i32* %reg_13
+    %reg_15 = getelementptr i8, i8* %reg_10, i8 0
+    %reg_16 = load i8, i8* %reg_15
+    call void @putch(i32 70)
+    call void @putch(i32 117)
+    call void @putch(i32 110)
+    call void @putch(i32 99)
+    call void @putch(i32 116)
+    call void @putch(i32 105)
+    call void @putch(i32 111)
+    call void @putch(i32 110)
+    call void @putch(i32 32)
+    call void @putch(i32 119)
+    call void @putch(i32 105)
+    call void @putch(i32 116)
+    call void @putch(i32 104)
+    call void @putch(i32 32)
+    call void @putch(i32 112)
+    call void @putch(i32 97)
+    call void @putch(i32 114)
+    call void @putch(i32 97)
+    call void @putch(i32 109)
+    call void @putch(i32 101)
+    call void @putch(i32 116)
+    call void @putch(i32 101)
+    call void @putch(i32 114)
+    call void @putch(i32 115)
+    call void @putch(i32 58)
+    call void @putch(i32 32)
+    call void @putch(i32 97)
+    call void @putch(i32 32)
+    call void @putch(i32 61)
+    call void @putch(i32 32)
+    call void @putint(i32 %reg_11)
+    call void @putch(i32 44)
+    call void @putch(i32 32)
+    call void @putch(i32 98)
+    call void @putch(i32 32)
+    call void @putch(i32 61)
+    call void @putch(i32 32)
+    %reg_17 = zext i8 %reg_12 to i32
+    call void @putch(i32 %reg_17)
+    call void @putch(i32 32)
+    call void @putch(i32 97)
+    call void @putch(i32 114)
+    call void @putch(i32 114)
+    call void @putch(i32 91)
+    call void @putch(i32 48)
+    call void @putch(i32 93)
+    call void @putch(i32 32)
+    call void @putch(i32 61)
+    call void @putch(i32 32)
+    call void @putint(i32 %reg_14)
+    call void @putch(i32 44)
+    call void @putch(i32 32)
+    call void @putch(i32 115)
+    call void @putch(i32 116)
+    call void @putch(i32 114)
+    call void @putch(i32 91)
+    call void @putch(i32 48)
+    call void @putch(i32 93)
+    call void @putch(i32 32)
+    call void @putch(i32 61)
+    call void @putch(i32 32)
+    %reg_18 = zext i8 %reg_16 to i32
+    call void @putch(i32 %reg_18)
+    call void @putch(i32 10)
+    %reg_19 = alloca i32
+    %reg_20 = load i32, i32* %reg_5
+    %reg_21 = load i8, i8* %reg_6
+    %reg_22 = getelementptr i32, i32* %reg_8, i32 0
+    %reg_23 = load i32, i32* %reg_22
+    %reg_24 = getelementptr i8, i8* %reg_10, i8 0
+    %reg_25 = load i8, i8* %reg_24
+    %reg_26 = zext i8 %reg_21 to i32
+    %reg_27 = add i32 %reg_20, %reg_26
+    %reg_28 = add i32 %reg_27, %reg_23
+    %reg_29 = zext i8 %reg_25 to i32
+    %reg_30 = add i32 %reg_28, %reg_29
+    store i32 %reg_30, i32* %reg_19
+    %reg_31 = load i32, i32* %reg_19
+    call void @putch(i32 83)
+    call void @putch(i32 117)
+    call void @putch(i32 109)
+    call void @putch(i32 32)
+    call void @putch(i32 105)
+    call void @putch(i32 110)
+    call void @putch(i32 32)
+    call void @putch(i32 102)
+    call void @putch(i32 117)
+    call void @putch(i32 110)
+    call void @putch(i32 99)
+    call void @putch(i32 95)
+    call void @putch(i32 119)
+    call void @putch(i32 105)
+    call void @putch(i32 116)
+    call void @putch(i32 104)
+    call void @putch(i32 95)
+    call void @putch(i32 112)
+    call void @putch(i32 97)
+    call void @putch(i32 114)
+    call void @putch(i32 97)
+    call void @putch(i32 109)
+    call void @putch(i32 58)
+    call void @putch(i32 32)
+    call void @putint(i32 %reg_31)
+    call void @putch(i32 10)
+    %reg_32 = load i32, i32* %reg_19
+    ret i32 %reg_32
+}
+
 define dso_local i32 @main() {
 reg_0:
-    %reg_1 = alloca [3 x i32]
-    %reg_2 = getelementptr [3 x i32], [3 x i32]* %reg_1, i32 0, i32 0
-    store i32 1, i32* %reg_2
-    %reg_3 = getelementptr [3 x i32], [3 x i32]* %reg_1, i32 0, i32 1
-    store i32 2, i32* %reg_3
-    %reg_4 = getelementptr [3 x i32], [3 x i32]* %reg_1, i32 0, i32 2
-    store i32 3, i32* %reg_4
-    %reg_5 = alloca i32
-    %reg_6 = load i32, i32* @zero_val
-    %reg_7 = getelementptr [5 x i8], [5 x i8]* @c0, i8 0, i8 %reg_6
-    %reg_8 = load i8, i8* %reg_7
-    %reg_9 = zext i8 %reg_8 to i32
-    store i32 %reg_9, i32* %reg_5
-    %reg_10 = alloca i32
-    %reg_11 = load i32, i32* @zero_val
-    store i32 %reg_11, i32* %reg_10
-    %reg_12 = alloca [23 x i8]
-    %reg_13 = getelementptr [23 x i8], [23 x i8]* %reg_12, i8 0, i8 0
-    %reg_14 = getelementptr [3 x i32], [3 x i32]* %reg_1, i32 0, i32 0
-    %reg_15 = load i32, i32* %reg_14
-    store i32 %reg_15, i32* %reg_14
-    %reg_16 = getelementptr [23 x i8], [23 x i8]* %reg_12, i8 0, i8 1
-    %reg_17 = getelementptr [5 x i8], [5 x i8]* @c0, i8 0, i8 1
-    %reg_18 = load i8, i8* %reg_17
-    store i8 %reg_18, i8* %reg_17
-    %reg_19 = getelementptr [23 x i8], [23 x i8]* %reg_12, i8 0, i8 2
-    %reg_20 = getelementptr [10 x i32], [10 x i32]* @a, i32 0, i32 1
-    %reg_21 = load i32, i32* %reg_20
-    store i32 %reg_21, i32* %reg_20
-    %reg_22 = getelementptr [23 x i8], [23 x i8]* %reg_12, i8 0, i8 3
-    %reg_23 = load i32, i32* @zero_val
-    %reg_24 = trunc i32 %reg_23 to i8
-    store i8 %reg_24, i8* %reg_22
+    call void @putch(i32 50)
+    call void @putch(i32 50)
+    call void @putch(i32 51)
+    call void @putch(i32 55)
+    call void @putch(i32 51)
+    call void @putch(i32 49)
+    call void @putch(i32 52)
+    call void @putch(i32 49)
+    call void @putch(i32 10)
+    %reg_1 = getelementptr [3 x i32], [3 x i32]* @constIntArray, i32 0, i32 0
+    %reg_2 = load i32, i32* %reg_1
+    %reg_3 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 0
+    store i32 %reg_2, i32* %reg_3
+    %reg_4 = getelementptr [3 x i32], [3 x i32]* @constIntArray, i32 0, i32 1
+    %reg_5 = load i32, i32* %reg_4
+    %reg_6 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 1
+    store i32 %reg_5, i32* %reg_6
+    %reg_7 = getelementptr [3 x i32], [3 x i32]* @constIntArray, i32 0, i32 2
+    %reg_8 = load i32, i32* %reg_7
+    %reg_9 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 2
+    store i32 %reg_8, i32* %reg_9
+    %reg_10 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 0
+    %reg_11 = load i32, i32* %reg_10
+    %reg_12 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 1
+    %reg_13 = load i32, i32* %reg_12
+    %reg_14 = add i32 %reg_11, %reg_13
+    %reg_15 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 3
+    store i32 %reg_14, i32* %reg_15
+    %reg_16 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 3
+    %reg_17 = load i32, i32* %reg_16
+    %reg_18 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 2
+    %reg_19 = load i32, i32* %reg_18
+    %reg_20 = add i32 %reg_17, %reg_19
+    %reg_21 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 4
+    store i32 %reg_20, i32* %reg_21
+    %reg_22 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 0
+    %reg_23 = load i32, i32* %reg_22
+    %reg_24 = sub i32 0, %reg_23
+    %reg_25 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 0
+    store i32 %reg_24, i32* %reg_25
+    %reg_26 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 0
+    %reg_27 = load i32, i32* %reg_26
+    call void @putch(i32 78)
+    call void @putch(i32 101)
+    call void @putch(i32 103)
+    call void @putch(i32 97)
+    call void @putch(i32 116)
+    call void @putch(i32 105)
+    call void @putch(i32 118)
+    call void @putch(i32 101)
+    call void @putch(i32 32)
+    call void @putch(i32 105)
+    call void @putch(i32 110)
+    call void @putch(i32 116)
+    call void @putch(i32 65)
+    call void @putch(i32 114)
+    call void @putch(i32 114)
+    call void @putch(i32 97)
+    call void @putch(i32 121)
+    call void @putch(i32 91)
+    call void @putch(i32 48)
+    call void @putch(i32 93)
+    call void @putch(i32 58)
+    call void @putch(i32 32)
+    call void @putint(i32 %reg_27)
+    call void @putch(i32 10)
+    %reg_28 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 0
+    %reg_29 = load i32, i32* %reg_28
+    %reg_30 = add i32 0, %reg_29
+    %reg_31 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 0
+    store i32 %reg_30, i32* %reg_31
+    %reg_32 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 0
+    %reg_33 = load i32, i32* %reg_32
+    call void @putch(i32 80)
+    call void @putch(i32 111)
+    call void @putch(i32 115)
+    call void @putch(i32 105)
+    call void @putch(i32 116)
+    call void @putch(i32 105)
+    call void @putch(i32 118)
+    call void @putch(i32 101)
+    call void @putch(i32 32)
+    call void @putch(i32 105)
+    call void @putch(i32 110)
+    call void @putch(i32 116)
+    call void @putch(i32 65)
+    call void @putch(i32 114)
+    call void @putch(i32 114)
+    call void @putch(i32 97)
+    call void @putch(i32 121)
+    call void @putch(i32 91)
+    call void @putch(i32 48)
+    call void @putch(i32 93)
+    call void @putch(i32 58)
+    call void @putch(i32 32)
+    call void @putint(i32 %reg_33)
+    call void @putch(i32 10)
+    %reg_34 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 3
+    %reg_35 = load i32, i32* %reg_34
+    %reg_36 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 2
+    %reg_37 = load i32, i32* %reg_36
+    %reg_38 = sdiv i32 %reg_35, %reg_37
+    %reg_39 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 1
+    store i32 %reg_38, i32* %reg_39
+    %reg_40 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 3
+    %reg_41 = load i32, i32* %reg_40
+    %reg_42 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 2
+    %reg_43 = load i32, i32* %reg_42
+    %reg_44 = srem i32 %reg_41, %reg_43
+    %reg_45 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 2
+    store i32 %reg_44, i32* %reg_45
+    %reg_46 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 1
+    %reg_47 = load i32, i32* %reg_46
+    %reg_48 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 2
+    %reg_49 = load i32, i32* %reg_48
+    call void @putch(i32 81)
+    call void @putch(i32 117)
+    call void @putch(i32 111)
+    call void @putch(i32 116)
+    call void @putch(i32 105)
+    call void @putch(i32 101)
+    call void @putch(i32 110)
+    call void @putch(i32 116)
+    call void @putch(i32 58)
+    call void @putch(i32 32)
+    call void @putint(i32 %reg_47)
+    call void @putch(i32 44)
+    call void @putch(i32 32)
+    call void @putch(i32 82)
+    call void @putch(i32 101)
+    call void @putch(i32 109)
+    call void @putch(i32 97)
+    call void @putch(i32 105)
+    call void @putch(i32 110)
+    call void @putch(i32 100)
+    call void @putch(i32 101)
+    call void @putch(i32 114)
+    call void @putch(i32 58)
+    call void @putch(i32 32)
+    call void @putint(i32 %reg_49)
+    call void @putch(i32 10)
+    %reg_50 = getelementptr [5 x i8], [5 x i8]* @constCharArray, i8 0, i8 0
+    %reg_51 = load i8, i8* %reg_50
+    %reg_52 = getelementptr [5 x i8], [5 x i8]* @constCharArray, i8 0, i8 1
+    %reg_53 = load i8, i8* %reg_52
+    %reg_54 = getelementptr [5 x i8], [5 x i8]* @constCharArray, i8 0, i8 2
+    %reg_55 = load i8, i8* %reg_54
+    %reg_56 = getelementptr [5 x i8], [5 x i8]* @constCharArray, i8 0, i8 3
+    %reg_57 = load i8, i8* %reg_56
+    %reg_58 = getelementptr [5 x i8], [5 x i8]* @constCharArray, i8 0, i8 4
+    %reg_59 = load i8, i8* %reg_58
+    %reg_60 = zext i8 %reg_51 to i32
+    %reg_61 = zext i8 %reg_53 to i32
+    %reg_62 = add i32 %reg_60, %reg_61
+    %reg_63 = zext i8 %reg_55 to i32
+    %reg_64 = add i32 %reg_62, %reg_63
+    %reg_65 = zext i8 %reg_57 to i32
+    %reg_66 = add i32 %reg_64, %reg_65
+    %reg_67 = zext i8 %reg_59 to i32
+    %reg_68 = add i32 %reg_66, %reg_67
+    %reg_69 = getelementptr [5 x i8], [5 x i8]* @charArray, i8 0, i8 0
+    %reg_70 = trunc i32 %reg_68 to i8
+    store i8 %reg_70, i8* %reg_69
+    %reg_71 = getelementptr [5 x i8], [5 x i8]* @charArray, i8 0, i8 0
+    %reg_72 = load i8, i8* %reg_71
+    %reg_73 = getelementptr [5 x i8], [5 x i8]* @charArray, i8 0, i8 0
+    %reg_74 = load i8, i8* %reg_73
+    call void @putch(i32 83)
+    call void @putch(i32 117)
+    call void @putch(i32 109)
+    call void @putch(i32 32)
+    call void @putch(i32 111)
+    call void @putch(i32 102)
+    call void @putch(i32 32)
+    call void @putch(i32 65)
+    call void @putch(i32 83)
+    call void @putch(i32 67)
+    call void @putch(i32 73)
+    call void @putch(i32 73)
+    call void @putch(i32 32)
+    call void @putch(i32 99)
+    call void @putch(i32 111)
+    call void @putch(i32 100)
+    call void @putch(i32 101)
+    call void @putch(i32 115)
+    call void @putch(i32 49)
+    call void @putch(i32 58)
+    call void @putch(i32 32)
+    %reg_75 = zext i8 %reg_72 to i32
+    call void @putint(i32 %reg_75)
+    call void @putch(i32 32)
+    %reg_76 = zext i8 %reg_74 to i32
+    call void @putch(i32 %reg_76)
+    call void @putch(i32 10)
+    %reg_77 = alloca i32
+    %reg_78 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 0
+    %reg_79 = load i32, i32* %reg_78
+    %reg_80 = getelementptr [5 x i8], [5 x i8]* @charArray, i8 0, i8 0
+    %reg_81 = load i8, i8* %reg_80
+    %reg_82 = getelementptr [5 x i32], [5 x i32]* @intArray, i32 0, i32 0
+    %reg_83 = getelementptr [5 x i8], [5 x i8]* @charArray, i8 0, i8 0
+    %reg_84 = call i32 @func_with_param(i32 %reg_79, i8 %reg_81, i32* %reg_82, i8* %reg_83)
+    store i32 %reg_84, i32* %reg_77
+    %reg_85 = alloca i32
+    %reg_86 = getelementptr [5 x i8], [5 x i8]* @constCharArray2, i8 0, i8 0
+    %reg_87 = load i8, i8* %reg_86
+    %reg_88 = getelementptr [5 x i8], [5 x i8]* @constCharArray2, i8 0, i8 1
+    %reg_89 = load i8, i8* %reg_88
+    %reg_90 = getelementptr [5 x i8], [5 x i8]* @constCharArray2, i8 0, i8 2
+    %reg_91 = load i8, i8* %reg_90
+    %reg_92 = getelementptr [5 x i8], [5 x i8]* @constCharArray2, i8 0, i8 3
+    %reg_93 = load i8, i8* %reg_92
+    %reg_94 = getelementptr [5 x i8], [5 x i8]* @constCharArray2, i8 0, i8 4
+    %reg_95 = load i8, i8* %reg_94
+    %reg_96 = zext i8 %reg_87 to i32
+    %reg_97 = zext i8 %reg_89 to i32
+    %reg_98 = add i32 %reg_96, %reg_97
+    %reg_99 = zext i8 %reg_91 to i32
+    %reg_100 = add i32 %reg_98, %reg_99
+    %reg_101 = zext i8 %reg_93 to i32
+    %reg_102 = add i32 %reg_100, %reg_101
+    %reg_103 = zext i8 %reg_95 to i32
+    %reg_104 = add i32 %reg_102, %reg_103
+    store i32 %reg_104, i32* %reg_85
+    %reg_105 = alloca i8
+    %reg_106 = getelementptr [5 x i8], [5 x i8]* @constCharArray2, i8 0, i8 0
+    %reg_107 = load i8, i8* %reg_106
+    %reg_108 = getelementptr [5 x i8], [5 x i8]* @constCharArray2, i8 0, i8 1
+    %reg_109 = load i8, i8* %reg_108
+    %reg_110 = getelementptr [5 x i8], [5 x i8]* @constCharArray2, i8 0, i8 2
+    %reg_111 = load i8, i8* %reg_110
+    %reg_112 = getelementptr [5 x i8], [5 x i8]* @constCharArray2, i8 0, i8 3
+    %reg_113 = load i8, i8* %reg_112
+    %reg_114 = getelementptr [5 x i8], [5 x i8]* @constCharArray2, i8 0, i8 4
+    %reg_115 = load i8, i8* %reg_114
+    %reg_116 = zext i8 %reg_107 to i32
+    %reg_117 = zext i8 %reg_109 to i32
+    %reg_118 = add i32 %reg_116, %reg_117
+    %reg_119 = zext i8 %reg_111 to i32
+    %reg_120 = add i32 %reg_118, %reg_119
+    %reg_121 = zext i8 %reg_113 to i32
+    %reg_122 = add i32 %reg_120, %reg_121
+    %reg_123 = zext i8 %reg_115 to i32
+    %reg_124 = add i32 %reg_122, %reg_123
+    %reg_125 = trunc i32 %reg_124 to i8
+    store i8 %reg_125, i8* %reg_105
+    %reg_126 = load i32, i32* %reg_85
+    %reg_127 = load i8, i8* %reg_105
+    call void @putch(i32 83)
+    call void @putch(i32 117)
+    call void @putch(i32 109)
+    call void @putch(i32 32)
+    call void @putch(i32 111)
+    call void @putch(i32 102)
+    call void @putch(i32 32)
+    call void @putch(i32 65)
+    call void @putch(i32 83)
+    call void @putch(i32 67)
+    call void @putch(i32 73)
+    call void @putch(i32 73)
+    call void @putch(i32 32)
+    call void @putch(i32 99)
+    call void @putch(i32 111)
+    call void @putch(i32 100)
+    call void @putch(i32 101)
+    call void @putch(i32 115)
+    call void @putch(i32 50)
+    call void @putch(i32 58)
+    call void @putch(i32 32)
+    call void @putint(i32 %reg_126)
+    call void @putch(i32 32)
+    %reg_128 = zext i8 %reg_127 to i32
+    call void @putch(i32 %reg_128)
+    call void @putch(i32 10)
+    %reg_129 = alloca i32
+    %reg_130 = add i32 97, 10
+    store i32 %reg_130, i32* %reg_129
+    %reg_131 = load i32, i32* %reg_129
+    call void @putch(i32 120)
+    call void @putch(i32 49)
+    call void @putch(i32 32)
+    call void @putch(i32 61)
+    call void @putch(i32 32)
+    call void @putint(i32 %reg_131)
+    call void @putch(i32 10)
+    %reg_132 = alloca i8
+    %reg_133 = sub i32 48, 7
+    %reg_134 = trunc i32 %reg_133 to i8
+    store i8 %reg_134, i8* %reg_132
+    %reg_135 = load i8, i8* %reg_132
+    %reg_136 = load i8, i8* %reg_132
+    call void @putch(i32 97)
+    call void @putch(i32 49)
+    call void @putch(i32 32)
+    call void @putch(i32 61)
+    call void @putch(i32 32)
+    %reg_137 = zext i8 %reg_135 to i32
+    call void @putint(i32 %reg_137)
+    call void @putch(i32 44)
+    call void @putch(i32 32)
+    call void @putch(i32 97)
+    call void @putch(i32 115)
+    call void @putch(i32 32)
+    call void @putch(i32 99)
+    call void @putch(i32 104)
+    call void @putch(i32 97)
+    call void @putch(i32 114)
+    call void @putch(i32 58)
+    call void @putch(i32 32)
+    %reg_138 = zext i8 %reg_136 to i32
+    call void @putch(i32 %reg_138)
+    call void @putch(i32 10)
     ret i32 0
 }
 
