@@ -3,59 +3,21 @@ declare i32 @getchar()
 declare void @putint(i32)
 declare void @putch(i32)
 declare void @putstr(i8*)
-@MAX_SIZE = dso_local global i32 10
-@str = dso_local global [10 x i8] [i8 51, i8 39, i8 0, i8 0, i8 0, i8 0, i8 0, i8 0, i8 0, i8 0]
 define dso_local i32 @main() {
 reg_0:
-    %reg_1 = alloca i32
-    store i32 0, i32* %reg_1
-    %reg_2 = alloca i32
-    store i32 8, i32* %reg_2
-    %reg_3 = call i32 @getint()
-    store i32 %reg_3, i32* %reg_1
-    %reg_4 = alloca [10 x i32]
-    %reg_5 = alloca [20 x i32]
-    %reg_6 = getelementptr [20 x i32], [20 x i32]* %reg_5, i32 0, i32 0
-    store i32 3, i32* %reg_6
-    %reg_7 = getelementptr [20 x i32], [20 x i32]* %reg_5, i32 0, i32 1
-    store i32 2, i32* %reg_7
-    %reg_8 = getelementptr [20 x i32], [20 x i32]* %reg_5, i32 0, i32 2
-    store i32 1, i32* %reg_8
-    %reg_9 = alloca i32
-    store i32 0, i32* %reg_9
-    %reg_10 = alloca i32
-    store i32 0, i32* %reg_10
-    br label %reg_11
-
-reg_11:
-    %reg_12 = load i32, i32* %reg_10
-    %reg_13 = icmp slt i32 %reg_12, 10
-    br i1 %reg_13, label %reg_14, label %reg_16
-
-reg_14:
-    %reg_17 = load i32, i32* %reg_10
-    %reg_18 = icmp slt i32 %reg_17, 3
-    br i1 %reg_18, label %reg_19, label %reg_25
-
-reg_15:
-    %reg_26 = load i32, i32* %reg_10
-    %reg_27 = add i32 %reg_26, 1
-    store i32 %reg_27, i32* %reg_10
-    br label %reg_11
-
-reg_16:
+    %reg_1 = alloca [1 x i32]
+    %reg_2 = getelementptr [1 x i32], [1 x i32]* %reg_1, i32 0, i32 0
+    store i32 100, i32* %reg_2
+    %reg_3 = alloca [1 x i32]
+    %reg_4 = getelementptr [1 x i32], [1 x i32]* %reg_3, i32 0, i32 0
+    %reg_5 = getelementptr [1 x i32], [1 x i32]* %reg_1, i32 0, i32 0
+    %reg_6 = load i32, i32* %reg_5
+    %reg_7 = sdiv i32 %reg_6, 3
+    store i32 %reg_7, i32* %reg_5
+    %reg_8 = getelementptr [1 x i32], [1 x i32]* %reg_3, i32 0, i32 0
+    %reg_9 = load i32, i32* %reg_8
+    call void @putint(i32 %reg_9)
+    call void @putch(i32 10)
     ret i32 0
-
-reg_19:
-    %reg_20 = load i32, i32* %reg_9
-    %reg_21 = load i32, i32* %reg_10
-    %reg_22 = getelementptr [20 x i32], [20 x i32]* %reg_5, i32 0, i32 %reg_21
-    %reg_23 = load i32, i32* %reg_22
-    %reg_24 = add i32 %reg_20, %reg_23
-    store i32 %reg_24, i32* %reg_9
-    br label %reg_25
-
-reg_25:
-    br label %reg_15
 }
 

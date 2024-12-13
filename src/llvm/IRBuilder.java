@@ -682,6 +682,9 @@ public class IRBuilder {
     }
 
     public GEPInst buildGEPInst(IRValue value, IRValue index) {
+        if (!(index.getIrType() instanceof IRIntType)) {
+            index = buildConvInst(Operator.Zext, index);
+        }
         // 得到index
         gepInst = new GEPInst(value, index);
         cur_basicBlock.addInst(gepInst);
@@ -750,6 +753,16 @@ public class IRBuilder {
 
     public void buildStoreInst(IRValue irValue, IRValue lValIrValue) {
         /* todo: Array 因为IR阶段保证源代码正确，不会出现不符合文法的不同类型数组互传 */
+        // Todo 如果是要赋给左值的值是常量，直接赋值（不用类型转化，char取模就行
+        /* %reg_13 = trunc i32 114514 to i8数字过大会有溢出风险？？不是很确定 */
+        if (irValue instanceof IRConstInt) {
+            if (((IRPointerType) lValIrValue.getIrType()).getElement_type() instanceof IRCharType) {
+                // 要store的左值一定是指针
+                ((IRConstInt) irValue).toCharAssignVal(); // 注意是从number/character生成的PrimaryExp的ConstInt所以一定有值
+            }
+            buildStoreInst(((IRConstInt) irValue).getVal(), lValIrValue);
+            return;
+        }
         // 注意类型转化
         if (!irValue.getIrType().equals(((IRPointerType) lValIrValue.getIrType()).getElement_type())) {
             if (irValue.getIrType().equals(IRIntType.intType)) {
@@ -773,6 +786,7 @@ public class IRBuilder {
         if (type instanceof IRIntType) {
             irConst = new IRConstInt(value);
         } else if (type instanceof IRCharType) {
+            value %= 128;
             irConst = new IRConstChar(value);
         }
         /* store对应的内存位置在这里是lValIrValue */

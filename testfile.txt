@@ -1,22 +1,6 @@
-const int MAX_SIZE = 10;
-char str[10] = {'3', '\''};
 int main() {
-    int i = 0, ii = 8;
-
-    i = getint();
-    int arr[10];
-
-    {
-        const int arr[20] = {3, 2, 1};
-        int sum = 0, i = 0;
-        {
-            for (; i < MAX_SIZE; i = i + 1) {
-                if (i < 3) {
-                    // 下面是产生问题的代码
-                    sum = sum + arr[i];
-                }
-            }
-        }
-    }
+    int a[1] = { 100 };
+    int b[1] = { a[0] / 3 };
+    printf("%d\n", b[0]);
     return 0;
 }

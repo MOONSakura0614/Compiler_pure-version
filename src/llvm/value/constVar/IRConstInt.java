@@ -36,8 +36,7 @@ public class IRConstInt extends IRConst {
         return "i32 " + val;
     }
 
-    public static void main(String[] args) {
-        System.out.println(new IRConstInt(10));
+    public void toCharAssignVal() {
+        this.val = val % 128;
     }
-
 }

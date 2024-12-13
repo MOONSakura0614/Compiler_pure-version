@@ -2,6 +2,7 @@ package llvm.value.instruction.memory;
 
 import llvm.IRGenerator;
 import llvm.type.IRArrayType;
+import llvm.type.IRIntType;
 import llvm.type.IRPointerType;
 import llvm.type.IRType;
 import llvm.value.IRGlobalVar;
@@ -201,12 +202,17 @@ public class GEPInst extends Instruction {
         }*/
         if (!(array_pointer instanceof LoadInst)) {
             /* todo: 疑似不是指针的就是代表原始数组（全局或者局部alloca的）==>不是形参指针load出来的都要有最前面的i32基准 */
-            s.append(elementType).append(" 0, "); // 如i32 0或者i8 0的第一个默认indice，偏移基准
+//            s.append(elementType).append(" 0, ");
+            // TODO: 2024/12/13 偏移只能都是i32
+            s.append(IRIntType.intType).append(" 0, "); // 如i32 0或者i8 0的第一个默认indice，偏移基准
         }
         if (indice != -1) {
-            s.append(elementType).append(" ").append(indice); // 自身偏移取值（只有一维数组，就不冗余实现List<Int> indices了
+//            s.append(elementType).append(" ").append(indice); // 自身偏移取值（只有一维数组，就不冗余实现List<Int> indices了
+            s.append(IRIntType.intType).append(" ").append(indice);
         } else {
-            s.append(elementType).append(" ").append(indice_reg.getName());
+            // indice_reg需要保证是i32，在外面可以需先convInst
+//            s.append(elementType).append(" ").append(indice_reg.getName());
+            s.append(IRIntType.intType).append(" ").append(indice_reg.getName());
         }
         return s.toString();
     }
