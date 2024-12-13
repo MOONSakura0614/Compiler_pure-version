@@ -166,7 +166,9 @@ public class ConstInitVal extends SyntaxNode {
 
     public ArrayList<ConstExp> getInitConstExps() {
         ArrayList<ConstExp> constExps = new ArrayList<>();
-        constExps.add(constExp);
+        if (constExp != null) {
+            constExps.add(constExp);
+        }
         for (Comma_ConstExp comma_constExp: comma_constExp_list) {
             constExps.add(comma_constExp.constExp);
         }
@@ -175,6 +177,11 @@ public class ConstInitVal extends SyntaxNode {
 
     public int[] getArrayValue(int length) { // 初始化的值不一定满足length，其他元素默认初始化为0
         int[] res = new int[length]; // 其他应该默认为0
+        if (isStringInit) {
+            // todo:StringCon————这边很奇怪，正常intArray应该是不会用“”赋值的，所以这个if应该不会被触发
+//            System.out.println(string_const_token.getTokenValue());
+            return IRConstString.convertStrToAscii(getString(), length);
+        }
         ArrayList<ConstExp> constExps = getInitConstExps();
         int i;
         for (i = 0; i < constExps.size(); i++) {
@@ -186,8 +193,8 @@ public class ConstInitVal extends SyntaxNode {
     public int[] getArrayCharValue(int length) { // 字符数组，不超过128（计算过程i32，结构i8
         int[] res = new int[length]; // 其他应该默认为0
         if (isStringInit) {
-            // todo:StringCon待实现
-            System.out.println(getString());
+            // todo:StringCon
+//            System.out.println(getString());
             return IRConstString.convertStrToAscii(getString(), length);
         }
         ArrayList<ConstExp> constExps = getInitConstExps();

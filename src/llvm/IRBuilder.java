@@ -799,6 +799,10 @@ public class IRBuilder {
         /*if (curBlock.getLastInst() instanceof BrInst) {
             return;
         }*/
+        if (!(condInst instanceof IcmpInst)) {
+            /* 条件判断的非条件值问题：如果是计算得到的结果需要和0比较 */
+            condInst = (IcmpInst) builder.buildIcmpInst(condInst, Operator.Ne, IRConstInt.zeroConstInt); // 再比较一次
+        }
         brInst = new BrInst(curBlock, branchBlock, isLAnd, condInst);
 //        curBlock.addInst(brInst);
     }
@@ -812,7 +816,8 @@ public class IRBuilder {
         // icmp允许%10 = icmp sgt i32 %9, 0 和常数比较，所以不需要非得是binaryInst的虚拟寄存器名称
         IRValue irValue = buildAddExp(addExp); // build的时候加入过基本块了
         // 注意传过来的tmp是否为i32类型，可能是IcmpInst relOp addExp（所以要类型转化）
-        if (tmp.getIrType() instanceof IRBoolType) {
+//        if (tmp.getIrType() instanceof IRBoolType) {
+        if (!(tmp.getIrType() instanceof IRIntType)) {
             tmp = buildConvInst(Operator.Zext, tmp);
         }
         if (!(irValue.getIrType() instanceof IRIntType)) {
@@ -825,10 +830,11 @@ public class IRBuilder {
     }
 
     public IRValue buildIcmpInst(IRValue tmp, Operator eqOp, IRValue rel) {
-        if (tmp.getIrType() instanceof IRBoolType) {
+        /* 改成变成i32统一比较 */
+        if ((tmp.getIrType() instanceof IRBoolType) || (tmp.getIrType() instanceof IRCharType)) {
             tmp = buildConvInst(Operator.Zext, tmp);
         }
-        if (rel.getIrType() instanceof IRBoolType) {
+        if ((rel.getIrType() instanceof IRBoolType) || (rel.getIrType() instanceof IRCharType)) {
             rel = buildConvInst(Operator.Zext, rel);
         }
         icmpInst = new IcmpInst(eqOp, tmp, rel); // 两个i32得到一个i1的结果

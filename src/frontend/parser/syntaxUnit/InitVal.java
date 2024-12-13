@@ -182,6 +182,9 @@ public class InitVal extends SyntaxNode {
 
     public ArrayList<Exp> getInitExps() {
         ArrayList<Exp> exps = new ArrayList<>();
+        if (exp != null) {
+            exps.add(exp);
+        }
         exps.add(exp);
         for (Comma_Exp comma_exp: comma_exp_list) {
             exps.add(comma_exp.exp);
@@ -191,6 +194,11 @@ public class InitVal extends SyntaxNode {
 
     public int[] getArrayValue(int len) {
         int[] res = new int[len]; // 其他应该默认为0
+        if (isStringInit) {
+            // todo:StringCon————这边很奇怪，正常intArray应该是不会用“”赋值的，所以这个if应该不会被触发
+//            System.out.println(string_const_token.getTokenValue());
+            return IRConstString.convertStrToAscii(getString(), len);
+        }
         ArrayList<Exp> exps = getInitExps(); // 调用这个方法的只有能求出初始化值的！（比如局部常量数组，或者全局
         int i;
         for (i = 0; i < exps.size(); i++) {
@@ -203,7 +211,7 @@ public class InitVal extends SyntaxNode {
         int[] res = new int[len]; // 其他应该默认为0
         if (isStringInit) {
             // todo:StringCon待实现
-            System.out.println(string_const_token.getTokenValue());
+//            System.out.println(string_const_token.getTokenValue());
             return IRConstString.convertStrToAscii(getString(), len);
         }
         ArrayList<Exp> exps = getInitExps(); // 调用这个方法的只有能求出初始化值的！（比如局部常量数组，或者全局
