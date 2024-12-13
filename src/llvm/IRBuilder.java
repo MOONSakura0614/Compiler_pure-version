@@ -922,16 +922,20 @@ public class IRBuilder {
             }
             return;
         }
+        GEPInst tmpGep;
         if (initVal.getArrayInit()) {
             ArrayList<Exp> exps = initVal.getInitExps();
             for (int i = 0; i < exps.size(); i++) {
                 // 按序初始化赋值数组元素
                 // 首先获取要赋值的数组元素的指针
                 gepInst = buildGEPInst(allocaInst, i);
+                tmpGep = gepInst;
                 // 获取对应元素的irValue，处理exp
                 value = buildExp(exps.get(i)); // 如果exp是数组元素
                 // 赋值
-                buildStoreInst(value, gepInst);
+                /* todo: 如果a[1]=b[2]那么在buildExp的过程中会更改上面的gepInst */ // 还是老生常谈的不要省事写全局的成员变量用啊
+                // TODO: 2024/12/13 考前查一遍所有用了成员变量，下面又visit跳到其他函数，函数结束后又拐回来使用这个成员变量的 【最好统统方法内部tmp一个！
+                buildStoreInst(value, tmpGep);
             }
         }
     }
@@ -980,6 +984,7 @@ public class IRBuilder {
             return;
         }
         Symbol tmpSym = cur_ir_symTable.findInCurSymTable(constArrayName);
+        GEPInst tmpGep;
         if (constInitVal.getArrayInit()) {
             ArrayList<ConstExp> exps = constInitVal.getInitConstExps();
             int size = exps.size(); // 初始化用到的元素（不一定整个数组都赋值了，也可能初始化为全0呢）
@@ -987,10 +992,11 @@ public class IRBuilder {
                 // 按序初始化赋值数组元素
                 // 首先获取要赋值的数组元素的指针
                 gepInst = buildGEPInst(allocaInst, i);
+                tmpGep = gepInst;
                 // 获取对应元素的irValue，处理exp
                 value = buildConstInt(tmpSym.getArrayElementValueByIndex(i));
                 // 赋值
-                buildStoreInst(value, gepInst);
+                buildStoreInst(value, tmpGep);
             }
         }
     }

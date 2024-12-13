@@ -19,6 +19,7 @@ public class BrInst extends Instruction {
 
     public BrInst(IRBasicBlock curBasicBlock, IRBasicBlock trueBasicBlock, IRBasicBlock falseBasicBlock, IRValue icmpInst) {
         condRes = icmpInst;
+        isUncondJump = Boolean.FALSE;
         trueBlock = trueBasicBlock;
         falseBlock = falseBasicBlock;
         // 添加跳转语句
@@ -27,6 +28,7 @@ public class BrInst extends Instruction {
 
     public BrInst(IRBasicBlock curBasicBlock, IRBasicBlock notShortCircuitBB, boolean isLAnd, IRValue icmpInst) {
         condRes = icmpInst;
+        isUncondJump = Boolean.FALSE;
         if (isLAnd) {
             trueBlock = notShortCircuitBB; // &&中为假才能短路
         } else {

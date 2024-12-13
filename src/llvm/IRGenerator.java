@@ -644,7 +644,7 @@ public class IRGenerator {
 //            lAndBB.add(visitEqExp(lAndExp.getEqExp()));
             // 为真跳到if，为假跳到else【或者是||后的】
             // 【都会new一次block代表下一个判断语句或者是if】
-            newBasicBlock(); // 给下面要跳转的
+            newBasicBlock(); // 给下面要跳转的 tmpB-->curB
             builder.buildBrInst(tmpBlock, cur_basicBlock, true, condInst); // 最后一个EqExp所在的最后一条跳转语句
         } else {
             // 为真才跳到下一个EqExp（就是分析第二个开始的Exp之前都要newBB，第一个EqExp结束的时候就有br）
@@ -729,7 +729,8 @@ public class IRGenerator {
         IcmpInst icmpInst;
         // Add->Mul->Unary(CallInst函数调用；UnaryInst正负号开头；Primary[LVal左值，ConstInt])
 //        if (cond instanceof IRConstInt) {
-        if (!(cond instanceof BinaryInst)) {
+//        if (!(cond instanceof BinaryInst)) {
+        if (!(cond instanceof IcmpInst)) {
             // 等于0为false
             /* test 为啥IcmpInst的left是null */
 //            System.out.println("in dealWithConstIntInCond: " + (cond == null));
