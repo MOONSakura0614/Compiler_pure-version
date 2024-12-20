@@ -284,6 +284,7 @@ public class Lexer {
                 isLexicalCorrect = false;
                 CompileError error = new CompileError(lineNum, ErrorType.IllegalSymbol);
                 errorList.add(error);
+                IOUtils.compileErrors.add(error);
             }
             lexType = LexType.OR;
         } else if (currentSym == '!') {
