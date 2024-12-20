@@ -129,14 +129,36 @@ public class UnaryExp extends SyntaxNode {
                     // TODO: 2024/10/26 如果遇到调用符号，结果符号类型不是函数
                     return;
                 }
-                if (funcSym instanceof FuncSymbol) {
-                    ((FuncSymbol) funcSym).paramsMatch(funcRParams, ident_token.getLineNum());
-                }
-                // 判断实参与形参的对应
-                /*上面在FuncSym内部判断参数对应关系，下面单独判断符号未定义*/
+                // todo 前移实参检查到前面，这里的funcRParam主要是Exp，查Exp主要是看是否有未定义；但是里面有可能出现层层函数嵌套
+                //  (里面的函数嵌套的类型又错的话，至少会保证外面的返回类型匹配吧——因为只能有一个错误
                 if (funcRParams != null)
                     // 而且传入的实参是Exp形式，有可能是单独Ident也可能是其他
                     funcRParams.visit();
+                if (funcSym instanceof FuncSymbol) {
+                    // TODO: Error-Handler 需要考虑实参表中的未定义情况 ___ 而且一行只会出现一个错误，
+                    //  所以这边是否可以认为函数调用只会在一行，且要么出现未定义的变量使用，要么是类型不匹配，要么是数量
+                    /*if (ErrorHandler.handleFuncRParamsUndefinedProb(funcRParams, ident_token.getLineNum())) {
+                        // 没有把下面的visit直接往前移的原因：visit方法已经固定成void递归了，比较难改动；
+                        // 这边在错误处理中新增一个处理函数调用时使用的实参未定义的，如果确定出现这种可能，就直接返回，不进行下面的判断
+                        // 或者直接用当前compileError的最后一个的lineNum是不是好了……
+                        return;
+                    }*/
+                    if (IOUtils.compileErrors.get(IOUtils.compileErrors.size() - 1).getLineNum() == ident_token.getLineNum()) {
+                        return; // 本行已经发生错误
+                    }
+
+                    // 判断实参与形参的对应
+                    ((FuncSymbol) funcSym).paramsMatch(funcRParams, ident_token.getLineNum());
+                }
+                /*上面在FuncSym内部判断参数对应关系，下面单独判断符号未定义*/
+                /*if (funcRParams != null)
+                    // 而且传入的实参是Exp形式，有可能是单独Ident也可能是其他
+                    funcRParams.visit();*/
+            }
+        } else {
+            if (unaryExp != null) {
+                // UnaryOp UnaryExp的情况也要处理语义，查看是否有错误
+                unaryExp.visit();
             }
         }
     }

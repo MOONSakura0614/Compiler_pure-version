@@ -119,6 +119,9 @@ public class LVal extends SyntaxNode {
             return false; // 虽然是符号表中的数组名，但是没有用整个数组传参，只有数组元素
 
         Symbol symbol = Visitor.curTable.findInCurSymTable(ident_token.getTokenValue());
+//        System.out.println(ident_token.getTokenValue()); // 测出是未定义的，而且在实参中使用的出错
+        // todo: C Type ErrorHandler 错误原因疑似是在遇到调用函数的ident，直接取分析后面的实参里的对应情况，但是没有考虑实参可能未定义
+        //  【未定义，显然没进过符号表，贸然使用这个函数会触发Null Pointer
         return symbol.getIsArray();
     }
 
