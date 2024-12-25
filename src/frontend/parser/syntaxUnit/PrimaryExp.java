@@ -209,4 +209,23 @@ public class PrimaryExp extends SyntaxNode {
     public Character_comp getCharacter() {
         return character;
     }
+
+    public boolean isUndefinedIdent() {
+        if (isLVal) {
+            // 判断左值
+            if (lVal != null) {
+                return lVal.isUndefinedIdent();
+            } else {
+                return false;
+            }
+        } else if (isParent) {
+            if (exp != null) {
+                return exp.isUndefinedIdent();
+            } else {
+                return false;
+            }
+        } else {
+            return false; // 字符常量和数字常量，不会出现没定义的情况
+        }
+    }
 }

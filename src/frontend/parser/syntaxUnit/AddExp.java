@@ -110,6 +110,25 @@ public class AddExp extends SyntaxNode {
         return res;
     }
 
+    public boolean isUndefinedIdent() {
+        if (addOp_mulExp_list.isEmpty()) {
+            if (mulExp != null) {
+                return mulExp.isUndefinedIdent();
+            }
+            return false;
+        } else {
+            if (mulExp.isUndefinedIdent()) {
+                return true;
+            }
+            for (AddOp_MulExp addOp_mulExp: addOp_mulExp_list) {
+                if (addOp_mulExp.mulExp.isUndefinedIdent()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
     public class AddOp_MulExp {
         Token addOp_token;
         MulExp mulExp;

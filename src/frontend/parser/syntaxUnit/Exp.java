@@ -67,4 +67,11 @@ public class Exp extends SyntaxNode {
     public AddExp getAddExp() {
         return addExp;
     }
+
+    public boolean isUndefinedIdent() {
+        if (addExp != null) {
+            return addExp.isUndefinedIdent();
+        }
+        return false;
+    }
 }

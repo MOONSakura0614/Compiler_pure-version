@@ -110,6 +110,25 @@ public class MulExp extends SyntaxNode {
         return res;
     }
 
+    public boolean isUndefinedIdent() {
+        if (mulOp_unaryExp_list.isEmpty()) {
+            if (unaryExp != null) {
+                return unaryExp.isUndefinedIdent();
+            }
+            return false;
+        } else {
+            if (unaryExp.isUndefinedIdent()) {
+                return true;
+            }
+            for (MulOp_UnaryExp mulOp_unaryExp: mulOp_unaryExp_list) {
+                if (mulOp_unaryExp.unaryExp.isUndefinedIdent()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
     public class MulOp_UnaryExp {
         Token mulOp_token;
         UnaryExp unaryExp;

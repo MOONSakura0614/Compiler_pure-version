@@ -11,6 +11,8 @@ import frontend.visitor.Visitor;
 import llvm.IRGenerator;
 import utils.IOUtils;
 
+import javax.swing.plaf.nimbus.NimbusLookAndFeel;
+
 import static frontend.parser.Parser.lexIterator;
 
 /**
@@ -92,6 +94,11 @@ public class LVal extends SyntaxNode {
         } else {
             ident_symbol = symbol;
         }
+
+        // todo: LVal可能是数组，exp中也会出现未定义情况
+        if (exp != null) {
+            exp.visit();
+        }
     }
 
     public void handleConstAssignError() {
@@ -122,6 +129,10 @@ public class LVal extends SyntaxNode {
 //        System.out.println(ident_token.getTokenValue()); // 测出是未定义的，而且在实参中使用的出错
         // todo: C Type ErrorHandler 错误原因疑似是在遇到调用函数的ident，直接取分析后面的实参里的对应情况，但是没有考虑实参可能未定义
         //  【未定义，显然没进过符号表，贸然使用这个函数会触发Null Pointer
+//        ErrorHandler.undefineErrorHandle(); // 这里不清楚调用的lineNum
+        if (symbol == null) {
+            return false;
+        }
         return symbol.getIsArray();
     }
 
@@ -170,5 +181,10 @@ public class LVal extends SyntaxNode {
 
     public Exp getExp() {
         return exp;
+    }
+
+    public boolean isUndefinedIdent() {
+        Symbol symbol = Visitor.curTable.findInCurSymTable(ident_token.getTokenValue());
+        return symbol == null;
     }
 }

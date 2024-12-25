@@ -102,11 +102,16 @@ public class IOUtils {
     public static void writeError() {
         // 错误是按照行号从小到大输出
         Collections.sort(compileErrors);
+        System.out.println(compileErrors);
+
+        compileErrors = clearifyError(compileErrors);
+        System.out.println(compileErrors);
 
         try {
             FileWriter fileWriter = new FileWriter("error.txt",true);
             if (!compileErrors.isEmpty()) {
                 for (CompileError error: compileErrors) {
+                    System.out.println(error);
                     fileWriter.write(error.toString());
                 }
             }
@@ -116,6 +121,24 @@ public class IOUtils {
             throw new RuntimeException(e);
         }
     }
+
+    private static ArrayList<CompileError> clearifyError(ArrayList<CompileError> compileErrors) {
+        ArrayList<CompileError> errors = new ArrayList<>();
+        if (compileErrors.isEmpty()) {
+            return errors;
+        }
+        CompileError tmp = compileErrors.get(0);
+        errors.add(tmp);
+        for (int i = 1; i < compileErrors.size(); i++) {
+            if (tmp.getLineNum() != compileErrors.get(i).getLineNum()) {
+                tmp = compileErrors.get(i);
+                errors.add(tmp);
+            }
+        }
+
+        return errors;
+    }
+
 
     public static void main(String[] args) throws IOException {
         String testString = IOUtils.read("D:\\YUE\\JCode\\JavaCompiler\\src\\file\\testfile.txt");

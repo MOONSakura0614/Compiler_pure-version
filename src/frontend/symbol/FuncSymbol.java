@@ -84,7 +84,12 @@ public class FuncSymbol extends Symbol {
             }
             exp = exps.get(i);
             // 逐个检查形参类型，进行一一对应
+            // TODO: 2024/12/23  函数实参未定义检查
             if (funcFParam.getIsArray()) {
+                if (exp.isUndefinedIdent()) {
+                    ErrorHandler.undefineErrorHandle(funcCallLine);
+                    return;
+                }
                 // 普通Exp应该只能代表单变量，array型无法代表;所以想要是array，必定是符号表中的ident（zy猜想
                 if (!exp.isIdentArray()) {
                     ErrorHandler.funcParamsTypeErrorHandle(funcCallLine);
@@ -112,6 +117,11 @@ public class FuncSymbol extends Symbol {
                 if (exp.isIdentArray()) {
                     ErrorHandler.funcParamsTypeErrorHandle(funcCallLine);
                     return;
+                } else {
+                    if (exp.isUndefinedIdent()) {
+                        ErrorHandler.undefineErrorHandle(funcCallLine);
+                        return;
+                    }
                 }
             }
             i++;
